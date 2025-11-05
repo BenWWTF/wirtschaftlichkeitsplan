@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  @apply border-neutral-200 dark:border-neutral-800;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-50 transition-colors duration-300;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-neutral-100 dark:bg-neutral-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-neutral-300 dark:bg-neutral-700 rounded-full hover:bg-neutral-400 dark:hover:bg-neutral-600;
+}
+
+/* Focus ring for keyboard navigation */
+*:focus-visible {
+  @apply outline-none ring-2 ring-primary-500 ring-offset-2 dark:ring-offset-neutral-950;
+}
+
+/* Smooth transitions */
+@layer components {
+  .transition-smooth {
+    @apply transition-all duration-200 ease-out;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}

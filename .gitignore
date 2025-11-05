@@ -1,0 +1,56 @@
+# Dependencies
+node_modules
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.production.local
+
+# Build outputs
+.next
+dist
+build
+*.tsbuildinfo
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+.env.example
+
+# Testing
+coverage
+.nyc_output
+*.lcov
+
+# Logs
+npm-debug.log
+pnpm-debug.log
+yarn-debug.log
+lerna-debug.log
+
+# System
+Thumbs.db
+.thumbs
+
+# OS
+.AppleDouble
+.LSOverride
+
+# TypeScript
+*.d.ts
+
+# Next.js
+.next/
+out/
+
+# Temporary files
+tmp/
+temp/

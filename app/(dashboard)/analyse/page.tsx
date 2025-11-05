@@ -1,0 +1,28 @@
+import { redirect } from 'next/navigation'
+import { getUser } from '@/lib/actions/auth'
+import { getBreakEvenAnalysis } from '@/lib/actions/analysis'
+import { AnalysisView } from '@/components/dashboard/analysis-view'
+
+export const metadata = {
+  title: 'Break-Even Analyse - Wirtschaftlichkeitsplan',
+  description: 'Analysieren Sie Ihre Rentabilität und Break-Even-Punkt'
+}
+
+export default async function AnalysePage() {
+  // Check authentication
+  const user = await getUser()
+  if (!user) {
+    redirect('/login')
+  }
+
+  // Load break-even data
+  const breakEvenData = await getBreakEvenAnalysis()
+
+  return (
+    <main className="min-h-screen bg-white dark:bg-neutral-950">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <AnalysisView therapies={breakEvenData} />
+      </div>
+    </main>
+  )
+}
