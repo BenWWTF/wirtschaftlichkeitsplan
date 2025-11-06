@@ -1,5 +1,3 @@
-import { redirect } from 'next/navigation'
-import { getUser } from '@/lib/actions/auth'
 import { getTherapies } from '@/lib/actions/therapies'
 import { TherapyList } from '@/components/dashboard/therapy-list'
 
@@ -9,12 +7,6 @@ export const metadata = {
 }
 
 export default async function TherapienPage() {
-  // Check authentication
-  const user = await getUser()
-  if (!user) {
-    redirect('/login')
-  }
-
   // Load therapies
   const therapies = await getTherapies()
 

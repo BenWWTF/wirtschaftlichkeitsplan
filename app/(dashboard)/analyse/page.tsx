@@ -1,5 +1,3 @@
-import { redirect } from 'next/navigation'
-import { getUser } from '@/lib/actions/auth'
 import { getBreakEvenAnalysis } from '@/lib/actions/analysis'
 import { AnalysisView } from '@/components/dashboard/analysis-view'
 
@@ -9,12 +7,6 @@ export const metadata = {
 }
 
 export default async function AnalysePage() {
-  // Check authentication
-  const user = await getUser()
-  if (!user) {
-    redirect('/login')
-  }
-
   // Load break-even data
   const breakEvenData = await getBreakEvenAnalysis()
 

@@ -1,5 +1,3 @@
-import { redirect } from 'next/navigation'
-import { getUser } from '@/lib/actions/auth'
 import {
   getMonthlyMetricsRange,
   getTherapyMetrics,
@@ -13,12 +11,6 @@ export const metadata = {
 }
 
 export default async function BerichtePage() {
-  // Check authentication
-  const user = await getUser()
-  if (!user) {
-    redirect('/login')
-  }
-
   // Get date range for last 12 months
   const now = new Date()
   const startDate = new Date(now.getFullYear() - 1, now.getMonth(), 1)
