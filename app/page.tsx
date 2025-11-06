@@ -1,16 +1,6 @@
 import Link from 'next/link'
-import { createClient } from '@/utils/supabase/server'
-import { redirect } from 'next/navigation'
 
-export default async function Home() {
-  const supabase = await createClient()
-  const { data } = await supabase.auth.getUser()
-
-  // Redirect to dashboard if already logged in
-  if (data?.user) {
-    redirect('/dashboard')
-  }
-
+export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-900 dark:to-neutral-950">
       {/* Navigation */}
@@ -24,16 +14,10 @@ export default async function Home() {
           </div>
           <div className="flex items-center gap-4">
             <Link
-              href="/login"
-              className="px-4 py-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
-            >
-              Anmelden
-            </Link>
-            <Link
-              href="/signup"
+              href="/dashboard"
               className="px-4 py-2 text-sm font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
             >
-              Kostenlos Starten
+              Zum Tool
             </Link>
           </div>
         </div>
@@ -49,22 +33,22 @@ export default async function Home() {
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
-            href="/signup"
+            href="/dashboard"
             className="px-8 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
           >
-            Jetzt Starten
+            Jetzt Starten – Kostenlos
           </Link>
           <Link
-            href="/login"
+            href="#features"
             className="px-8 py-3 border border-neutral-300 dark:border-neutral-600 text-neutral-900 dark:text-white font-medium rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
           >
-            Anmelden
+            Mehr erfahren
           </Link>
         </div>
       </div>
 
       {/* Features */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div id="features" className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid md:grid-cols-3 gap-8">
           <div className="p-6 bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-700">
             <div className="text-3xl mb-4">🏥</div>

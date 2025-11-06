@@ -1,31 +1,31 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
-import { getUser } from '@/lib/actions/auth'
 
 export const metadata = {
   title: 'Dashboard - Wirtschaftlichkeitsplan',
   description: 'Ihr Financial Planning Dashboard'
 }
 
-export default async function DashboardPage() {
-  const user = await getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
+export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-white dark:bg-neutral-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="space-y-8">
           {/* Header */}
-          <div>
-            <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
-              Willkommen, {user.email}!
-            </h1>
-            <p className="text-neutral-600 dark:text-neutral-400 mt-2">
-              Willkommen in Ihrem Financial Planning Dashboard
-            </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
+                Wirtschaftlichkeitsplan Tool
+              </h1>
+              <p className="text-neutral-600 dark:text-neutral-400 mt-2">
+                Kostenlos nutzbar – Keine Registrierung erforderlich
+              </p>
+            </div>
+            <Link
+              href="/"
+              className="px-4 py-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
+            >
+              ← Zurück
+            </Link>
           </div>
 
           {/* Quick Actions */}
