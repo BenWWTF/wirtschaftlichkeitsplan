@@ -11,11 +11,8 @@ import type { TherapyType } from '@/lib/types'
 export async function createTherapyAction(input: TherapyTypeInput) {
   const supabase = await createClient()
 
-  // Get current user
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  if (userError || !user) {
-    return { error: 'Authentifizierung erforderlich' }
-  }
+  // Use demo/default user ID for public access (no authentication required)
+  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
 
   // Validate input
   try {
@@ -25,7 +22,7 @@ export async function createTherapyAction(input: TherapyTypeInput) {
     const { data, error } = await supabase
       .from('therapy_types')
       .insert({
-        user_id: user.id,
+        user_id: DEMO_USER_ID,
         name: validated.name,
         price_per_session: validated.price_per_session,
         variable_cost_per_session: validated.variable_cost_per_session
@@ -58,11 +55,8 @@ export async function updateTherapyAction(
 ) {
   const supabase = await createClient()
 
-  // Get current user
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  if (userError || !user) {
-    return { error: 'Authentifizierung erforderlich' }
-  }
+  // Use demo/default user ID for public access (no authentication required)
+  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
 
   try {
     const validated = TherapyTypeSchema.parse(input)
@@ -77,7 +71,7 @@ export async function updateTherapyAction(
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
-      .eq('user_id', user.id) // Ensure user owns this
+      .eq('user_id', DEMO_USER_ID)
       .select()
 
     if (error) {
@@ -107,11 +101,8 @@ export async function updateTherapyAction(
 export async function deleteTherapyAction(id: string) {
   const supabase = await createClient()
 
-  // Get current user
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  if (userError || !user) {
-    return { error: 'Authentifizierung erforderlich' }
-  }
+  // Use demo/default user ID for public access (no authentication required)
+  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
 
   try {
     // Delete from database
@@ -119,7 +110,7 @@ export async function deleteTherapyAction(id: string) {
       .from('therapy_types')
       .delete()
       .eq('id', id)
-      .eq('user_id', user.id) // Ensure user owns this
+      .eq('user_id', DEMO_USER_ID)
 
     if (error) {
       console.error('Database error:', error)
@@ -144,15 +135,13 @@ export async function deleteTherapyAction(id: string) {
 export async function getTherapies(): Promise<TherapyType[]> {
   const supabase = await createClient()
 
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  if (userError || !user) {
-    return []
-  }
+  // Use demo/default user ID for public access (no authentication required)
+  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
 
   const { data, error } = await supabase
     .from('therapy_types')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', DEMO_USER_ID)
     .order('created_at', { ascending: false })
 
   if (error) {

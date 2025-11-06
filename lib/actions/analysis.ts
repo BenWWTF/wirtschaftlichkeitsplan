@@ -30,15 +30,13 @@ interface BreakEvenSummary {
 export async function getBreakEvenAnalysis(): Promise<BreakEvenAnalysis[]> {
   const supabase = await createClient()
 
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  if (userError || !user) {
-    return []
-  }
+  // Use demo/default user ID for public access (no authentication required)
+  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
 
   const { data, error } = await supabase
     .from('therapy_types')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', DEMO_USER_ID)
     .order('created_at', { ascending: true })
 
   if (error) {
@@ -67,16 +65,14 @@ export async function getBreakEvenAnalysis(): Promise<BreakEvenAnalysis[]> {
 export async function getMonthlyExpenses(month?: string): Promise<number> {
   const supabase = await createClient()
 
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  if (userError || !user) {
-    return 0
-  }
+  // Use demo/default user ID for public access (no authentication required)
+  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
 
   // Get all expenses
   const { data, error } = await supabase
     .from('expenses')
     .select('amount, is_recurring, recurrence_interval, expense_date')
-    .eq('user_id', user.id)
+    .eq('user_id', DEMO_USER_ID)
 
   if (error) {
     console.error('Error fetching expenses:', error)
@@ -143,16 +139,14 @@ export async function getAverageSessionsPerTherapy(month?: string): Promise<
 > {
   const supabase = await createClient()
 
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  if (userError || !user) {
-    return {}
-  }
+  // Use demo/default user ID for public access (no authentication required)
+  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
 
   // Get monthly plans
   const { data, error } = await supabase
     .from('monthly_plans')
     .select('therapy_type_id, planned_sessions, actual_sessions')
-    .eq('user_id', user.id)
+    .eq('user_id', DEMO_USER_ID)
 
   if (error) {
     console.error('Error fetching monthly plans:', error)

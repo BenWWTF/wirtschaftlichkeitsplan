@@ -11,11 +11,8 @@ import type { MonthlyPlan } from '@/lib/types'
 export async function upsertMonthlyPlanAction(input: MonthlyPlanInput) {
   const supabase = await createClient()
 
-  // Get current user
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  if (userError || !user) {
-    return { error: 'Authentifizierung erforderlich' }
-  }
+  // Use demo/default user ID for public access (no authentication required)
+  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
 
   try {
     const validated = MonthlyPlanSchema.parse(input)
@@ -25,7 +22,7 @@ export async function upsertMonthlyPlanAction(input: MonthlyPlanInput) {
       .from('therapy_types')
       .select('id')
       .eq('id', validated.therapy_type_id)
-      .eq('user_id', user.id)
+      .eq('user_id', DEMO_USER_ID)
       .single()
 
     if (therapyError || !therapy) {
@@ -38,7 +35,7 @@ export async function upsertMonthlyPlanAction(input: MonthlyPlanInput) {
       .select('id')
       .eq('therapy_type_id', validated.therapy_type_id)
       .eq('month', validated.month)
-      .eq('user_id', user.id)
+      .eq('user_id', DEMO_USER_ID)
       .single()
 
     let data, error
@@ -54,7 +51,7 @@ export async function upsertMonthlyPlanAction(input: MonthlyPlanInput) {
           updated_at: new Date().toISOString()
         })
         .eq('id', existing.id)
-        .eq('user_id', user.id)
+        .eq('user_id', DEMO_USER_ID)
         .select()
 
       data = result.data
@@ -64,7 +61,7 @@ export async function upsertMonthlyPlanAction(input: MonthlyPlanInput) {
       const result = await supabase
         .from('monthly_plans')
         .insert({
-          user_id: user.id,
+          user_id: DEMO_USER_ID,
           therapy_type_id: validated.therapy_type_id,
           month: validated.month,
           planned_sessions: validated.planned_sessions,
@@ -100,15 +97,13 @@ export async function upsertMonthlyPlanAction(input: MonthlyPlanInput) {
 export async function getMonthlyPlans(month: string): Promise<MonthlyPlan[]> {
   const supabase = await createClient()
 
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  if (userError || !user) {
-    return []
-  }
+  // Use demo/default user ID for public access (no authentication required)
+  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
 
   const { data, error } = await supabase
     .from('monthly_plans')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', DEMO_USER_ID)
     .eq('month', month)
     .order('created_at', { ascending: true })
 
@@ -126,10 +121,8 @@ export async function getMonthlyPlans(month: string): Promise<MonthlyPlan[]> {
 export async function getMonthlyPlansWithTherapies(month: string) {
   const supabase = await createClient()
 
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  if (userError || !user) {
-    return []
-  }
+  // Use demo/default user ID for public access (no authentication required)
+  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
 
   const { data, error } = await supabase
     .from('monthly_plans')
@@ -142,7 +135,7 @@ export async function getMonthlyPlansWithTherapies(month: string) {
         variable_cost_per_session
       )
     `)
-    .eq('user_id', user.id)
+    .eq('user_id', DEMO_USER_ID)
     .eq('month', month)
     .order('created_at', { ascending: true })
 
@@ -160,11 +153,8 @@ export async function getMonthlyPlansWithTherapies(month: string) {
 export async function deleteMonthlyPlanAction(id: string) {
   const supabase = await createClient()
 
-  // Get current user
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  if (userError || !user) {
-    return { error: 'Authentifizierung erforderlich' }
-  }
+  // Use demo/default user ID for public access (no authentication required)
+  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
 
   try {
     // Delete from database
@@ -172,7 +162,7 @@ export async function deleteMonthlyPlanAction(id: string) {
       .from('monthly_plans')
       .delete()
       .eq('id', id)
-      .eq('user_id', user.id) // Ensure user owns this
+      .eq('user_id', DEMO_USER_ID)
 
     if (error) {
       console.error('Database error:', error)
