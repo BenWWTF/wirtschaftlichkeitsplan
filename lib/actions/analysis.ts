@@ -31,7 +31,7 @@ export async function getBreakEvenAnalysis(): Promise<BreakEvenAnalysis[]> {
   const supabase = await createClient()
 
   // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
+  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
   const { data, error } = await supabase
     .from('therapy_types')
@@ -66,7 +66,7 @@ export async function getMonthlyExpenses(month?: string): Promise<number> {
   const supabase = await createClient()
 
   // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
+  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
   // Get all expenses
   const { data, error } = await supabase
@@ -140,7 +140,7 @@ export async function getAverageSessionsPerTherapy(month?: string): Promise<
   const supabase = await createClient()
 
   // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
+  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
   // Get monthly plans
   const { data, error } = await supabase
@@ -299,4 +299,84 @@ export async function getBreakEvenReport(month?: string) {
     average_contribution_margin: avgContributionMargin,
     timestamp: new Date().toISOString()
   }
+}
+
+/**
+ * Get break-even history for multiple months
+ */
+export async function getBreakEvenHistory(
+  monthRange: 'last3' | 'last6' | 'last12' = 'last3',
+  fixedCosts: number = 2000
+) {
+  const supabase = await createClient()
+  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+
+  // Calculate month range
+  const monthsToRetrieve = monthRange === 'last3' ? 3 : monthRange === 'last6' ? 6 : 12
+  const months: string[] = []
+  const today = new Date()
+
+  for (let i = monthsToRetrieve - 1; i >= 0; i--) {
+    const date = new Date(today.getFullYear(), today.getMonth() - i, 1)
+    const monthStr = date.toISOString().slice(0, 7)
+    months.push(monthStr)
+  }
+
+  // Get all therapies
+  const therapies = await getBreakEvenAnalysis()
+
+  // Calculate history for each month
+  const history = []
+
+  for (const month of months) {
+    const monthDate = `${month}-01`
+
+    // Get monthly plans for this month
+    const { data: plans, error: plansError } = await supabase
+      .from('monthly_plans')
+      .select('planned_sessions, actual_sessions')
+      .eq('user_id', DEMO_USER_ID)
+      .eq('month', monthDate)
+
+    if (plansError) {
+      console.error(`Error fetching plans for ${month}:`, plansError)
+      continue
+    }
+
+    // Calculate actual sessions completed (or planned if actual not available)
+    const actualSessions = (plans || []).reduce((sum, plan) => {
+      return sum + (plan.actual_sessions || plan.planned_sessions || 0)
+    }, 0)
+
+    // Calculate average contribution margin
+    const totalContribution = therapies.reduce(
+      (sum, t) => sum + t.contribution_margin,
+      0
+    )
+    const avgContribution =
+      therapies.length > 0 ? totalContribution / therapies.length : 0
+
+    // Sessions needed for break-even
+    const sessionsNeeded =
+      avgContribution > 0 ? Math.ceil(fixedCosts / avgContribution) : 0
+
+    // Profitability status
+    let profitabilityStatus: 'surplus' | 'breakeven' | 'deficit' = 'deficit'
+    if (actualSessions > sessionsNeeded) {
+      profitabilityStatus = 'surplus'
+    } else if (actualSessions === sessionsNeeded) {
+      profitabilityStatus = 'breakeven'
+    }
+
+    history.push({
+      month,
+      sessionsNeeded,
+      actualSessions,
+      averageContributionMargin: avgContribution,
+      profitabilityStatus,
+      surplusDeficit: actualSessions - sessionsNeeded
+    })
+  }
+
+  return history
 }

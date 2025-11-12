@@ -1,113 +1,74 @@
 'use client'
 
 import { useState } from 'react'
-import type { TherapyType } from '@/lib/types'
-import { TherapyDialog } from './therapy-dialog'
-import { TherapyTable } from './therapy-table'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
+import type { TherapyType } from '@/lib/types'
+import { TherapyTable } from './therapy-table'
+import { TherapyDialog } from './therapy-dialog'
+import { deleteTherapyAction } from '@/lib/actions/therapies'
+import { toast } from 'sonner'
 
 interface TherapyListProps {
-  initialTherapies: TherapyType[]
+  therapies: TherapyType[]
 }
 
-export function TherapyList({ initialTherapies }: TherapyListProps) {
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [selectedTherapy, setSelectedTherapy] = useState<TherapyType | null>(
-    null
-  )
+export function TherapyList({ therapies }: TherapyListProps) {
+  const [open, setOpen] = useState(false)
+  const [selectedTherapy, setSelectedTherapy] = useState<TherapyType | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
-  function handleEdit(therapy: TherapyType) {
+  const handleEdit = (therapy: TherapyType) => {
     setSelectedTherapy(therapy)
-    setDialogOpen(true)
+    setOpen(true)
   }
 
-  function handleCreate() {
+  const handleCreate = () => {
     setSelectedTherapy(null)
-    setDialogOpen(true)
+    setOpen(true)
   }
 
-  function handleDialogOpenChange(open: boolean) {
-    setDialogOpen(open)
-    if (!open) {
-      setSelectedTherapy(null)
+  const handleDelete = async (id: string) => {
+    setIsDeleting(true)
+    try {
+      const result = await deleteTherapyAction(id)
+      if (result.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Therapieart erfolgreich gelöscht')
+      }
+    } catch (error) {
+      console.error('Error deleting therapy:', error)
+      toast.error('Fehler beim Löschen der Therapieart')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
-            Therapiearten
-          </h1>
-          <p className="text-neutral-600 dark:text-neutral-400 mt-1">
-            Verwalten Sie Ihre Therapiearten, Preise und Kosten
+          <h1 className="text-3xl font-bold tracking-tight">Therapiearten</h1>
+          <p className="text-muted-foreground mt-1">
+            Verwalten Sie Ihre Therapiearten und deren Preise
           </p>
         </div>
-        <Button onClick={handleCreate} className="gap-2">
-          <Plus className="h-4 w-4" />
+        <Button onClick={handleCreate} size="lg">
+          <Plus className="h-4 w-4 mr-2" />
           Neue Therapieart
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      {initialTherapies.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-4">
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
-              Therapiearten
-            </p>
-            <p className="text-2xl font-bold text-neutral-900 dark:text-white">
-              {initialTherapies.length}
-            </p>
-          </div>
+      <TherapyTable
+        therapies={therapies}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
 
-          <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-4">
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
-              Durchschnittspreis
-            </p>
-            <p className="text-2xl font-bold text-neutral-900 dark:text-white">
-              €{' '}
-              {(
-                initialTherapies.reduce(
-                  (sum, t) => sum + t.price_per_session,
-                  0
-                ) / initialTherapies.length
-              ).toFixed(2)}
-            </p>
-          </div>
-
-          <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-4">
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
-              Durchschnittsmarge
-            </p>
-            <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-              {(
-                (initialTherapies.reduce(
-                  (sum, t) =>
-                    sum +
-                    ((t.price_per_session - t.variable_cost_per_session) /
-                      t.price_per_session) *
-                      100,
-                  0
-                ) /
-                  initialTherapies.length || 0)
-              ).toFixed(1)}
-              %
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Table */}
-      <TherapyTable therapies={initialTherapies} onEdit={handleEdit} />
-
-      {/* Dialog */}
       <TherapyDialog
-        open={dialogOpen}
-        onOpenChange={handleDialogOpenChange}
+        open={open}
+        onOpenChange={setOpen}
         therapy={selectedTherapy}
       />
     </div>

@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { TherapyType } from '@/lib/types'
 import { MonthlyPlanSchema, type MonthlyPlanInput } from '@/lib/validations'
-import { upsertMonthlyPlanAction, getMonthlyPlans } from '@/lib/actions/monthly-plans'
+import { upsertMonthlyPlanAction, getMonthlyPlans, deleteMonthlyPlanAction } from '@/lib/actions/monthly-plans'
 import { formatEuro } from '@/lib/utils'
 import { toast } from 'sonner'
 import { ChevronDown, Check, Trash2 } from 'lucide-react'
@@ -26,6 +26,7 @@ interface PlannerCardProps {
   month: string
   isExpanded: boolean
   onToggleExpand: () => void
+  onRefresh?: () => Promise<void>
 }
 
 interface MonthlyPlanData {
@@ -39,7 +40,8 @@ export function PlannerCard({
   therapy,
   month,
   isExpanded,
-  onToggleExpand
+  onToggleExpand,
+  onRefresh
 }: PlannerCardProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [planData, setPlanData] = useState<MonthlyPlanData | null>(null)
@@ -87,6 +89,39 @@ export function PlannerCard({
       } else {
         toast.success(planData ? 'Plan aktualisiert' : 'Plan erstellt')
         setPlanData(result.data?.[0])
+
+        // Refresh the parent's plan list to update totals
+        if (onRefresh) {
+          await onRefresh()
+        }
+      }
+    } catch (error) {
+      toast.error('Ein Fehler ist aufgetreten')
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  async function onDelete() {
+    if (!planData) return
+    if (!confirm('Möchten Sie diesen Plan wirklich löschen?')) return
+
+    try {
+      setIsLoading(true)
+      const result = await deleteMonthlyPlanAction(planData.id)
+
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Plan gelöscht')
+        setPlanData(null)
+        form.reset()
+
+        // Refresh the parent's plan list to update totals
+        if (onRefresh) {
+          await onRefresh()
+        }
       }
     } catch (error) {
       toast.error('Ein Fehler ist aufgetreten')
@@ -244,6 +279,7 @@ export function PlannerCard({
                     type="button"
                     variant="ghost"
                     disabled={isLoading}
+                    onClick={onDelete}
                     title="Löschen"
                   >
                     <Trash2 className="h-4 w-4 text-red-500" />

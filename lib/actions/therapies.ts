@@ -12,7 +12,7 @@ export async function createTherapyAction(input: TherapyTypeInput) {
   const supabase = await createClient()
 
   // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
+  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
   // Validate input
   try {
@@ -30,8 +30,8 @@ export async function createTherapyAction(input: TherapyTypeInput) {
       .select()
 
     if (error) {
-      console.error('Database error:', error)
-      return { error: 'Fehler beim Speichern. Bitte versuchen Sie es später.' }
+      console.error('Database error:', JSON.stringify(error, null, 2))
+      return { error: `Fehler: ${error.message || 'Speichern fehlgeschlagen'}` }
     }
 
     // Revalidate cache
@@ -56,7 +56,7 @@ export async function updateTherapyAction(
   const supabase = await createClient()
 
   // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
+  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
   try {
     const validated = TherapyTypeSchema.parse(input)
@@ -75,8 +75,8 @@ export async function updateTherapyAction(
       .select()
 
     if (error) {
-      console.error('Database error:', error)
-      return { error: 'Fehler beim Aktualisieren. Bitte versuchen Sie es später.' }
+      console.error('Database error:', JSON.stringify(error, null, 2))
+      return { error: `Fehler: ${error.message || 'Aktualisieren fehlgeschlagen'}` }
     }
 
     if (!data || data.length === 0) {
@@ -102,7 +102,7 @@ export async function deleteTherapyAction(id: string) {
   const supabase = await createClient()
 
   // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
+  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
   try {
     // Delete from database
@@ -113,8 +113,8 @@ export async function deleteTherapyAction(id: string) {
       .eq('user_id', DEMO_USER_ID)
 
     if (error) {
-      console.error('Database error:', error)
-      return { error: 'Fehler beim Löschen. Bitte versuchen Sie es später.' }
+      console.error('Database error:', JSON.stringify(error, null, 2))
+      return { error: `Fehler: ${error.message || 'Löschen fehlgeschlagen'}` }
     }
 
     // Revalidate cache
@@ -133,21 +133,31 @@ export async function deleteTherapyAction(id: string) {
  * Get all therapy types for current user (for use in server components)
  */
 export async function getTherapies(): Promise<TherapyType[]> {
-  const supabase = await createClient()
+  try {
+    const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
+    // Use demo/default user ID for public access (no authentication required)
+    const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
-  const { data, error } = await supabase
-    .from('therapy_types')
-    .select('*')
-    .eq('user_id', DEMO_USER_ID)
-    .order('created_at', { ascending: false })
+    const { data, error } = await supabase
+      .from('therapy_types')
+      .select('*')
+      .eq('user_id', DEMO_USER_ID)
+      .order('created_at', { ascending: false })
 
-  if (error) {
-    console.error('Error fetching therapies:', error)
+    if (error) {
+      console.error('Supabase error fetching therapies:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      })
+      return []
+    }
+
+    return data || []
+  } catch (err) {
+    console.error('Exception fetching therapies:', err)
     return []
   }
-
-  return data || []
 }

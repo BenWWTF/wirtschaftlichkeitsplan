@@ -13,7 +13,7 @@ export default async function TherapienPage() {
   return (
     <main className="min-h-screen bg-white dark:bg-neutral-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <TherapyList initialTherapies={therapies} />
+        <TherapyList therapies={therapies} />
       </div>
     </main>
   )

@@ -1,98 +1,90 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { TherapyTypeSchema, type TherapyTypeInput } from '@/lib/validations'
-import { createTherapyAction, updateTherapyAction } from '@/lib/actions/therapies'
-import type { TherapyType } from '@/lib/types'
-import { toast } from 'sonner'
-
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter
 } from '@/components/ui/dialog'
 import {
   Form,
+  FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
-  FormDescription
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { TherapyTypeSchema, type TherapyTypeInput } from '@/lib/validations'
+import type { TherapyType } from '@/lib/types'
+import { createTherapyAction, updateTherapyAction } from '@/lib/actions/therapies'
+import { toast } from 'sonner'
 
 interface TherapyDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  therapy?: TherapyType | null
+  therapy: TherapyType | null
 }
 
-export function TherapyDialog({
-  open,
-  onOpenChange,
-  therapy
-}: TherapyDialogProps) {
+export function TherapyDialog({ open, onOpenChange, therapy }: TherapyDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<TherapyTypeInput>({
     resolver: zodResolver(TherapyTypeSchema),
-    defaultValues: {
-      name: '',
-      price_per_session: 150,
-      variable_cost_per_session: 0
-    }
+    defaultValues: therapy
+      ? {
+          name: therapy.name,
+          price_per_session: therapy.price_per_session,
+          variable_cost_per_session: therapy.variable_cost_per_session,
+        }
+      : {
+          name: '',
+          price_per_session: 0,
+          variable_cost_per_session: 0,
+        },
   })
 
-  // Update form when therapy changes
-  useEffect(() => {
-    if (therapy) {
-      form.reset({
-        name: therapy.name,
-        price_per_session: therapy.price_per_session,
-        variable_cost_per_session: therapy.variable_cost_per_session
-      })
-    } else {
-      form.reset({
-        name: '',
-        price_per_session: 150,
-        variable_cost_per_session: 0
-      })
-    }
-  }, [therapy, form, open])
-
-  async function onSubmit(values: TherapyTypeInput) {
+  const onSubmit = async (values: TherapyTypeInput) => {
+    setIsLoading(true)
     try {
-      setIsLoading(true)
-
       let result
 
       if (therapy) {
-        // Update existing
+        // Update existing therapy
+        console.log('Updating therapy:', therapy.id, values)
         result = await updateTherapyAction(therapy.id, values)
       } else {
-        // Create new
+        // Create new therapy
+        console.log('Creating therapy:', values)
         result = await createTherapyAction(values)
       }
 
-      if (result?.error) {
+      console.log('Action result:', result)
+
+      if (result.error) {
         toast.error(result.error)
       } else {
         toast.success(
-          therapy ? 'Therapieart aktualisiert' : 'Therapieart erstellt'
+          therapy
+            ? 'Therapieart erfolgreich aktualisiert'
+            : 'Therapieart erfolgreich erstellt'
         )
         onOpenChange(false)
         form.reset()
       }
     } catch (error) {
-      toast.error('Ein Fehler ist aufgetreten')
-      console.error(error)
+      console.error('Catch error:', error)
+      if (error instanceof Error) {
+        toast.error(`Fehler: ${error.message}`)
+      } else {
+        toast.error('Ein unbekannter Fehler ist aufgetreten')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -103,32 +95,32 @@ export function TherapyDialog({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {therapy ? 'Therapieart bearbeiten' : 'Neue Therapieart'}
+            {therapy ? 'Therapieart bearbeiten' : 'Neue Therapieart erstellen'}
           </DialogTitle>
           <DialogDescription>
             {therapy
-              ? 'Ändern Sie die Details dieser Therapieart'
-              : 'Erstellen Sie eine neue Therapieart für Ihre Praxis'}
+              ? 'Aktualisieren Sie die Details dieser Therapieart.'
+              : 'Fügen Sie eine neue Therapieart mit Preis und Kosten hinzu.'}
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name der Therapieart</FormLabel>
+                  <FormLabel>Therapieart-Name</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="z.B. Einzelpsychotherapie"
-                      disabled={isLoading}
+                      placeholder="z.B. Physiotherapie, Logopädie"
                       {...field}
+                      disabled={isLoading}
                     />
                   </FormControl>
                   <FormDescription>
-                    z.B. Einzeltherapie, Paartherapie, Gruppentherapie
+                    Der Name der Therapieart (z.B. Physiotherapie)
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -140,19 +132,20 @@ export function TherapyDialog({
               name="price_per_session"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Preis pro Sitzung (€)</FormLabel>
+                  <FormLabel>Sitzungspreis (€)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="150"
                       step="0.01"
-                      disabled={isLoading}
+                      min="0"
+                      placeholder="60.00"
                       {...field}
                       onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                      disabled={isLoading}
                     />
                   </FormControl>
                   <FormDescription>
-                    Ihr Honorar pro Sitzung
+                    Preis pro Sitzung in Euro
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -168,47 +161,46 @@ export function TherapyDialog({
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="0"
                       step="0.01"
-                      disabled={isLoading}
+                      min="0"
+                      placeholder="15.00"
                       {...field}
                       onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                      disabled={isLoading}
                     />
                   </FormControl>
                   <FormDescription>
-                    z.B. Materialkosten, Verbrauchsmaterialien
+                    Kosten pro Sitzung (Material, Verbrauchsmaterial, etc.)
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Contribution Margin Display */}
-            {form.watch('price_per_session') > 0 && (
-              <div className="bg-neutral-50 dark:bg-neutral-900 rounded-lg p-4 border border-neutral-200 dark:border-neutral-800">
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-2">
-                  Deckungsbeitrag pro Sitzung:
-                </p>
-                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  €{' '}
-                  {(
-                    form.watch('price_per_session') -
-                    form.watch('variable_cost_per_session')
-                  ).toFixed(2)}
-                </p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-2">
-                  ({(
-                    ((form.watch('price_per_session') -
-                      form.watch('variable_cost_per_session')) /
-                      form.watch('price_per_session')) *
-                    100
-                  ).toFixed(1)}
-                  % Marge)
-                </p>
+            <div className="space-y-2">
+              <h4 className="text-sm font-semibold">Beitragsmarge</h4>
+              <div className="grid grid-cols-2 gap-4 p-3 bg-muted rounded-lg">
+                <div>
+                  <p className="text-xs text-muted-foreground">Absolut</p>
+                  <p className="text-sm font-semibold text-green-600">
+                    €{((form.watch('price_per_session') || 0) - (form.watch('variable_cost_per_session') || 0)).toFixed(2)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Prozent</p>
+                  <p className="text-sm font-semibold text-green-600">
+                    {((form.watch('price_per_session') || 0) > 0
+                      ? (((form.watch('price_per_session') || 0) - (form.watch('variable_cost_per_session') || 0)) /
+                          (form.watch('price_per_session') || 1) *
+                          100).toFixed(1)
+                      : 0)}
+                    %
+                  </p>
+                </div>
               </div>
-            )}
+            </div>
 
-            <DialogFooter className="gap-2 pt-4">
+            <div className="flex gap-2 justify-end">
               <Button
                 type="button"
                 variant="outline"
@@ -218,9 +210,9 @@ export function TherapyDialog({
                 Abbrechen
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Wird gespeichert...' : 'Speichern'}
+                {isLoading ? 'Speichern...' : therapy ? 'Aktualisieren' : 'Erstellen'}
               </Button>
-            </DialogFooter>
+            </div>
           </form>
         </Form>
       </DialogContent>

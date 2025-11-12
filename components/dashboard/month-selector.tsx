@@ -1,127 +1,151 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface MonthSelectorProps {
   selectedMonth: string
   onMonthChange: (month: string) => void
+  availableMonths?: string[]
 }
 
 export function MonthSelector({
   selectedMonth,
-  onMonthChange
+  onMonthChange,
+  availableMonths = [],
 }: MonthSelectorProps) {
-  const currentDate = new Date()
+  const [displayMonth, setDisplayMonth] = useState(selectedMonth)
 
-  // Parse selected month (format: YYYY-MM)
-  const [year, month] = selectedMonth.split('-').map(Number)
-  const selectedDate = new Date(year, month - 1)
+  useEffect(() => {
+    setDisplayMonth(selectedMonth)
+  }, [selectedMonth])
 
-  // Helper to format month string
-  const formatMonthString = (date: Date) => {
-    const y = date.getFullYear()
-    const m = String(date.getMonth() + 1).padStart(2, '0')
-    return `${y}-${m}`
+  const getMonthLabel = (month: string): string => {
+    try {
+      const [year, monthNum] = month.split('-')
+      const date = new Date(parseInt(year), parseInt(monthNum) - 1, 1)
+      return date.toLocaleDateString('de-AT', {
+        month: 'long',
+        year: 'numeric',
+      })
+    } catch {
+      return month
+    }
   }
 
-  // Helper to format display text
-  const formatMonthDisplay = (date: Date) => {
-    return new Intl.DateTimeFormat('de-AT', {
-      month: 'long',
-      year: 'numeric'
-    }).format(date)
+  const getNextMonth = (month: string): string => {
+    const [year, monthNum] = month.split('-')
+    let nextMonth = parseInt(monthNum) + 1
+    let nextYear = parseInt(year)
+
+    if (nextMonth > 12) {
+      nextMonth = 1
+      nextYear++
+    }
+
+    return `${nextYear}-${String(nextMonth).padStart(2, '0')}`
   }
 
-  // Navigation handlers
-  const handlePrevMonth = () => {
-    const prev = new Date(selectedDate)
-    prev.setMonth(prev.getMonth() - 1)
-    onMonthChange(formatMonthString(prev))
+  const getPreviousMonth = (month: string): string => {
+    const [year, monthNum] = month.split('-')
+    let prevMonth = parseInt(monthNum) - 1
+    let prevYear = parseInt(year)
+
+    if (prevMonth < 1) {
+      prevMonth = 12
+      prevYear--
+    }
+
+    return `${prevYear}-${String(prevMonth).padStart(2, '0')}`
+  }
+
+  const handlePreviousMonth = () => {
+    const prevMonth = getPreviousMonth(displayMonth)
+    setDisplayMonth(prevMonth)
+    onMonthChange(prevMonth)
   }
 
   const handleNextMonth = () => {
-    const next = new Date(selectedDate)
-    next.setMonth(next.getMonth() + 1)
-    onMonthChange(formatMonthString(next))
+    const nextMonth = getNextMonth(displayMonth)
+    setDisplayMonth(nextMonth)
+    onMonthChange(nextMonth)
   }
 
-  const handleToday = () => {
-    onMonthChange(formatMonthString(currentDate))
+  const handleSelectChange = (value: string) => {
+    setDisplayMonth(value)
+    onMonthChange(value)
   }
 
-  // Generate list of available months (current and next 12 months)
-  const availableMonths = useMemo(() => {
-    const months = []
-    const startDate = new Date()
-    startDate.setDate(1)
+  // Generate list of months for the last 12 months and next 12 months
+  const generateMonthOptions = () => {
+    const months: string[] = []
+    const today = new Date()
 
-    for (let i = 0; i < 13; i++) {
-      const date = new Date(startDate)
-      date.setMonth(date.getMonth() + i)
-      months.push({
-        value: formatMonthString(date),
-        label: formatMonthDisplay(date)
-      })
+    // Start from 12 months ago
+    for (let i = -12; i <= 12; i++) {
+      const d = new Date(today.getFullYear(), today.getMonth() + i, 1)
+      const year = d.getFullYear()
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      months.push(`${year}-${month}`)
     }
 
     return months
-  }, [])
+  }
+
+  const monthOptions = generateMonthOptions()
 
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-      <div>
-        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">
-          {formatMonthDisplay(selectedDate)}
-        </h2>
-        <p className="text-neutral-600 dark:text-neutral-400 text-sm mt-1">
-          Planen Sie Ihre Sitzungen für diesen Monat
-        </p>
+    <div className="flex items-center gap-2">
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={handlePreviousMonth}
+        className="h-10 w-10"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
+
+      <div className="w-40">
+        <Select value={displayMonth} onValueChange={handleSelectChange}>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {monthOptions.map((month) => (
+              <SelectItem key={month} value={month}>
+                {getMonthLabel(month)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handlePrevMonth}
-          title="Vorheriger Monat"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={handleNextMonth}
+        className="h-10 w-10"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </Button>
 
-        <select
-          value={selectedMonth}
-          onChange={(e) => onMonthChange(e.target.value)}
-          className="px-3 py-2 rounded-md border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm font-medium hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
-        >
-          {availableMonths.map((month) => (
-            <option key={month.value} value={month.value}>
-              {month.label}
-            </option>
-          ))}
-        </select>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleNextMonth}
-          title="Nächster Monat"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-
-        {selectedMonth !== formatMonthString(currentDate) && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleToday}
-            className="ml-2"
-          >
-            Heute
-          </Button>
-        )}
-      </div>
+      {availableMonths.length > 0 && (
+        <div className="ml-auto text-sm text-muted-foreground">
+          {availableMonths.includes(displayMonth) ? (
+            <span className="text-green-600">● Daten vorhanden</span>
+          ) : (
+            <span className="text-amber-600">○ Keine Daten</span>
+          )}
+        </div>
+      )}
     </div>
   )
 }

@@ -1,15 +1,27 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import type { TherapyType } from '@/lib/types'
 import { PlannerCard } from './planner-card'
 import { Button } from '@/components/ui/button'
 import { Plus, AlertCircle } from 'lucide-react'
+import { getMonthlyPlansWithTherapies } from '@/lib/actions/monthly-plans'
+import { formatEuro } from '@/lib/utils'
 
 interface PlannerGridProps {
   therapies: TherapyType[]
   month: string
   onAddTherapy?: () => void
+}
+
+interface MonthlyPlanWithTherapy {
+  id: string
+  therapy_type_id: string
+  month: string
+  planned_sessions: number
+  actual_sessions: number | null
+  notes: string | null
+  therapy_types: TherapyType
 }
 
 export function PlannerGrid({
@@ -18,21 +30,49 @@ export function PlannerGrid({
   onAddTherapy
 }: PlannerGridProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [plans, setPlans] = useState<MonthlyPlanWithTherapy[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+
+  // Load all monthly plans for the selected month
+  useEffect(() => {
+    const loadPlans = async () => {
+      setIsLoading(true)
+      try {
+        const data = await getMonthlyPlansWithTherapies(month)
+        setPlans(data || [])
+      } catch (error) {
+        console.error('Error loading monthly plans:', error)
+        setPlans([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadPlans()
+  }, [month])
+
+  // Refresh plans after a save or delete
+  const refreshPlans = async () => {
+    const data = await getMonthlyPlansWithTherapies(month)
+    setPlans(data || [])
+  }
 
   // Calculate total planned revenue and margin
   const totals = useMemo(() => {
-    return therapies.reduce(
-      (acc, therapy) => {
-        // Note: actual plan data would come from database
-        // This is placeholder - real data loads in planner-card
+    return plans.reduce(
+      (acc, plan) => {
+        const plannedRevenue = plan.planned_sessions * plan.therapy_types.price_per_session
+        const plannedMargin = plan.planned_sessions * (plan.therapy_types.price_per_session - plan.therapy_types.variable_cost_per_session)
+
         return {
-          revenue: acc.revenue,
-          margin: acc.margin
+          sessions: acc.sessions + plan.planned_sessions,
+          revenue: acc.revenue + plannedRevenue,
+          margin: acc.margin + plannedMargin
         }
       },
-      { revenue: 0, margin: 0 }
+      { sessions: 0, revenue: 0, margin: 0 }
     )
-  }, [therapies])
+  }, [plans])
 
   if (therapies.length === 0) {
     return (
@@ -65,6 +105,7 @@ export function PlannerGrid({
             onToggleExpand={() =>
               setExpandedId(expandedId === therapy.id ? null : therapy.id)
             }
+            onRefresh={refreshPlans}
           />
         ))}
       </div>
@@ -88,7 +129,7 @@ export function PlannerGrid({
               Geplante Sitzungen
             </p>
             <p className="text-2xl font-bold text-neutral-900 dark:text-white">
-              —
+              {totals.sessions > 0 ? totals.sessions : '—'}
             </p>
           </div>
           <div>
@@ -96,7 +137,7 @@ export function PlannerGrid({
               Geschätzter Umsatz
             </p>
             <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-              —
+              {totals.revenue > 0 ? formatEuro(totals.revenue) : '—'}
             </p>
           </div>
         </div>

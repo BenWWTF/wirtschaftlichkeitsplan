@@ -16,7 +16,11 @@ import {
   FormDescription
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { TrendingUp, AlertCircle, CheckCircle } from 'lucide-react'
+import { TrendingUp, AlertCircle, CheckCircle, BarChart3, History } from 'lucide-react'
+import { BreakEvenChart } from './break-even-chart'
+import { BreakEvenHistory } from './break-even-history'
+import { BreakEvenExport } from './break-even-export'
+import { Button } from '@/components/ui/button'
 
 interface BreakEvenCalculatorProps {
   therapies: BreakEvenAnalysis[]
@@ -27,6 +31,9 @@ export function BreakEvenCalculator({
   therapies,
   initialFixedCosts = 2000
 }: BreakEvenCalculatorProps) {
+  const [showCharts, setShowCharts] = useState(true)
+  const [showHistory, setShowHistory] = useState(false)
+
   const form = useForm<PracticeSettingsInput>({
     resolver: zodResolver(PracticeSettingsSchema),
     defaultValues: {
@@ -290,6 +297,61 @@ export function BreakEvenCalculator({
           </div>
         </div>
       </div>
+
+      {/* Toggle buttons and export */}
+      <div className="flex flex-wrap gap-2 justify-center items-center">
+        <button
+          onClick={() => setShowCharts(!showCharts)}
+          className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium rounded-lg transition-colors shadow-sm"
+          aria-label={showCharts ? 'Verberge Diagramme' : 'Zeige Diagramme'}
+        >
+          <BarChart3 className="h-5 w-5" />
+          {showCharts ? 'Verberge Diagramme' : 'Zeige Interaktive Diagramme'}
+        </button>
+        <button
+          onClick={() => setShowHistory(!showHistory)}
+          className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 dark:bg-purple-500 hover:bg-purple-700 dark:hover:bg-purple-600 text-white font-medium rounded-lg transition-colors shadow-sm"
+          aria-label={showHistory ? 'Verberge Verlauf' : 'Zeige Verlauf'}
+        >
+          <History className="h-5 w-5" />
+          {showHistory ? 'Verberge Verlauf' : 'Zeige Break-Even-Verlauf'}
+        </button>
+        <BreakEvenExport
+          therapies={therapies}
+          fixedCosts={fixedCosts}
+          sessionsNeeded={calculations?.sessionsNeeded || 0}
+        />
+      </div>
+
+      {/* Interactive Charts */}
+      {showCharts && (
+        <div className="pt-6">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">
+              Interaktive Visualisierungen
+            </h2>
+            <p className="text-neutral-600 dark:text-neutral-400">
+              Visualisieren Sie Ihre Break-Even-Analyse mit interaktiven Diagrammen
+            </p>
+          </div>
+          <BreakEvenChart therapies={therapies} fixedCosts={fixedCosts} />
+        </div>
+      )}
+
+      {/* Break-Even History */}
+      {showHistory && (
+        <div className="pt-6">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">
+              Break-Even-Verlauf
+            </h2>
+            <p className="text-neutral-600 dark:text-neutral-400">
+              Verfolgen Sie, wie sich Ihre Break-Even-Punkte über mehrere Monate hinweg entwickeln
+            </p>
+          </div>
+          <BreakEvenHistory fixedCosts={fixedCosts} />
+        </div>
+      )}
 
       {/* Info Box */}
       <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 p-4">
