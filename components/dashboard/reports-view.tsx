@@ -2,6 +2,7 @@
 
 import type { MonthlyMetrics, TherapyMetrics, DashboardSummary } from '@/lib/actions/dashboard'
 import { BusinessDashboard } from './business-dashboard'
+import { TaxPlanningCard } from './tax-planning-card'
 import { BarChart3, TrendingUp } from 'lucide-react'
 
 interface ReportsViewProps {
@@ -41,11 +42,21 @@ export function ReportsView({
 
       {/* Dashboard */}
       {monthlyData.length > 0 && (
-        <BusinessDashboard
-          monthlyData={monthlyData}
-          therapyMetrics={therapyMetrics}
-          summary={summary}
-        />
+        <>
+          <BusinessDashboard
+            monthlyData={monthlyData}
+            therapyMetrics={therapyMetrics}
+            summary={summary}
+          />
+
+          {/* Austrian Tax Planning */}
+          <TaxPlanningCard
+            grossRevenue={summary.total_revenue}
+            totalExpenses={summary.total_expenses}
+            practiceType="mixed"
+            privatePatientRevenue={summary.total_revenue * 0.5} // Assume 50% private patients
+          />
+        </>
       )}
 
       {/* Help Section */}
