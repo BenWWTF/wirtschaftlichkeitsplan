@@ -61,6 +61,11 @@ export function PlannerGrid({
   const totals = useMemo(() => {
     return plans.reduce(
       (acc, plan) => {
+        // Safely handle cases where therapy_types might be null or undefined
+        if (!plan.therapy_types) {
+          return acc
+        }
+
         const plannedRevenue = plan.planned_sessions * plan.therapy_types.price_per_session
         const plannedMargin = plan.planned_sessions * (plan.therapy_types.price_per_session - plan.therapy_types.variable_cost_per_session)
 

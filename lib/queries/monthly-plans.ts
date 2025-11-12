@@ -63,19 +63,31 @@ export async function getMonthlyPlansWithTherapies(month: string) {
 
   // Fetch therapy details separately
   const therapyTypeIds = [...new Set(plans.map(p => p.therapy_type_id))]
+
+  if (therapyTypeIds.length === 0) {
+    console.warn('[getMonthlyPlansWithTherapies] No therapy type IDs found')
+    return plans.map(p => ({ ...p, therapy_types: null }))
+  }
+
   const { data: therapies, error: therapiesError } = await supabase
     .from('therapy_types')
     .select('id, name, price_per_session, variable_cost_per_session')
     .in('id', therapyTypeIds)
 
   if (therapiesError) {
-    console.error('Error fetching therapy types:', therapiesError)
-    return plans
+    console.error('[getMonthlyPlansWithTherapies] Error fetching therapy types:', therapiesError)
+    // Return plans with null therapy_types to avoid crashes
+    return plans.map(p => ({ ...p, therapy_types: null }))
+  }
+
+  if (!therapies || therapies.length === 0) {
+    console.warn('[getMonthlyPlansWithTherapies] No therapy types returned from database')
+    return plans.map(p => ({ ...p, therapy_types: null }))
   }
 
   // Combine data
   const therapyMap = Object.fromEntries(
-    (therapies || []).map(t => [t.id, t])
+    therapies.map(t => [t.id, t])
   )
 
   return plans.map(plan => ({

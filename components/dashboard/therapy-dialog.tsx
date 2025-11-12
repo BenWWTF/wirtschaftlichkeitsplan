@@ -140,7 +140,8 @@ export function TherapyDialog({ open, onOpenChange, therapy }: TherapyDialogProp
                       min="0"
                       placeholder="60.00"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                      value={field.value || ''}
+                      onChange={(e) => field.onChange(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
                       disabled={isLoading}
                     />
                   </FormControl>
@@ -165,7 +166,8 @@ export function TherapyDialog({ open, onOpenChange, therapy }: TherapyDialogProp
                       min="0"
                       placeholder="15.00"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                      value={field.value || ''}
+                      onChange={(e) => field.onChange(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
                       disabled={isLoading}
                     />
                   </FormControl>
