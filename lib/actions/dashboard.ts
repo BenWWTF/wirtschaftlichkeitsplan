@@ -47,12 +47,17 @@ export async function getMonthlyMetrics(month: string): Promise<MonthlyMetrics |
   // Use demo/default user ID for public access (no authentication required)
   const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
+  // Convert YYYY-MM to YYYY-MM-01 for date column
+  const monthDate = month.includes('-') && month.length === 7
+    ? `${month}-01`
+    : month
+
   // Get monthly plans first
   const { data: plans, error: plansError } = await supabase
     .from('monthly_plans')
     .select('id, planned_sessions, actual_sessions, therapy_type_id')
     .eq('user_id', DEMO_USER_ID)
-    .eq('month', month)
+    .eq('month', monthDate)
 
   if (plansError || !plans) {
     console.error('Error fetching monthly plans:', plansError)
@@ -95,6 +100,11 @@ export async function getMonthlyMetrics(month: string): Promise<MonthlyMetrics |
 
   for (const plan of plans) {
     const therapy = therapyMap[(plan.therapy_type_id as string)]
+    if (!therapy) {
+      console.warn(`Therapy not found for ID: ${plan.therapy_type_id}`)
+      continue
+    }
+
     const plannedRevenue = plan.planned_sessions * therapy.price_per_session
     const actualRevenue = (plan.actual_sessions || 0) * therapy.price_per_session
     const plannedMargin =
@@ -142,13 +152,21 @@ export async function getMonthlyMetricsRange(
   // Use demo/default user ID for public access (no authentication required)
   const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
+  // Convert YYYY-MM to YYYY-MM-01 for date column
+  const startDate = startMonth.includes('-') && startMonth.length === 7
+    ? `${startMonth}-01`
+    : startMonth
+  const endDate = endMonth.includes('-') && endMonth.length === 7
+    ? `${endMonth}-01`
+    : endMonth
+
   // Get all monthly plans in range
   const { data: plans, error: plansError } = await supabase
     .from('monthly_plans')
     .select('month, planned_sessions, actual_sessions, therapy_type_id')
     .eq('user_id', DEMO_USER_ID)
-    .gte('month', startMonth)
-    .lte('month', endMonth)
+    .gte('month', startDate)
+    .lte('month', endDate)
     .order('month', { ascending: true })
 
   if (plansError || !plans) {
@@ -198,6 +216,11 @@ export async function getMonthlyMetricsRange(
     }
 
     const therapy = therapyMap[(plan.therapy_type_id as string)]
+    if (!therapy) {
+      console.warn(`Therapy not found for ID: ${plan.therapy_type_id}`)
+      continue
+    }
+
     const plannedRevenue = plan.planned_sessions * therapy.price_per_session
     const actualRevenue = (plan.actual_sessions || 0) * therapy.price_per_session
     const plannedMargin =
