@@ -28,19 +28,26 @@ export function RevenueChart({
 }: RevenueChartProps) {
   const chartData = useMemo(
     () =>
-      data.map((month) => ({
-        month: new Date(`${month.month}-01`)
-          .toLocaleDateString('de-AT', {
+      data.map((item) => {
+        // Handle both YYYY-MM and YYYY-MM-DD formats
+        const monthStr = item.month.length === 7
+          ? `${item.month}-01`
+          : item.month
+
+        const monthDate = new Date(monthStr)
+
+        return {
+          month: monthDate.toLocaleDateString('de-AT', {
             month: 'short',
             year: '2-digit'
-          })
-          .replace(' ', ' '),
-        'Geplanter Umsatz': month.planned_revenue,
-        'Tatsächlicher Umsatz': month.actual_revenue,
-        'Kosten': month.total_expenses,
-        'Deckungsbeitrag': month.actual_margin,
-        'Gewinn/Verlust': month.profitability
-      })),
+          }),
+          'Geplanter Umsatz': item.planned_revenue,
+          'Tatsächlicher Umsatz': item.actual_revenue,
+          'Kosten': item.total_expenses,
+          'Deckungsbeitrag': item.actual_margin,
+          'Gewinn/Verlust': item.profitability
+        }
+      }),
     [data]
   )
 
