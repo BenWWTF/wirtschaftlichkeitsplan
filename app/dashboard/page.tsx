@@ -3,7 +3,7 @@ import { getDashboardSummary, getMonthlyMetrics } from '@/lib/actions/dashboard'
 import { getTherapies } from '@/lib/actions/therapies'
 import { getExpenses } from '@/lib/actions/expenses'
 import { formatEuro } from '@/lib/utils'
-import { DollarSign, BarChart3, Users, Receipt, Settings, TrendingUp } from 'lucide-react'
+import { DollarSign, BarChart3, Users, Receipt, Settings, TrendingUp, Upload } from 'lucide-react'
 
 export const metadata = {
   title: 'Dashboard - Wirtschaftlichkeitsplan',
@@ -170,6 +170,18 @@ export default async function DashboardPage() {
                 </div>
               </Link>
 
+              <Link href="/dashboard/import" className="group">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-700 p-6 hover:shadow-lg hover:border-blue-400 dark:hover:border-blue-500 transition-all">
+                  <div className="text-3xl mb-3">📥</div>
+                  <h3 className="font-semibold text-neutral-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    Daten Import
+                  </h3>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
+                    LATIDO Daten importieren
+                  </p>
+                </div>
+              </Link>
+
               <Link href="/dashboard/analyse" className="group">
                 <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-6 hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-600 transition-all">
                   <div className="text-3xl mb-3">💰</div>
@@ -250,6 +262,24 @@ export default async function DashboardPage() {
                   <div className="bg-green-500 h-full" style={{ width: '100%' }}></div>
                 </div>
               </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-neutral-600 dark:text-neutral-400">Phase 7: Österreichische Steuer & Vorlagen</span>
+                  <span className="font-medium text-green-600 dark:text-green-400">✅ Fertig</span>
+                </div>
+                <div className="w-full bg-neutral-200 dark:bg-neutral-800 rounded-full h-2 overflow-hidden">
+                  <div className="bg-green-500 h-full" style={{ width: '100%' }}></div>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-neutral-600 dark:text-neutral-400">Phase 8: LATIDO Integration (Import)</span>
+                  <span className="font-medium text-blue-600 dark:text-blue-400">🔨 In Arbeit</span>
+                </div>
+                <div className="w-full bg-neutral-200 dark:bg-neutral-800 rounded-full h-2 overflow-hidden">
+                  <div className="bg-blue-500 h-full" style={{ width: '85%' }}></div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -269,7 +299,10 @@ export default async function DashboardPage() {
                 <strong>3. Ausgaben erfassen:</strong> Tragen Sie Ihre Betriebsausgaben ein
               </li>
               <li>
-                <strong>4. Monatliche Planung:</strong> Planen Sie Ihre Sitzungen für den aktuellen Monat
+                <strong>4. Daten importieren:</strong> Importieren Sie Sitzungsdaten aus LATIDO (optional)
+              </li>
+              <li>
+                <strong>5. Monatliche Planung:</strong> Planen Sie Ihre Sitzungen für den aktuellen Monat
               </li>
             </ol>
           </div>
