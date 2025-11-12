@@ -61,9 +61,15 @@ export function DashboardNav() {
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  // Handle keyboard shortcuts: Alt+H, Alt+T, Alt+P, Alt+A, Alt+R
+  // Handle keyboard shortcuts: Alt+H, Alt+T, Alt+P, Alt+A, Alt+R, Escape to close mobile menu
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
+      // Close mobile menu on Escape
+      if (e.key === 'Escape' && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false)
+        return
+      }
+
       if (!e.altKey) return
 
       const shortcuts: Record<string, string> = {
@@ -82,7 +88,7 @@ export function DashboardNav() {
 
     window.addEventListener('keydown', handleKeyPress)
     return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [])
+  }, [isMobileMenuOpen])
 
   const isActive = (href: string): boolean => {
     if (href === '/dashboard') {
@@ -113,19 +119,21 @@ export function DashboardNav() {
         </div>
 
         {/* Navigation Items */}
-        <div className="flex-1 overflow-y-auto px-3 py-6 space-y-1">
+        <nav className="flex-1 overflow-y-auto px-3 py-6 space-y-1" role="navigation" aria-label="Main Navigation">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 rounded-md px-3 py-2.5 transition-all duration-200',
+                'flex items-center gap-3 rounded-md px-3 py-2.5 transition-all duration-200 min-h-[44px]',
                 'text-sm font-medium group',
                 isActive(item.href)
                   ? 'bg-accent-100 text-accent-900 dark:bg-accent-900/30 dark:text-accent-200 shadow-sm'
                   : 'text-neutral-600 hover:bg-neutral-100/60 dark:text-neutral-400 dark:hover:bg-accent-900/10 hover:text-neutral-900 dark:hover:text-accent-300'
               )}
               onClick={() => setIsMobileMenuOpen(false)}
+              aria-current={isActive(item.href) ? 'page' : undefined}
+              title={`${item.label} (${item.shortcut})`}
             >
               <span className={cn(
                 'flex-shrink-0 w-5 h-5 transition-colors',
@@ -143,7 +151,7 @@ export function DashboardNav() {
               )}
             </Link>
           ))}
-        </div>
+        </nav>
 
         {/* Footer */}
         <div className="border-t border-neutral-200 px-3 py-4 dark:border-accent-700/20">
@@ -180,6 +188,9 @@ export function DashboardNav() {
             size="sm"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="p-2 text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-accent-300"
+            aria-label={isMobileMenuOpen ? 'Menü schließen' : 'Menü öffnen'}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-menu"
           >
             {isMobileMenuOpen ? (
               <X className="w-5 h-5" />
@@ -191,27 +202,34 @@ export function DashboardNav() {
 
         {/* Mobile Menu - Dropdown */}
         {isMobileMenuOpen && (
-          <div className="border-t border-neutral-200 bg-neutral-50 dark:border-accent-700/20 dark:bg-neutral-900/60 max-h-[calc(100vh-56px)] overflow-y-auto">
+          <nav
+            id="mobile-menu"
+            className="border-t border-neutral-200 bg-neutral-50 dark:border-accent-700/20 dark:bg-neutral-900/60 max-h-[calc(100vh-56px)] overflow-y-auto"
+            role="navigation"
+            aria-label="Mobile Navigation"
+          >
             <div className="space-y-1 p-3">
               {NAV_ITEMS.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    'flex items-center gap-3 rounded-md px-3 py-2.5 transition-all duration-200',
+                    'flex items-center gap-3 rounded-md px-3 py-2.5 transition-all duration-200 min-h-[44px]',
                     'text-sm font-medium',
                     isActive(item.href)
                       ? 'bg-accent-100 text-accent-900 dark:bg-accent-900/30 dark:text-accent-200'
                       : 'text-neutral-700 hover:bg-white dark:text-neutral-300 dark:hover:bg-accent-900/10 dark:hover:text-accent-300'
                   )}
                   onClick={() => setIsMobileMenuOpen(false)}
+                  aria-current={isActive(item.href) ? 'page' : undefined}
+                  title={`${item.label} (${item.shortcut})`}
                 >
-                  <span className="flex-shrink-0">{item.icon}</span>
+                  <span className="flex-shrink-0" aria-hidden="true">{item.icon}</span>
                   <span className="flex-1">{item.label}</span>
                 </Link>
               ))}
             </div>
-          </div>
+          </nav>
         )}
       </div>
 
