@@ -44,27 +44,44 @@ export async function getMonthlyPlansWithTherapies(month: string) {
     ? `${month}-01`
     : month
 
-  const { data, error } = await supabase
+  // First fetch the monthly plans
+  const { data: plans, error: plansError } = await supabase
     .from('monthly_plans')
-    .select(`
-      *,
-      therapy_types (
-        id,
-        name,
-        price_per_session,
-        variable_cost_per_session
-      )
-    `)
+    .select('*')
     .eq('user_id', DEMO_USER_ID)
     .eq('month', monthDate)
     .order('created_at', { ascending: false })
 
-  if (error) {
-    console.error('Error fetching monthly plans with therapies:', error)
+  if (plansError) {
+    console.error('Error fetching monthly plans with therapies:', plansError)
     return []
   }
 
-  return data || []
+  if (!plans || plans.length === 0) {
+    return []
+  }
+
+  // Fetch therapy details separately
+  const therapyTypeIds = [...new Set(plans.map(p => p.therapy_type_id))]
+  const { data: therapies, error: therapiesError } = await supabase
+    .from('therapy_types')
+    .select('id, name, price_per_session, variable_cost_per_session')
+    .in('id', therapyTypeIds)
+
+  if (therapiesError) {
+    console.error('Error fetching therapy types:', therapiesError)
+    return plans
+  }
+
+  // Combine data
+  const therapyMap = Object.fromEntries(
+    (therapies || []).map(t => [t.id, t])
+  )
+
+  return plans.map(plan => ({
+    ...plan,
+    therapy_types: therapyMap[plan.therapy_type_id] || null
+  }))
 }
 
 /**
@@ -100,24 +117,35 @@ export async function calculateMonthlyRevenue(month: string): Promise<number> {
     ? `${month}-01`
     : month
 
-  const { data, error } = await supabase
+  const { data: plans, error: plansError } = await supabase
     .from('monthly_plans')
-    .select(`
-      planned_sessions,
-      therapy_types (
-        price_per_session
-      )
-    `)
+    .select('planned_sessions, therapy_type_id')
     .eq('user_id', DEMO_USER_ID)
     .eq('month', monthDate)
 
-  if (error) {
-    console.error('Error calculating revenue:', error)
+  if (plansError) {
+    console.error('Error calculating revenue:', plansError)
     return 0
   }
 
-  return (data || []).reduce((total, plan: any) => {
-    const revenue = plan.planned_sessions * (plan.therapy_types?.price_per_session || 0)
+  if (!plans || plans.length === 0) {
+    return 0
+  }
+
+  // Fetch therapy details
+  const therapyTypeIds = [...new Set(plans.map(p => p.therapy_type_id))]
+  const { data: therapies } = await supabase
+    .from('therapy_types')
+    .select('id, price_per_session')
+    .in('id', therapyTypeIds)
+
+  const therapyMap = Object.fromEntries(
+    (therapies || []).map(t => [t.id, t])
+  )
+
+  return plans.reduce((total, plan: any) => {
+    const therapy = therapyMap[plan.therapy_type_id]
+    const revenue = plan.planned_sessions * (therapy?.price_per_session || 0)
     return total + revenue
   }, 0)
 }

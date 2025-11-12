@@ -45,22 +45,12 @@ export async function getMonthlyMetrics(month: string): Promise<MonthlyMetrics |
   const supabase = await createClient()
 
   // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
+  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
-  // Get monthly plans with therapy details
+  // Get monthly plans first
   const { data: plans, error: plansError } = await supabase
     .from('monthly_plans')
-    .select(
-      `
-      id,
-      planned_sessions,
-      actual_sessions,
-      therapy_types (
-        price_per_session,
-        variable_cost_per_session
-      )
-    `
-    )
+    .select('id, planned_sessions, actual_sessions, therapy_type_id')
     .eq('user_id', DEMO_USER_ID)
     .eq('month', month)
 
@@ -68,6 +58,22 @@ export async function getMonthlyMetrics(month: string): Promise<MonthlyMetrics |
     console.error('Error fetching monthly plans:', plansError)
     return null
   }
+
+  // Fetch therapy types
+  const therapyTypeIds = [...new Set(plans.map(p => p.therapy_type_id))]
+  const { data: therapies, error: therapiesError } = await supabase
+    .from('therapy_types')
+    .select('id, price_per_session, variable_cost_per_session')
+    .in('id', therapyTypeIds)
+
+  if (therapiesError) {
+    console.error('Error fetching therapy types:', therapiesError)
+    return null
+  }
+
+  const therapyMap = Object.fromEntries(
+    (therapies || []).map(t => [t.id, t])
+  )
 
   // Get monthly expenses
   const { data: expenses, error: expensesError } = await supabase
@@ -88,7 +94,7 @@ export async function getMonthlyMetrics(month: string): Promise<MonthlyMetrics |
   let totalActualMargin = 0
 
   for (const plan of plans) {
-    const therapy = (plan.therapy_types as any)
+    const therapy = therapyMap[(plan.therapy_type_id as string)]
     const plannedRevenue = plan.planned_sessions * therapy.price_per_session
     const actualRevenue = (plan.actual_sessions || 0) * therapy.price_per_session
     const plannedMargin =
@@ -134,22 +140,12 @@ export async function getMonthlyMetricsRange(
   const supabase = await createClient()
 
   // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
+  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
   // Get all monthly plans in range
   const { data: plans, error: plansError } = await supabase
     .from('monthly_plans')
-    .select(
-      `
-      month,
-      planned_sessions,
-      actual_sessions,
-      therapy_types (
-        price_per_session,
-        variable_cost_per_session
-      )
-    `
-    )
+    .select('month, planned_sessions, actual_sessions, therapy_type_id')
     .eq('user_id', DEMO_USER_ID)
     .gte('month', startMonth)
     .lte('month', endMonth)
@@ -159,6 +155,22 @@ export async function getMonthlyMetricsRange(
     console.error('Error fetching monthly plans:', plansError)
     return []
   }
+
+  // Fetch therapy types
+  const therapyTypeIds = [...new Set(plans.map(p => p.therapy_type_id))]
+  const { data: therapies, error: therapiesError } = await supabase
+    .from('therapy_types')
+    .select('id, price_per_session, variable_cost_per_session')
+    .in('id', therapyTypeIds)
+
+  if (therapiesError) {
+    console.error('Error fetching therapy types:', therapiesError)
+    return []
+  }
+
+  const therapyMap = Object.fromEntries(
+    (therapies || []).map(t => [t.id, t])
+  )
 
   // Get all expenses
   const { data: expenses } = await supabase
@@ -185,7 +197,7 @@ export async function getMonthlyMetricsRange(
       }
     }
 
-    const therapy = (plan.therapy_types as any)
+    const therapy = therapyMap[(plan.therapy_type_id as string)]
     const plannedRevenue = plan.planned_sessions * therapy.price_per_session
     const actualRevenue = (plan.actual_sessions || 0) * therapy.price_per_session
     const plannedMargin =
@@ -233,7 +245,7 @@ export async function getTherapyMetrics(): Promise<TherapyMetrics[]> {
   const supabase = await createClient()
 
   // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
+  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
   // Get all therapies
   const { data: therapies, error: therapiesError } = await supabase
@@ -305,7 +317,7 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
   const supabase = await createClient()
 
   // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = 'demo-user-00000000-0000-0000-0000-000000000000'
+  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
   // Get therapy metrics
   const therapyMetrics = await getTherapyMetrics()
