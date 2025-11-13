@@ -98,7 +98,13 @@ export function PlannerCard({
         toast.error(result.error)
       } else {
         toast.success(planData ? 'Plan aktualisiert' : 'Plan erstellt')
-        setPlanData(result.data?.[0])
+
+        // Reload the plan data after successful update
+        const plans = await getMonthlyPlans(month)
+        const updatedPlan = plans.find((p) => p.therapy_type_id === therapy.id)
+        if (updatedPlan) {
+          setPlanData(updatedPlan as MonthlyPlanData)
+        }
 
         // Refresh the parent's plan list to update totals
         if (onRefresh) {

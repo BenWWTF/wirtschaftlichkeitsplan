@@ -20,7 +20,7 @@ export async function getMonthlyPlans(month: string): Promise<MonthlyPlan[]> {
 
   const { data, error } = await supabase
     .from('monthly_plans')
-    .select('*')
+    .select('id, user_id, therapy_type_id, month, planned_sessions, actual_sessions, notes, created_at, updated_at')
     .eq('user_id', DEMO_USER_ID)
     .eq('month', monthDate)
     .order('created_at', { ascending: false })
@@ -47,7 +47,7 @@ export async function getMonthlyPlansWithTherapies(month: string) {
   // First fetch the monthly plans
   const { data: plans, error: plansError } = await supabase
     .from('monthly_plans')
-    .select('*')
+    .select('id, user_id, therapy_type_id, month, planned_sessions, actual_sessions, notes, created_at, updated_at')
     .eq('user_id', DEMO_USER_ID)
     .eq('month', monthDate)
     .order('created_at', { ascending: false })
@@ -133,7 +133,7 @@ export async function upsertMonthlyPlanAction(input: MonthlyPlanInput) {
           notes: validated.notes
         })
         .eq('id', existing.id)
-        .select()
+        .select('id, updated_at')
 
       if (error) {
         return { error: `Fehler beim Aktualisieren: ${error.message}` }
@@ -153,7 +153,7 @@ export async function upsertMonthlyPlanAction(input: MonthlyPlanInput) {
           actual_sessions: validated.actual_sessions,
           notes: validated.notes
         })
-        .select()
+        .select('id, created_at')
 
       if (error) {
         return { error: `Fehler beim Erstellen: ${error.message}` }

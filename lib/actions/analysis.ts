@@ -3,6 +3,13 @@
 import { createClient } from '@/utils/supabase/server'
 import type { TherapyType, BreakEvenAnalysis } from '@/lib/types'
 
+interface TherapyTypeBasic {
+  id: string
+  name: string
+  price_per_session: number
+  variable_cost_per_session: number
+}
+
 interface BreakEvenResult {
   therapy_type_id: string
   therapy_name: string
@@ -35,7 +42,7 @@ export async function getBreakEvenAnalysis(): Promise<BreakEvenAnalysis[]> {
 
   const { data, error } = await supabase
     .from('therapy_types')
-    .select('*')
+    .select('id, name, price_per_session, variable_cost_per_session')
     .eq('user_id', DEMO_USER_ID)
     .order('created_at', { ascending: true })
 
@@ -45,7 +52,7 @@ export async function getBreakEvenAnalysis(): Promise<BreakEvenAnalysis[]> {
   }
 
   // Calculate break-even metrics for each therapy
-  return (data || []).map((therapy: TherapyType) => ({
+  return (data || []).map((therapy: TherapyTypeBasic) => ({
     therapy_type_id: therapy.id,
     therapy_type_name: therapy.name,
     price_per_session: therapy.price_per_session,

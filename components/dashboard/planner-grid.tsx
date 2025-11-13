@@ -15,6 +15,13 @@ interface PlannerGridProps {
   onAddTherapy?: () => void
 }
 
+interface TherapyTypeBasic {
+  id: string
+  name: string
+  price_per_session: number
+  variable_cost_per_session: number
+}
+
 interface MonthlyPlanWithTherapy {
   id: string
   therapy_type_id: string
@@ -22,7 +29,7 @@ interface MonthlyPlanWithTherapy {
   planned_sessions: number
   actual_sessions: number | null
   notes: string | null
-  therapy_types: TherapyType
+  therapy_types: TherapyTypeBasic | null
 }
 
 export function PlannerGrid({

@@ -68,20 +68,20 @@ export async function getAdvancedAnalytics(): Promise<AdvancedAnalytics | null> 
     // Fetch therapy types
     const { data: therapies } = await supabase
       .from('therapy_types')
-      .select('*')
+      .select('id, name, price_per_session, variable_cost_per_session')
       .eq('user_id', DEMO_USER_ID)
 
     // Fetch monthly plans for last 3 months
     const { data: monthlyPlans } = await supabase
       .from('monthly_plans')
-      .select('*')
+      .select('id, user_id, therapy_type_id, month, planned_sessions, actual_sessions')
       .eq('user_id', DEMO_USER_ID)
       .gte('month', threeMonthsAgoStr)
 
     // Fetch expenses
     const { data: expenses } = await supabase
       .from('expenses')
-      .select('*')
+      .select('id, user_id, amount, month')
       .eq('user_id', DEMO_USER_ID)
       .gte('month', threeMonthsAgoStr)
 
