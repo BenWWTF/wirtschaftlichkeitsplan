@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { getAdvancedAnalytics } from '@/lib/actions/analytics'
 import type { AdvancedAnalytics } from '@/lib/actions/analytics'
 import { formatEuro } from '@/lib/utils'
-import { AlertCircle, Sparkles, MapPin, CheckCircle2, AlertTriangle, XCircle, Lightbulb, Target, TrendingUp } from 'lucide-react'
+import { AlertCircle, Sparkles, MapPin, CheckCircle2, AlertTriangle, XCircle, Lightbulb, Target, TrendingUp, DollarSign } from 'lucide-react'
 
 export function ForecastReport() {
   const [analytics, setAnalytics] = useState<AdvancedAnalytics | null>(null)
@@ -248,9 +248,12 @@ export function ForecastReport() {
                 </div>
               ) : (
                 <div>
-                  <p className="text-xs font-medium text-neutral-900 dark:text-white">
-                    ✅ Auslastung optimal
-                  </p>
+                  <div className="flex items-center gap-1">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <p className="text-xs font-medium text-neutral-900 dark:text-white">
+                      Auslastung optimal
+                    </p>
+                  </div>
                   <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
                     Über 80% Auslastung erreicht
                   </p>
@@ -258,18 +261,24 @@ export function ForecastReport() {
               )}
               {analytics.profitMarginPercent < 30 ? (
                 <div>
-                  <p className="text-xs font-medium text-neutral-900 dark:text-white">
-                    💰 Kostenoptimierung
-                  </p>
+                  <div className="flex items-center gap-1">
+                    <DollarSign className="h-4 w-4 text-amber-600" />
+                    <p className="text-xs font-medium text-neutral-900 dark:text-white">
+                      Kostenoptimierung
+                    </p>
+                  </div>
                   <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
                     Prüfen Sie variable und Fixkosten
                   </p>
                 </div>
               ) : (
                 <div>
-                  <p className="text-xs font-medium text-neutral-900 dark:text-white">
-                    ✅ Kostenstruktur gesund
-                  </p>
+                  <div className="flex items-center gap-1">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <p className="text-xs font-medium text-neutral-900 dark:text-white">
+                      Kostenstruktur gesund
+                    </p>
+                  </div>
                   <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
                     Fokus auf Umsatzwachstum
                   </p>
