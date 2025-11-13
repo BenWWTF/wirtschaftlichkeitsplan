@@ -24,9 +24,10 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 
 // Dynamic import for break-even chart (heavy Recharts visualization)
+// Disable SSR since Recharts renders only on client - improves server bundle size
 const BreakEvenChart = dynamic(() => import('./break-even-chart').then(mod => ({ default: mod.BreakEvenChart })), {
   loading: () => <Skeleton className="h-96 rounded-lg" />,
-  ssr: true
+  ssr: false
 })
 
 interface BreakEvenCalculatorProps {

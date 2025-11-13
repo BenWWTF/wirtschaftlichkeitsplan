@@ -18,7 +18,8 @@ const ReportsView = dynamic(() => import('./reports-view').then(mod => ({ defaul
       </div>
     </div>
   ),
-  ssr: true
+  // Disable SSR for heavy Recharts components - improves server-side bundle size
+  ssr: false
 })
 
 interface ReportsViewDynamicProps {
