@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, BarChart3, Calendar, FileText, Pill, Home } from 'lucide-react'
+import { Menu, X, BarChart3, Calendar, FileText, Pill, Home, Briefcase } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
@@ -104,9 +104,7 @@ export function DashboardNav() {
         {/* Logo/Header */}
         <div className="border-b border-neutral-200 px-6 py-6 dark:border-accent-700/20">
           <div className="flex items-baseline gap-2">
-            <h1 className="text-2xl font-bold text-neutral-900 dark:text-white font-mono">
-              💼
-            </h1>
+            <Briefcase className="h-6 w-6 text-neutral-900 dark:text-white" />
             <div>
               <h1 className="text-lg font-bold text-neutral-900 dark:text-white">
                 Wirtschaftlich
@@ -173,7 +171,7 @@ export function DashboardNav() {
       <div className="fixed top-0 left-0 right-0 z-50 md:hidden border-b border-neutral-200 bg-white dark:border-accent-700/20 dark:bg-neutral-900/80 dark:backdrop-blur-md">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <span className="text-xl font-bold">💼</span>
+            <Briefcase className="h-5 w-5 text-neutral-900 dark:text-white" />
             <div>
               <h1 className="text-sm font-bold text-neutral-900 dark:text-white">
                 Wirtschaftlich

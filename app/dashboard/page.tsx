@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { getMonthlyMetrics } from '@/lib/actions/dashboard'
 import { DashboardKPISection } from '@/components/dashboard/dashboard-kpi-section'
-import { DollarSign, BarChart3, Settings, TrendingUp, CheckCircle2, Wrench, Lightbulb } from 'lucide-react'
+import { DollarSign, BarChart3, Settings, TrendingUp, CheckCircle2, Wrench, Lightbulb, Building, Calendar, CreditCard, Download } from 'lucide-react'
 
 export const metadata = {
   title: 'Dashboard - Wirtschaftlichkeitsplan',
@@ -48,7 +48,7 @@ export default async function DashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <Link href="/dashboard/therapien" className="group">
                 <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-6 hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-600 transition-all">
-                  <div className="text-3xl mb-3">🏥</div>
+                  <Building className="h-8 w-8 text-neutral-900 dark:text-neutral-300 mb-3" />
                   <h3 className="font-semibold text-neutral-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                     Therapiearten
                   </h3>
@@ -60,7 +60,7 @@ export default async function DashboardPage() {
 
               <Link href="/dashboard/planung" className="group">
                 <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-6 hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-600 transition-all">
-                  <div className="text-3xl mb-3">📅</div>
+                  <Calendar className="h-8 w-8 text-neutral-900 dark:text-neutral-300 mb-3" />
                   <h3 className="font-semibold text-neutral-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                     Monatliche Planung
                   </h3>
@@ -72,7 +72,7 @@ export default async function DashboardPage() {
 
               <Link href="/dashboard/ausgaben" className="group">
                 <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-6 hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-600 transition-all">
-                  <div className="text-3xl mb-3">💳</div>
+                  <CreditCard className="h-8 w-8 text-neutral-900 dark:text-neutral-300 mb-3" />
                   <h3 className="font-semibold text-neutral-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                     Ausgaben
                   </h3>
@@ -84,7 +84,7 @@ export default async function DashboardPage() {
 
               <Link href="/dashboard/import" className="group">
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-700 p-6 hover:shadow-lg hover:border-blue-400 dark:hover:border-blue-500 transition-all">
-                  <div className="text-3xl mb-3">📥</div>
+                  <Download className="h-8 w-8 text-blue-600 dark:text-blue-400 mb-3" />
                   <h3 className="font-semibold text-neutral-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                     Daten Import
                   </h3>

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { BarChart3, Building, Calendar } from 'lucide-react'
 
 export default function Home() {
   return (
@@ -7,7 +8,7 @@ export default function Home() {
       <nav className="border-b border-neutral-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="text-2xl">📊</div>
+            <BarChart3 className="h-6 w-6 text-neutral-900 dark:text-white" />
             <h1 className="font-semibold text-neutral-900 dark:text-white">
               Wirtschaftlichkeitsplan
             </h1>
@@ -51,7 +52,7 @@ export default function Home() {
       <div id="features" className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid md:grid-cols-3 gap-8">
           <div className="p-6 bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-700">
-            <div className="text-3xl mb-4">🏥</div>
+            <Building className="h-8 w-8 text-neutral-900 dark:text-neutral-300 mb-4" />
             <h3 className="font-semibold text-neutral-900 dark:text-white mb-2">
               Therapiearten verwalten
             </h3>
@@ -60,7 +61,7 @@ export default function Home() {
             </p>
           </div>
           <div className="p-6 bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-700">
-            <div className="text-3xl mb-4">📅</div>
+            <Calendar className="h-8 w-8 text-neutral-900 dark:text-neutral-300 mb-4" />
             <h3 className="font-semibold text-neutral-900 dark:text-white mb-2">
               Monatliche Planung
             </h3>
@@ -69,7 +70,7 @@ export default function Home() {
             </p>
           </div>
           <div className="p-6 bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-700">
-            <div className="text-3xl mb-4">📊</div>
+            <BarChart3 className="h-8 w-8 text-neutral-900 dark:text-neutral-300 mb-4" />
             <h3 className="font-semibold text-neutral-900 dark:text-white mb-2">
               Break-Even Analyse
             </h3>
