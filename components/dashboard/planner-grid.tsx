@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import type { TherapyType } from '@/lib/types'
+import { useMonthlyPlans } from '@/lib/hooks/useMonthlyPlans'
 import { PlannerCard } from './planner-card'
 import { Button } from '@/components/ui/button'
 import { Plus, AlertCircle } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
-import { getMonthlyPlansWithTherapies } from '@/lib/actions/monthly-plans'
 import { formatEuro } from '@/lib/utils'
 
 interface PlannerGridProps {
@@ -38,32 +38,31 @@ export function PlannerGrid({
   onAddTherapy
 }: PlannerGridProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
-  const [plans, setPlans] = useState<MonthlyPlanWithTherapy[]>([])
-  const [isLoading, setIsLoading] = useState(false)
 
-  // Load all monthly plans for the selected month
-  useEffect(() => {
-    const loadPlans = async () => {
-      setIsLoading(true)
-      try {
-        const data = await getMonthlyPlansWithTherapies(month)
-        setPlans(data || [])
-      } catch (error) {
-        console.error('Error loading monthly plans:', error)
-        setPlans([])
-      } finally {
-        setIsLoading(false)
-      }
-    }
+  // Use SWR hook for automatic caching and deduplication
+  // Monthly plans are cached per month for 60 seconds
+  const { plans: basePlans, isLoading, mutate } = useMonthlyPlans(month)
 
-    loadPlans()
-  }, [month])
-
-  // Refresh plans after a save or delete
+  // Wrapper for mutate to match expected function signature
   const refreshPlans = async () => {
-    const data = await getMonthlyPlansWithTherapies(month)
-    setPlans(data || [])
+    await mutate()
   }
+
+  // Enrich plans with therapy details from the passed therapies
+  const plans = useMemo(() => {
+    return (basePlans || []).map(plan => {
+      const therapy = therapies.find(t => t.id === plan.therapy_type_id)
+      return {
+        ...plan,
+        therapy_types: therapy ? {
+          id: therapy.id,
+          name: therapy.name,
+          price_per_session: therapy.price_per_session,
+          variable_cost_per_session: therapy.variable_cost_per_session,
+        } : null
+      }
+    }) as MonthlyPlanWithTherapy[]
+  }, [basePlans, therapies])
 
   // Calculate total planned revenue and margin
   const totals = useMemo(() => {
