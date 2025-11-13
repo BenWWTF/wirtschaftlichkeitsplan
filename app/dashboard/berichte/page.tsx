@@ -10,6 +10,8 @@ export const metadata = {
   description: 'Detaillierte Geschäftsberichte und Analysen'
 }
 
+export const revalidate = 1800  // Revalidate every 30 minutes (reports aggregate historical data)
+
 export default async function BerichtePage() {
   // Get date range for last 12 months
   const now = new Date()

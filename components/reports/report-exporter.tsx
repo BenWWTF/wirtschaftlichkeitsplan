@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Download, FileText, Sheet, FileJson } from 'lucide-react'
+import { FileText, Sheet, FileJson } from 'lucide-react'
 import { toast } from 'sonner'
 import type { AdvancedAnalytics } from '@/lib/actions/analytics'
 

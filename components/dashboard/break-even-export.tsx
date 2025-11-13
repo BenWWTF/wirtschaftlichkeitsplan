@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import type { BreakEvenAnalysis } from '@/lib/types'
 import { exportAsCSV, exportAsJSON, exportAsHTML, printReport } from '@/lib/utils/export-report'
-import { Download, FileJson, FileText, Printer, MoreVertical } from 'lucide-react'
+import { Download, FileJson, FileText, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 

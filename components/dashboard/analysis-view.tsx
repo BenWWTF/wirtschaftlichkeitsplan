@@ -3,7 +3,6 @@
 import type { BreakEvenAnalysis } from '@/lib/types'
 import { BreakEvenCalculator } from './break-even-calculator'
 import Link from 'next/link'
-import { AlertCircle } from 'lucide-react'
 
 interface AnalysisViewProps {
   therapies: BreakEvenAnalysis[]

@@ -6,6 +6,8 @@ export const metadata = {
   description: 'Analysieren Sie Ihre Rentabilität und Break-Even-Punkt'
 }
 
+export const revalidate = 3600  // Revalidate every hour (break-even rarely changes)
+
 export default async function AnalysePage() {
   // Load break-even data
   const breakEvenData = await getBreakEvenAnalysis()

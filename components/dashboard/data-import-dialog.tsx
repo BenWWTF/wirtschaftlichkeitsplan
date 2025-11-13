@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { Upload, FileText, CheckCircle2, AlertCircle, Download } from 'lucide-react'
+import { Upload, CheckCircle2, AlertCircle, Download } from 'lucide-react'
 import {
   parseCSV,
   getCSVHeaders,

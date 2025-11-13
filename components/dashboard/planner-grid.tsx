@@ -5,7 +5,7 @@ import type { TherapyType } from '@/lib/types'
 import { useMonthlyPlans } from '@/lib/hooks/useMonthlyPlans'
 import { PlannerCard } from './planner-card'
 import { Button } from '@/components/ui/button'
-import { Plus, AlertCircle } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { formatEuro } from '@/lib/utils'
 

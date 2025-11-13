@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { getAdvancedAnalytics } from '@/lib/actions/analytics'
 import type { AdvancedAnalytics } from '@/lib/actions/analytics'
 import { formatEuro } from '@/lib/utils'
-import { AlertCircle, TrendingUp } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 
 export function TherapyPerformanceReport() {
   const [analytics, setAnalytics] = useState<AdvancedAnalytics | null>(null)

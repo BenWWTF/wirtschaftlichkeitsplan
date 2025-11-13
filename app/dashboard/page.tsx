@@ -1,12 +1,13 @@
 import Link from 'next/link'
 import { getMonthlyMetrics } from '@/lib/actions/dashboard'
 import { DashboardKPISection } from '@/components/dashboard/dashboard-kpi-section'
-import { Settings, TrendingUp, Upload } from 'lucide-react'
 
 export const metadata = {
   title: 'Dashboard - Wirtschaftlichkeitsplan',
   description: 'Ihr Financial Planning Dashboard'
 }
+
+export const revalidate = 300  // Revalidate every 5 minutes (dashboard KPIs change with data)
 
 export default async function DashboardPage() {
   // Fetch monthly metrics (not cached - changes frequently)

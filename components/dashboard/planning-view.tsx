@@ -5,7 +5,6 @@ import { useTherapies } from '@/lib/hooks/useTherapies'
 import { MonthSelector } from './month-selector'
 import { PlannerGrid } from './planner-grid'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
 import Link from 'next/link'
 
 interface PlanningViewProps {
