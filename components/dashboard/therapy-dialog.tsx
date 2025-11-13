@@ -36,6 +36,7 @@ interface TherapyDialogProps {
 
 export function TherapyDialog({ open, onOpenChange, therapy }: TherapyDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [submittedAt, setSubmittedAt] = useState<number>(0)
 
   const form = useForm<TherapyTypeInput>({
     resolver: zodResolver(TherapyTypeSchema),
@@ -92,6 +93,16 @@ export function TherapyDialog({ open, onOpenChange, therapy }: TherapyDialogProp
     }
   }
 
+  // Prevent rapid form submissions (debounce-like behavior)
+  // Allows immediate submission but prevents spam within 1 second
+  const canSubmit = Date.now() - submittedAt >= 1000 || !isLoading
+
+  const handleSubmit = () => {
+    if (!canSubmit) return
+    setSubmittedAt(Date.now())
+    form.handleSubmit(onSubmit)()
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -107,7 +118,7 @@ export function TherapyDialog({ open, onOpenChange, therapy }: TherapyDialogProp
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={(e) => { e.preventDefault(); handleSubmit() }} className="space-y-6">
             <FormField
               control={form.control}
               name="name"
@@ -202,7 +213,7 @@ export function TherapyDialog({ open, onOpenChange, therapy }: TherapyDialogProp
               >
                 Abbrechen
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading || !canSubmit}>
                 {isLoading ? 'Speichern...' : therapy ? 'Aktualisieren' : 'Erstellen'}
               </Button>
             </div>
