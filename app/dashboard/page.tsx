@@ -1,9 +1,7 @@
 import Link from 'next/link'
-import { getDashboardSummary, getMonthlyMetrics } from '@/lib/actions/dashboard'
-import { getTherapies } from '@/lib/actions/therapies'
-import { getExpenses } from '@/lib/actions/expenses'
-import { formatEuro } from '@/lib/utils'
-import { DollarSign, BarChart3, Users, Receipt, Settings, TrendingUp, Upload } from 'lucide-react'
+import { getMonthlyMetrics } from '@/lib/actions/dashboard'
+import { DashboardKPISection } from '@/components/dashboard/dashboard-kpi-section'
+import { Settings, TrendingUp, Upload } from 'lucide-react'
 
 export const metadata = {
   title: 'Dashboard - Wirtschaftlichkeitsplan',
@@ -11,33 +9,9 @@ export const metadata = {
 }
 
 export default async function DashboardPage() {
-  // Fetch current data
+  // Fetch monthly metrics (not cached - changes frequently)
   const currentMonth = new Date().toISOString().slice(0, 7) // YYYY-MM format
-  const summary = await getDashboardSummary()
   const monthlyMetrics = await getMonthlyMetrics(currentMonth)
-  const therapies = await getTherapies()
-  const expenses = await getExpenses()
-
-  const statusColor =
-    summary.break_even_status === 'surplus'
-      ? 'text-green-600 dark:text-green-400'
-      : summary.break_even_status === 'breakeven'
-        ? 'text-amber-600 dark:text-amber-400'
-        : 'text-red-600 dark:text-red-400'
-
-  const statusBg =
-    summary.break_even_status === 'surplus'
-      ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-      : summary.break_even_status === 'breakeven'
-        ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
-        : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-
-  const statusLabel =
-    summary.break_even_status === 'surplus'
-      ? 'Gewinn'
-      : summary.break_even_status === 'breakeven'
-        ? 'Break-Even'
-        : 'Verlust'
 
   return (
     <main className="min-h-screen bg-white dark:bg-neutral-950">
@@ -61,72 +35,8 @@ export default async function DashboardPage() {
             </Link>
           </div>
 
-          {/* KPI Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Total Revenue */}
-            <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                  Gesamtumsatz
-                </p>
-                <DollarSign className="h-5 w-5 text-blue-500" />
-              </div>
-              <p className="text-3xl font-bold text-neutral-900 dark:text-white">
-                {formatEuro(summary.total_revenue)}
-              </p>
-              <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">
-                {summary.total_sessions} Sitzungen
-              </p>
-            </div>
-
-            {/* Net Income */}
-            <div className={`${statusBg} rounded-lg border p-6`}>
-              <div className="flex items-center justify-between mb-4">
-                <p className={`text-sm ${statusColor}`}>
-                  {statusLabel}
-                </p>
-                <BarChart3 className={`h-5 w-5 ${statusColor}`} />
-              </div>
-              <p className={`text-3xl font-bold ${statusColor}`}>
-                {formatEuro(summary.net_income)}
-              </p>
-              <p className={`text-sm mt-2 ${statusColor}`}>
-                {summary.profitability_rate.toFixed(1)}% Marge
-              </p>
-            </div>
-
-            {/* Therapy Types */}
-            <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                  Therapiearten
-                </p>
-                <Users className="h-5 w-5 text-purple-500" />
-              </div>
-              <p className="text-3xl font-bold text-neutral-900 dark:text-white">
-                {therapies.length}
-              </p>
-              <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">
-                Aktive Angebote
-              </p>
-            </div>
-
-            {/* Expenses */}
-            <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                  Ausgaben
-                </p>
-                <Receipt className="h-5 w-5 text-red-500" />
-              </div>
-              <p className="text-3xl font-bold text-neutral-900 dark:text-white">
-                {expenses.length}
-              </p>
-              <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">
-                Erfasste Ausgaben
-              </p>
-            </div>
-          </div>
+          {/* KPI Cards - Using SWR caching for deduplication */}
+          <DashboardKPISection />
 
           {/* Quick Actions */}
           <div>
