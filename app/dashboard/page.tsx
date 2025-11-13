@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getMonthlyMetrics } from '@/lib/actions/dashboard'
 import { DashboardKPISection } from '@/components/dashboard/dashboard-kpi-section'
+import { DollarSign, BarChart3, Settings, TrendingUp, CheckCircle2, Wrench, Lightbulb } from 'lucide-react'
 
 export const metadata = {
   title: 'Dashboard - Wirtschaftlichkeitsplan',
@@ -95,7 +96,7 @@ export default async function DashboardPage() {
 
               <Link href="/dashboard/analyse" className="group">
                 <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-6 hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-600 transition-all">
-                  <div className="text-3xl mb-3">💰</div>
+                  <DollarSign className="h-8 w-8 text-green-700 dark:text-green-500 mb-3" />
                   <h3 className="font-semibold text-neutral-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                     Break-Even Analyse
                   </h3>
@@ -107,7 +108,7 @@ export default async function DashboardPage() {
 
               <Link href="/dashboard/berichte" className="group">
                 <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-6 hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-600 transition-all">
-                  <div className="text-3xl mb-3">📊</div>
+                  <BarChart3 className="h-8 w-8 text-indigo-600 dark:text-indigo-400 mb-3" />
                   <h3 className="font-semibold text-neutral-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                     Berichte
                   </h3>
@@ -119,7 +120,7 @@ export default async function DashboardPage() {
 
               <Link href="/dashboard/einstellungen" className="group">
                 <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-6 hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-600 transition-all">
-                  <div className="text-3xl mb-3">⚙️</div>
+                  <Settings className="h-8 w-8 text-gray-700 dark:text-gray-400 mb-3" />
                   <h3 className="font-semibold text-neutral-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                     Einstellungen
                   </h3>
@@ -133,14 +134,20 @@ export default async function DashboardPage() {
 
           {/* Progress */}
           <div className="bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 p-6">
-            <h3 className="font-semibold text-neutral-900 dark:text-white mb-4">
-              📈 Entwicklungsfortschritt
-            </h3>
+            <div className="flex items-center gap-3 mb-4">
+              <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-400" />
+              <h3 className="font-semibold text-neutral-900 dark:text-white">
+                Entwicklungsfortschritt
+              </h3>
+            </div>
             <div className="space-y-3">
               <div>
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-neutral-600 dark:text-neutral-400">Phase 3: Therapiearten Management</span>
-                  <span className="font-medium text-green-600 dark:text-green-400">✅ Fertig</span>
+                  <div className="flex items-center gap-1">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <span className="font-medium text-green-600 dark:text-green-400">Fertig</span>
+                  </div>
                 </div>
                 <div className="w-full bg-neutral-200 dark:bg-neutral-800 rounded-full h-2 overflow-hidden">
                   <div className="bg-green-500 h-full" style={{ width: '100%' }}></div>
@@ -149,7 +156,10 @@ export default async function DashboardPage() {
               <div>
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-neutral-600 dark:text-neutral-400">Phase 4: Monatliche Planung</span>
-                  <span className="font-medium text-green-600 dark:text-green-400">✅ Fertig</span>
+                  <div className="flex items-center gap-1">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <span className="font-medium text-green-600 dark:text-green-400">Fertig</span>
+                  </div>
                 </div>
                 <div className="w-full bg-neutral-200 dark:bg-neutral-800 rounded-full h-2 overflow-hidden">
                   <div className="bg-green-500 h-full" style={{ width: '100%' }}></div>
@@ -158,7 +168,10 @@ export default async function DashboardPage() {
               <div>
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-neutral-600 dark:text-neutral-400">Phase 5: Break-Even Analyse</span>
-                  <span className="font-medium text-green-600 dark:text-green-400">✅ Fertig</span>
+                  <div className="flex items-center gap-1">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <span className="font-medium text-green-600 dark:text-green-400">Fertig</span>
+                  </div>
                 </div>
                 <div className="w-full bg-neutral-200 dark:bg-neutral-800 rounded-full h-2 overflow-hidden">
                   <div className="bg-green-500 h-full" style={{ width: '100%' }}></div>
@@ -167,7 +180,10 @@ export default async function DashboardPage() {
               <div>
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-neutral-600 dark:text-neutral-400">Phase 6: Ausgaben & Einstellungen</span>
-                  <span className="font-medium text-green-600 dark:text-green-400">✅ Fertig</span>
+                  <div className="flex items-center gap-1">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <span className="font-medium text-green-600 dark:text-green-400">Fertig</span>
+                  </div>
                 </div>
                 <div className="w-full bg-neutral-200 dark:bg-neutral-800 rounded-full h-2 overflow-hidden">
                   <div className="bg-green-500 h-full" style={{ width: '100%' }}></div>
@@ -176,7 +192,10 @@ export default async function DashboardPage() {
               <div>
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-neutral-600 dark:text-neutral-400">Phase 7: Österreichische Steuer & Vorlagen</span>
-                  <span className="font-medium text-green-600 dark:text-green-400">✅ Fertig</span>
+                  <div className="flex items-center gap-1">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <span className="font-medium text-green-600 dark:text-green-400">Fertig</span>
+                  </div>
                 </div>
                 <div className="w-full bg-neutral-200 dark:bg-neutral-800 rounded-full h-2 overflow-hidden">
                   <div className="bg-green-500 h-full" style={{ width: '100%' }}></div>
@@ -185,7 +204,10 @@ export default async function DashboardPage() {
               <div>
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-neutral-600 dark:text-neutral-400">Phase 8: LATIDO Integration (Import)</span>
-                  <span className="font-medium text-blue-600 dark:text-blue-400">🔨 In Arbeit</span>
+                  <div className="flex items-center gap-1">
+                    <Wrench className="h-4 w-4 text-blue-600" />
+                    <span className="font-medium text-blue-600 dark:text-blue-400">In Arbeit</span>
+                  </div>
                 </div>
                 <div className="w-full bg-neutral-200 dark:bg-neutral-800 rounded-full h-2 overflow-hidden">
                   <div className="bg-blue-500 h-full" style={{ width: '85%' }}></div>
@@ -196,9 +218,12 @@ export default async function DashboardPage() {
 
           {/* Info */}
           <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 p-6">
-            <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-              💡 Erste Schritte
-            </h3>
+            <div className="flex items-center gap-3 mb-2">
+              <Lightbulb className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <h3 className="font-semibold text-blue-900 dark:text-blue-100">
+                Erste Schritte
+              </h3>
+            </div>
             <ol className="text-blue-800 dark:text-blue-200 text-sm space-y-2 mb-3">
               <li>
                 <strong>1. Einstellungen konfigurieren:</strong> Legen Sie Ihre Praxis-Details und Fixkosten fest

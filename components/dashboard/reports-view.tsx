@@ -11,7 +11,7 @@ import { ForecastReport } from '@/components/reports/forecast-report'
 import { ReportExporter } from '@/components/reports/report-exporter'
 import { getAdvancedAnalytics } from '@/lib/actions/analytics'
 import type { AdvancedAnalytics } from '@/lib/actions/analytics'
-import { BarChart3, TrendingUp, Download } from 'lucide-react'
+import { BarChart3, TrendingUp, Download, Lightbulb, BookOpen } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 
 // Dynamic import for tax planning card (heavy component with complex calculations)
@@ -67,9 +67,12 @@ export function ReportsView({
       {/* Info Box */}
       {monthlyData.length === 0 && (
         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 p-6">
-          <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-            💡 Keine Daten verfügbar
-          </h3>
+          <div className="flex items-center gap-2 mb-2">
+            <Lightbulb className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <h3 className="font-semibold text-blue-900 dark:text-blue-100">
+              Keine Daten verfügbar
+            </h3>
+          </div>
           <p className="text-blue-800 dark:text-blue-200 text-sm">
             Die Berichte werden basierend auf Ihre monatlichen Planungen und tatsächlichen Sitzungen generiert. Starten Sie mit der Erfassung Ihrer Daten in der monatlichen Planung.
           </p>
@@ -97,9 +100,12 @@ export function ReportsView({
 
       {/* Advanced Reports */}
       <div className="border-t border-neutral-200 dark:border-neutral-800 pt-8">
-        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-6">
-          📊 Erweiterte Berichte
-        </h2>
+        <div className="flex items-center gap-3 mb-6">
+          <BarChart3 className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+          <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">
+            Erweiterte Berichte
+          </h2>
+        </div>
 
         {/* Therapy Performance Report */}
         <div className="mb-8">
@@ -124,9 +130,12 @@ export function ReportsView({
 
       {/* Help Section */}
       <div className="bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 p-6">
-        <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
-          📚 Wie Sie die Berichte nutzen
-        </h3>
+        <div className="flex items-center gap-3 mb-4">
+          <BookOpen className="h-6 w-6 text-neutral-600 dark:text-neutral-400" />
+          <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
+            Wie Sie die Berichte nutzen
+          </h3>
+        </div>
 
         <div className="space-y-4">
           <div>
@@ -170,8 +179,9 @@ export function ReportsView({
           </div>
 
           <div>
-            <h4 className="font-semibold text-neutral-900 dark:text-white mb-2">
-              💡 Tipps zur Datenerfassung
+            <h4 className="font-semibold text-neutral-900 dark:text-white mb-2 flex items-center gap-2">
+              <Lightbulb className="h-5 w-5 text-blue-500" />
+              Tipps zur Datenerfassung
             </h4>
             <ul className="text-sm text-neutral-600 dark:text-neutral-400 space-y-1 list-disc list-inside">
               <li>

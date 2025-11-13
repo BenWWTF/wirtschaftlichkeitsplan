@@ -26,7 +26,7 @@ import type { PracticeSettings } from '@/lib/types'
 import { upsertPracticeSettingsAction } from '@/lib/actions/settings'
 import { PRACTICE_TYPES } from '@/lib/constants'
 import { toast } from 'sonner'
-import { Save } from 'lucide-react'
+import { Save, Lightbulb } from 'lucide-react'
 
 interface SettingsFormProps {
   settings: PracticeSettings | null
@@ -246,9 +246,12 @@ export function SettingsForm({ settings }: SettingsFormProps) {
 
           {/* Summary */}
           <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 p-6">
-            <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-3">
-              💡 Verwendung dieser Einstellungen
-            </h4>
+            <div className="flex items-center gap-2 mb-3">
+              <Lightbulb className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <h4 className="font-semibold text-blue-900 dark:text-blue-100">
+                Verwendung dieser Einstellungen
+              </h4>
+            </div>
             <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-2">
               <li>
                 • <strong>Monatliche Fixkosten:</strong> Werden für Break-Even-Berechnungen verwendet

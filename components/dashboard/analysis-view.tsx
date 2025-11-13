@@ -2,6 +2,7 @@
 
 import type { BreakEvenAnalysis } from '@/lib/types'
 import { BreakEvenCalculator } from './break-even-calculator'
+import { Lightbulb, BookOpen, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 
 interface AnalysisViewProps {
@@ -24,9 +25,12 @@ export function AnalysisView({ therapies }: AnalysisViewProps) {
       {/* Info Box */}
       {therapies.length === 0 && (
         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 p-6">
-          <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-            💡 Erste Schritte
-          </h3>
+          <div className="flex items-center gap-2 mb-2">
+            <Lightbulb className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <h3 className="font-semibold text-blue-900 dark:text-blue-100">
+              Erste Schritte
+            </h3>
+          </div>
           <p className="text-blue-800 dark:text-blue-200 text-sm mb-3">
             Sie müssen zuerst Therapiearten erstellen, bevor Sie die Break-Even-Analyse verwenden können.
           </p>
@@ -45,9 +49,12 @@ export function AnalysisView({ therapies }: AnalysisViewProps) {
 
       {/* Help Section */}
       <div className="bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 p-6">
-        <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
-          📚 Wie funktioniert die Break-Even-Analyse?
-        </h3>
+        <div className="flex items-center gap-3 mb-4">
+          <BookOpen className="h-6 w-6 text-neutral-600 dark:text-neutral-400" />
+          <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
+            Wie funktioniert die Break-Even-Analyse?
+          </h3>
+        </div>
 
         <div className="space-y-4">
           <div>
@@ -104,9 +111,12 @@ export function AnalysisView({ therapies }: AnalysisViewProps) {
       {/* Tips Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 p-4">
-          <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2">
-            ✅ So senken Sie Ihren Break-Even-Punkt:
-          </h4>
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircle2 className="h-5 w-5 text-green-600" />
+            <h4 className="font-semibold text-green-900 dark:text-green-100">
+              So senken Sie Ihren Break-Even-Punkt:
+            </h4>
+          </div>
           <ul className="text-sm text-green-800 dark:text-green-200 space-y-1">
             <li>• Erhöhen Sie Ihre Preise</li>
             <li>• Senken Sie variable Kosten</li>
@@ -116,9 +126,12 @@ export function AnalysisView({ therapies }: AnalysisViewProps) {
         </div>
 
         <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 p-4">
-          <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-2">
-            💡 Tipps zur Optimierung:
-          </h4>
+          <div className="flex items-center gap-2 mb-2">
+            <Lightbulb className="h-5 w-5 text-amber-600" />
+            <h4 className="font-semibold text-amber-900 dark:text-amber-100">
+              Tipps zur Optimierung:
+            </h4>
+          </div>
           <ul className="text-sm text-amber-800 dark:text-amber-200 space-y-1">
             <li>• Überwachen Sie Ihre Fixkosten regelmäßig</li>
             <li>• Verhandeln Sie mit Anbietern</li>
