@@ -1,0 +1,118 @@
+
+> wirtschaftlichkeitsplan@0.1.0 analyze /Users/Missbach/Desktop/claude/wirtschaftlichkeitsplan/.worktrees/perf-optimization
+> ANALYZE=true next build
+
+ ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /Users/Missbach/package-lock.json as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * /Users/Missbach/Desktop/claude/wirtschaftlichkeitsplan/.worktrees/perf-optimization/pnpm-lock.yaml
+   * /Users/Missbach/Desktop/claude/wirtschaftlichkeitsplan/pnpm-lock.yaml
+
+   ▲ Next.js 15.5.6
+
+   Creating an optimized production build ...
+   Using tsconfig file: ./tsconfig.json
+Webpack Bundle Analyzer saved report to /Users/Missbach/Desktop/claude/wirtschaftlichkeitsplan/.worktrees/perf-optimization/.next/analyze/nodejs.html
+Webpack Bundle Analyzer saved report to /Users/Missbach/Desktop/claude/wirtschaftlichkeitsplan/.worktrees/perf-optimization/.next/analyze/edge.html
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (125kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+Webpack Bundle Analyzer saved report to /Users/Missbach/Desktop/claude/wirtschaftlichkeitsplan/.worktrees/perf-optimization/.next/analyze/client.html
+ ⚠ Compiled with warnings in 13.5s
+
+./node_modules/.pnpm/@supabase+realtime-js@2.79.0/node_modules/@supabase/realtime-js/dist/module/lib/websocket-factory.js
+A Node.js API is used (process.versions at line: 32) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/.pnpm/@supabase+realtime-js@2.79.0/node_modules/@supabase/realtime-js/dist/module/lib/websocket-factory.js
+./node_modules/.pnpm/@supabase+realtime-js@2.79.0/node_modules/@supabase/realtime-js/dist/module/index.js
+./node_modules/.pnpm/@supabase+supabase-js@2.79.0/node_modules/@supabase/supabase-js/dist/module/index.js
+./node_modules/.pnpm/@supabase+ssr@0.4.1_@supabase+supabase-js@2.79.0/node_modules/@supabase/ssr/dist/module/createBrowserClient.js
+./node_modules/.pnpm/@supabase+ssr@0.4.1_@supabase+supabase-js@2.79.0/node_modules/@supabase/ssr/dist/module/index.js
+
+./node_modules/.pnpm/@supabase+supabase-js@2.79.0/node_modules/@supabase/supabase-js/dist/module/index.js
+A Node.js API is used (process.version at line: 24) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/.pnpm/@supabase+supabase-js@2.79.0/node_modules/@supabase/supabase-js/dist/module/index.js
+./node_modules/.pnpm/@supabase+ssr@0.4.1_@supabase+supabase-js@2.79.0/node_modules/@supabase/ssr/dist/module/createBrowserClient.js
+./node_modules/.pnpm/@supabase+ssr@0.4.1_@supabase+supabase-js@2.79.0/node_modules/@supabase/ssr/dist/module/index.js
+
+   Linting and checking validity of types ...
+ ⨯ ESLint: Plugin "@next/next" was conflicted between ".eslintrc.json » eslint-config-next/core-web-vitals » plugin:@next/next/core-web-vitals" and "../../.eslintrc.json » eslint-config-next/core-web-vitals » plugin:@next/next/core-web-vitals".
+   Collecting page data ...
+   Generating static pages (0/15) ...
+   Generating static pages (3/15) 
+   Generating static pages (7/15) 
+   Generating static pages (11/15) 
+Exception fetching practice settings: Error: Dynamic server usage: Route /dashboard/einstellungen couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at s (.next/server/chunks/27.js:8:4622)
+    at n (.next/server/chunks/411.js:1:7845)
+    at f (.next/server/app/auth/confirm/route.js:1:7087)
+    at i (.next/server/app/dashboard/einstellungen/page.js:2:8935)
+    at i (.next/server/app/dashboard/einstellungen/page.js:2:12447)
+    at stringify (<anonymous>) {
+  description: "Route /dashboard/einstellungen couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Exception fetching therapies: Error: Dynamic server usage: Route /dashboard/therapien couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at s (.next/server/chunks/27.js:8:4622)
+    at n (.next/server/chunks/411.js:1:7845)
+    at f (.next/server/app/auth/confirm/route.js:1:7087)
+    at k (.next/server/chunks/967.js:1:8621)
+    at h (.next/server/app/dashboard/therapien/page.js:1:14328)
+    at stringify (<anonymous>) {
+  description: "Route /dashboard/therapien couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Exception fetching expenses: Error: Dynamic server usage: Route /dashboard/ausgaben couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at s (.next/server/chunks/27.js:8:4622)
+    at n (.next/server/chunks/411.js:1:7845)
+    at f (.next/server/app/auth/confirm/route.js:1:7087)
+    at k (.next/server/app/dashboard/ausgaben/page.js:2:12144)
+    at h (.next/server/app/dashboard/ausgaben/page.js:2:58508)
+    at stringify (<anonymous>) {
+  description: "Route /dashboard/ausgaben couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Exception fetching therapies: Error: Dynamic server usage: Route /dashboard/planung couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at s (.next/server/chunks/27.js:8:4622)
+    at n (.next/server/chunks/411.js:1:7845)
+    at f (.next/server/app/auth/confirm/route.js:1:7087)
+    at k (.next/server/chunks/967.js:1:8621)
+    at h (.next/server/app/dashboard/planung/page.js:2:7718)
+    at stringify (<anonymous>) {
+  description: "Route /dashboard/planung couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+ ✓ Generating static pages (15/15)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                      169 B         106 kB
+├ ○ /_not-found                            993 B         103 kB
+├ ƒ /auth/confirm                          124 B         102 kB
+├ ƒ /dashboard                             169 B         106 kB
+├ ƒ /dashboard/analyse                   12.6 kB         269 kB
+├ ƒ /dashboard/ausgaben                  13.4 kB         190 kB
+├ ƒ /dashboard/berichte                  18.9 kB         247 kB
+├ ƒ /dashboard/einstellungen             2.01 kB         175 kB
+├ ○ /dashboard/import                    10.3 kB         159 kB
+├ ƒ /dashboard/planung                   5.05 kB         184 kB
+├ ƒ /dashboard/therapien                 4.08 kB         162 kB
+├ ○ /datenschutz                           169 B         106 kB
+└ ○ /error                               1.61 kB         114 kB
++ First Load JS shared by all             102 kB
+  ├ chunks/303-8c3edb3a37888e6d.js       45.9 kB
+  ├ chunks/65853ea0-0327ad2791998aed.js  54.2 kB
+  └ other shared chunks (total)          1.98 kB
+
+
+ƒ Middleware                               80 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
