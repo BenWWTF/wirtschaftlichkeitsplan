@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { getAdvancedAnalytics } from '@/lib/actions/analytics'
 import type { AdvancedAnalytics } from '@/lib/actions/analytics'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react'
 
 export function OperationalReport() {
   const [analytics, setAnalytics] = useState<AdvancedAnalytics | null>(null)
@@ -170,30 +170,48 @@ export function OperationalReport() {
             </h3>
             <div className="space-y-2">
               {analytics.occupancyRate >= 80 ? (
-                <p className="text-sm text-green-600 dark:text-green-400 font-medium">
-                  ✅ Ausgezeichnete Auslastung
-                </p>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                  <p className="text-sm text-green-600 dark:text-green-400 font-medium">
+                    Ausgezeichnete Auslastung
+                  </p>
+                </div>
               ) : analytics.occupancyRate >= 60 ? (
-                <p className="text-sm text-yellow-600 dark:text-yellow-400 font-medium">
-                  ⚠️ Gute Auslastung mit Raum für Verbesserungen
-                </p>
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600 flex-shrink-0" />
+                  <p className="text-sm text-yellow-600 dark:text-yellow-400 font-medium">
+                    Gute Auslastung mit Raum für Verbesserungen
+                  </p>
+                </div>
               ) : (
-                <p className="text-sm text-red-600 dark:text-red-400 font-medium">
-                  ❌ Niedrige Auslastung - Überprüfung erforderlich
-                </p>
+                <div className="flex items-center gap-2">
+                  <XCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                  <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                    Niedrige Auslastung - Überprüfung erforderlich
+                  </p>
+                </div>
               )}
               {analytics.profitMarginPercent >= 30 ? (
-                <p className="text-sm text-green-600 dark:text-green-400 font-medium">
-                  ✅ Gesunde Gewinnmarge
-                </p>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                  <p className="text-sm text-green-600 dark:text-green-400 font-medium">
+                    Gesunde Gewinnmarge
+                  </p>
+                </div>
               ) : analytics.profitMarginPercent >= 10 ? (
-                <p className="text-sm text-yellow-600 dark:text-yellow-400 font-medium">
-                  ⚠️ Moderate Gewinnmarge
-                </p>
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600 flex-shrink-0" />
+                  <p className="text-sm text-yellow-600 dark:text-yellow-400 font-medium">
+                    Moderate Gewinnmarge
+                  </p>
+                </div>
               ) : (
-                <p className="text-sm text-red-600 dark:text-red-400 font-medium">
-                  ❌ Kritische Gewinnmarge
-                </p>
+                <div className="flex items-center gap-2">
+                  <XCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                  <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                    Kritische Gewinnmarge
+                  </p>
+                </div>
               )}
             </div>
           </div>

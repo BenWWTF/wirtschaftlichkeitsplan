@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { getAdvancedAnalytics } from '@/lib/actions/analytics'
 import type { AdvancedAnalytics } from '@/lib/actions/analytics'
 import { formatEuro } from '@/lib/utils'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, Trophy, BarChart3, DollarSign, TrendingUp, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react'
 
 export function TherapyPerformanceReport() {
   const [analytics, setAnalytics] = useState<AdvancedAnalytics | null>(null)
@@ -68,9 +68,12 @@ export function TherapyPerformanceReport() {
             <div className="border-l-4 border-green-500 pl-4 py-2">
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <h3 className="font-semibold text-neutral-900 dark:text-white">
-                    🥇 {analytics.topTherapyByRevenue.name}
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <Trophy className="h-5 w-5 text-yellow-600" />
+                    <h3 className="font-semibold text-neutral-900 dark:text-white">
+                      {analytics.topTherapyByRevenue.name}
+                    </h3>
+                  </div>
                   <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
                     Top Therapie nach Umsatz
                   </p>
@@ -92,9 +95,12 @@ export function TherapyPerformanceReport() {
             <div className="border-l-4 border-blue-500 pl-4 py-2">
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <h3 className="font-semibold text-neutral-900 dark:text-white">
-                    📊 {analytics.topTherapyByMargin.name}
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-blue-600" />
+                    <h3 className="font-semibold text-neutral-900 dark:text-white">
+                      {analytics.topTherapyByMargin.name}
+                    </h3>
+                  </div>
                   <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
                     Top Therapie nach Deckungsbeitrag
                   </p>
@@ -115,9 +121,12 @@ export function TherapyPerformanceReport() {
           <div className="bg-neutral-50 dark:bg-neutral-900/50 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-semibold text-neutral-900 dark:text-white">
-                  💶 Durchschnittlicher Sitzungspreis
-                </h3>
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-green-600" />
+                  <h3 className="font-semibold text-neutral-900 dark:text-white">
+                    Durchschnittlicher Sitzungspreis
+                  </h3>
+                </div>
                 <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
                   Mittelwert aller Therapiearten
                 </p>
@@ -131,9 +140,12 @@ export function TherapyPerformanceReport() {
           {/* Occupancy Rate */}
           <div className="bg-neutral-50 dark:bg-neutral-900/50 rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-neutral-900 dark:text-white">
-                📈 Auslastungsquote
-              </h3>
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+                <h3 className="font-semibold text-neutral-900 dark:text-white">
+                  Auslastungsquote
+                </h3>
+              </div>
               <p className="text-2xl font-bold text-neutral-900 dark:text-white">
                 {analytics.occupancyRate.toFixed(1)}%
               </p>
@@ -150,13 +162,30 @@ export function TherapyPerformanceReport() {
                 style={{ width: `${Math.min(analytics.occupancyRate, 100)}%` }}
               />
             </div>
-            <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-2">
-              {analytics.occupancyRate >= 80
-                ? '✅ Ausgezeichnet - Geplante vs. durchgeführte Sitzungen'
-                : analytics.occupancyRate >= 60
-                ? '⚠️ Gut - Potenzial zur Steigerung vorhanden'
-                : '❌ Niedrig - Überprüfen Sie die Planungen'}
-            </p>
+            <div className="flex items-center gap-1 mt-2">
+              {analytics.occupancyRate >= 80 ? (
+                <>
+                  <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400">
+                    Ausgezeichnet - Geplante vs. durchgeführte Sitzungen
+                  </p>
+                </>
+              ) : analytics.occupancyRate >= 60 ? (
+                <>
+                  <AlertTriangle className="h-4 w-4 text-yellow-600 flex-shrink-0" />
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400">
+                    Gut - Potenzial zur Steigerung vorhanden
+                  </p>
+                </>
+              ) : (
+                <>
+                  <XCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400">
+                    Niedrig - Überprüfen Sie die Planungen
+                  </p>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
