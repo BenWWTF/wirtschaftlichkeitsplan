@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { getAdvancedAnalytics } from '@/lib/actions/analytics'
 import type { AdvancedAnalytics } from '@/lib/actions/analytics'
 import { formatEuro } from '@/lib/utils'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, CheckCircle2, AlertTriangle, XCircle, DollarSign, Building } from 'lucide-react'
 
 export function FinancialSummaryReport() {
   const [analytics, setAnalytics] = useState<AdvancedAnalytics | null>(null)
@@ -57,10 +57,10 @@ export function FinancialSummaryReport() {
 
   // Calculate totals
   const profitMarginStatus = analytics.profitMarginPercent >= 30
-    ? { color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-900/20', label: '✅ Gesund' }
+    ? { color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-900/20', label: 'Gesund', icon: CheckCircle2, iconColor: 'text-green-600' }
     : analytics.profitMarginPercent >= 10
-    ? { color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-900/20', label: '⚠️ Moderat' }
-    : { color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20', label: '❌ Kritisch' }
+    ? { color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-900/20', label: 'Moderat', icon: AlertTriangle, iconColor: 'text-yellow-600' }
+    : { color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20', label: 'Kritisch', icon: XCircle, iconColor: 'text-red-600' }
 
   return (
     <div className="space-y-6">
@@ -122,9 +122,12 @@ export function FinancialSummaryReport() {
             <p className={`text-3xl font-bold ${profitMarginStatus.color}`}>
               {analytics.profitMarginPercent.toFixed(1)}%
             </p>
-            <p className={`text-xs mt-2 font-medium ${profitMarginStatus.color}`}>
-              {profitMarginStatus.label}
-            </p>
+            <div className="flex items-center gap-1 mt-2">
+              <profitMarginStatus.icon className={`h-4 w-4 ${profitMarginStatus.iconColor}`} />
+              <p className={`text-xs font-medium ${profitMarginStatus.color}`}>
+                {profitMarginStatus.label}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -136,8 +139,9 @@ export function FinancialSummaryReport() {
           <div className="space-y-3">
             <div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-neutral-600 dark:text-neutral-400">
-                  💰 Variable Kosten
+                <span className="flex items-center gap-2 text-neutral-600 dark:text-neutral-400">
+                  <DollarSign className="h-4 w-4 text-blue-600" />
+                  Variable Kosten
                 </span>
                 <span className="font-semibold text-neutral-900 dark:text-white">
                   {analytics.costStructure.variableCostsPercent.toFixed(1)}%
@@ -152,8 +156,9 @@ export function FinancialSummaryReport() {
             </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-neutral-600 dark:text-neutral-400">
-                  🏢 Fixkosten
+                <span className="flex items-center gap-2 text-neutral-600 dark:text-neutral-400">
+                  <Building className="h-4 w-4 text-orange-600" />
+                  Fixkosten
                 </span>
                 <span className="font-semibold text-neutral-900 dark:text-white">
                   {analytics.costStructure.fixedCostsPercent.toFixed(1)}%
