@@ -11,6 +11,14 @@ import { toast } from 'sonner'
 import { ChevronDown, Check, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
   Form,
   FormField,
   FormItem,
@@ -45,6 +53,8 @@ export function PlannerCard({
 }: PlannerCardProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [planData, setPlanData] = useState<MonthlyPlanData | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const form = useForm<MonthlyPlanInput>({
     resolver: zodResolver(MonthlyPlanSchema),
@@ -103,12 +113,15 @@ export function PlannerCard({
     }
   }
 
-  async function onDelete() {
-    if (!planData) return
-    if (!confirm('Möchten Sie diesen Plan wirklich löschen?')) return
+  function handleDeleteClick() {
+    setDeleteDialogOpen(true)
+  }
 
+  async function handleDeleteConfirm() {
+    if (!planData) return
+
+    setIsDeleting(true)
     try {
-      setIsLoading(true)
       const result = await deleteMonthlyPlanAction(planData.id)
 
       if (result?.error) {
@@ -117,6 +130,7 @@ export function PlannerCard({
         toast.success('Plan gelöscht')
         setPlanData(null)
         form.reset()
+        setDeleteDialogOpen(false)
 
         // Refresh the parent's plan list to update totals
         if (onRefresh) {
@@ -127,7 +141,7 @@ export function PlannerCard({
       toast.error('Ein Fehler ist aufgetreten')
       console.error(error)
     } finally {
-      setIsLoading(false)
+      setIsDeleting(false)
     }
   }
 
@@ -278,8 +292,8 @@ export function PlannerCard({
                   <Button
                     type="button"
                     variant="ghost"
-                    disabled={isLoading}
-                    onClick={onDelete}
+                    disabled={isLoading || isDeleting}
+                    onClick={handleDeleteClick}
                     title="Löschen"
                   >
                     <Trash2 className="h-4 w-4 text-red-500" />
@@ -307,6 +321,33 @@ export function PlannerCard({
           </span>
         </div>
       )}
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Monatsplan löschen?</DialogTitle>
+            <DialogDescription>
+              Der Plan für {therapy.name} im Monat {month} wird permanent gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={isDeleting}
+            >
+              Abbrechen
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Wird gelöscht...' : 'Löschen'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

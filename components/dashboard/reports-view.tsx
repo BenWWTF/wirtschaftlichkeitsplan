@@ -1,8 +1,16 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import type { MonthlyMetrics, TherapyMetrics, DashboardSummary } from '@/lib/actions/dashboard'
 import { BusinessDashboard } from './business-dashboard'
-import { BarChart3, TrendingUp } from 'lucide-react'
+import { TherapyPerformanceReport } from '@/components/reports/therapy-performance-report'
+import { FinancialSummaryReport } from '@/components/reports/financial-summary-report'
+import { OperationalReport } from '@/components/reports/operational-report'
+import { ForecastReport } from '@/components/reports/forecast-report'
+import { ReportExporter } from '@/components/reports/report-exporter'
+import { getAdvancedAnalytics } from '@/lib/actions/analytics'
+import type { AdvancedAnalytics } from '@/lib/actions/analytics'
+import { BarChart3, TrendingUp, Download } from 'lucide-react'
 
 interface ReportsViewProps {
   monthlyData: MonthlyMetrics[]
@@ -15,16 +23,37 @@ export function ReportsView({
   therapyMetrics,
   summary
 }: ReportsViewProps) {
+  const [analytics, setAnalytics] = useState<AdvancedAnalytics | null>(null)
+
+  useEffect(() => {
+    const loadAnalytics = async () => {
+      const data = await getAdvancedAnalytics()
+      setAnalytics(data)
+    }
+    loadAnalytics()
+  }, [])
+
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
-          Geschäftsberichte
-        </h1>
-        <p className="text-neutral-600 dark:text-neutral-400 mt-1">
-          Umfassende Übersicht Ihrer Geschäftsentwicklung
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
+            Geschäftsberichte
+          </h1>
+          <p className="text-neutral-600 dark:text-neutral-400 mt-1">
+            Umfassende Übersicht Ihrer Geschäftsentwicklung
+          </p>
+        </div>
+        {analytics && (
+          <div className="bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-700 p-4">
+            <p className="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-2 flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              Exportieren
+            </p>
+            <ReportExporter analytics={analytics} reportName="Geschäftsbericht" />
+          </div>
+        )}
       </div>
 
       {/* Info Box */}
@@ -47,6 +76,33 @@ export function ReportsView({
           summary={summary}
         />
       )}
+
+      {/* Advanced Reports */}
+      <div className="border-t border-neutral-200 dark:border-neutral-800 pt-8">
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-6">
+          📊 Erweiterte Berichte
+        </h2>
+
+        {/* Therapy Performance Report */}
+        <div className="mb-8">
+          <TherapyPerformanceReport />
+        </div>
+
+        {/* Financial Summary Report */}
+        <div className="mb-8">
+          <FinancialSummaryReport />
+        </div>
+
+        {/* Operational Report */}
+        <div className="mb-8">
+          <OperationalReport />
+        </div>
+
+        {/* Forecast Report */}
+        <div className="mb-8">
+          <ForecastReport />
+        </div>
+      </div>
 
       {/* Help Section */}
       <div className="bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 p-6">

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { AnalyticsDashboard } from '@/components/dashboard/analytics-dashboard'
 
 export const metadata = {
   title: 'Dashboard - Wirtschaftlichkeitsplan',
@@ -26,6 +27,14 @@ export default function DashboardPage() {
             >
               ← Zurück
             </Link>
+          </div>
+
+          {/* Analytics Dashboard */}
+          <div>
+            <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-6">
+              📊 Analytik & KPIs
+            </h2>
+            <AnalyticsDashboard />
           </div>
 
           {/* Quick Actions */}

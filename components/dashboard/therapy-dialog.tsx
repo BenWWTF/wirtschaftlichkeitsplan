@@ -21,6 +21,8 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { TextField } from '@/components/ui/text-field'
+import { NumberField } from '@/components/ui/number-field'
 import { TherapyTypeSchema, type TherapyTypeInput } from '@/lib/validations'
 import type { TherapyType } from '@/lib/types'
 import { createTherapyAction, updateTherapyAction } from '@/lib/actions/therapies'
@@ -109,73 +111,62 @@ export function TherapyDialog({ open, onOpenChange, therapy }: TherapyDialogProp
             <FormField
               control={form.control}
               name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Therapieart-Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="z.B. Physiotherapie, Logopädie"
-                      {...field}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Der Name der Therapieart (z.B. Physiotherapie)
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
+              render={({ field, fieldState }) => (
+                <TextField
+                  {...field}
+                  label="Therapieart-Name"
+                  placeholder="z.B. Physiotherapie, Logopädie"
+                  helperText="Der Name der Therapieart (z.B. Physiotherapie)"
+                  error={fieldState.error?.message}
+                  disabled={isLoading}
+                  required
+                />
               )}
             />
 
             <FormField
               control={form.control}
               name="price_per_session"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sitzungspreis (€)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="60.00"
-                      {...field}
-                      value={field.value || ''}
-                      onChange={(e) => field.onChange(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Preis pro Sitzung in Euro
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
+              render={({ field, fieldState }) => (
+                <NumberField
+                  {...field}
+                  label="Sitzungspreis"
+                  placeholder="60.00"
+                  suffix="€"
+                  helperText="Preis pro Sitzung in Euro"
+                  error={fieldState.error?.message}
+                  disabled={isLoading}
+                  step={0.01}
+                  min={0}
+                  required
+                  onChange={(e) => {
+                    const value = e.target.value === '' ? 0 : parseFloat(e.target.value) || 0
+                    field.onChange(value)
+                  }}
+                />
               )}
             />
 
             <FormField
               control={form.control}
               name="variable_cost_per_session"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Variable Kosten pro Sitzung (€)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="15.00"
-                      {...field}
-                      value={field.value || ''}
-                      onChange={(e) => field.onChange(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Kosten pro Sitzung (Material, Verbrauchsmaterial, etc.)
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
+              render={({ field, fieldState }) => (
+                <NumberField
+                  {...field}
+                  label="Variable Kosten pro Sitzung"
+                  placeholder="15.00"
+                  suffix="€"
+                  helperText="Kosten pro Sitzung (Material, Verbrauchsmaterial, etc.)"
+                  error={fieldState.error?.message}
+                  disabled={isLoading}
+                  step={0.01}
+                  min={0}
+                  required
+                  onChange={(e) => {
+                    const value = e.target.value === '' ? 0 : parseFloat(e.target.value) || 0
+                    field.onChange(value)
+                  }}
+                />
               )}
             />
 

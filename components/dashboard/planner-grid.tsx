@@ -5,6 +5,7 @@ import type { TherapyType } from '@/lib/types'
 import { PlannerCard } from './planner-card'
 import { Button } from '@/components/ui/button'
 import { Plus, AlertCircle } from 'lucide-react'
+import { EmptyState } from '@/components/ui/empty-state'
 import { getMonthlyPlansWithTherapies } from '@/lib/actions/monthly-plans'
 import { formatEuro } from '@/lib/utils'
 
@@ -81,19 +82,15 @@ export function PlannerGrid({
 
   if (therapies.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-neutral-300 dark:border-neutral-700 p-12 text-center">
-        <AlertCircle className="h-12 w-12 text-neutral-400 dark:text-neutral-600 mb-4" />
-        <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">
-          Keine Therapiearten vorhanden
-        </h3>
-        <p className="text-neutral-600 dark:text-neutral-400 max-w-sm mb-4">
-          Erstellen Sie zuerst Therapiearten, um Ihre monatliche Planung zu beginnen.
-        </p>
-        <Button onClick={onAddTherapy} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Erste Therapieart erstellen
-        </Button>
-      </div>
+      <EmptyState
+        icon={AlertCircle}
+        title="Keine Therapiearten vorhanden"
+        description="Erstellen Sie zuerst Therapiearten, um Ihre monatliche Planung zu beginnen."
+        action={{
+          label: 'Erste Therapieart erstellen',
+          onClick: onAddTherapy || (() => {})
+        }}
+      />
     )
   }
 
