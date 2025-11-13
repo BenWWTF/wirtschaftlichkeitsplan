@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import dynamic from 'next/dynamic'
+import { useExpenses } from '@/lib/hooks/useExpenses'
 import { Button } from '@/components/ui/button'
 import { Plus, Filter } from 'lucide-react'
 import type { Expense } from '@/lib/types'
@@ -18,10 +19,14 @@ const ExpenseDialog = dynamic(() => import('./expense-dialog').then(mod => ({ de
 })
 
 interface ExpenseListProps {
-  expenses: Expense[]
+  expenses?: Expense[] // Optional for backwards compatibility
 }
 
-export function ExpenseList({ expenses }: ExpenseListProps) {
+export function ExpenseList({ expenses: initialExpenses }: ExpenseListProps) {
+  // Use SWR hook for automatic caching and deduplication
+  // Expenses are cached for 60 seconds
+  const { expenses: cachedExpenses, isLoading, mutate: refreshExpenses } = useExpenses()
+  const expenses = cachedExpenses || initialExpenses || []
   const [open, setOpen] = useState(false)
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -45,6 +50,8 @@ export function ExpenseList({ expenses }: ExpenseListProps) {
         toast.error(result.error)
       } else {
         toast.success('Ausgabe erfolgreich gelöscht')
+        // Refresh expense cache after deletion
+        await refreshExpenses()
       }
     } catch (error) {
       console.error('Error deleting expense:', error)
