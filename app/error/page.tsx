@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { AlertTriangle } from 'lucide-react'
 
 /**
  * Error page displayed when authentication or other critical processes fail
@@ -11,7 +12,9 @@ export default function ErrorPage() {
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-900 dark:to-neutral-950 flex items-center justify-center p-4">
       <div className="w-full max-w-md text-center">
         {/* Error Icon */}
-        <div className="text-6xl mb-6">⚠️</div>
+        <div className="mb-6">
+          <AlertTriangle className="h-16 w-16 text-amber-600 dark:text-amber-400 mx-auto" />
+        </div>
 
         {/* Heading */}
         <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-3">

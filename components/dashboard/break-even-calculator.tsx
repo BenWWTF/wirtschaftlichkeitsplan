@@ -17,7 +17,7 @@ import {
   FormDescription
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { TrendingUp, AlertCircle, CheckCircle, BarChart3, History } from 'lucide-react'
+import { TrendingUp, AlertCircle, CheckCircle, BarChart3, History, Lightbulb } from 'lucide-react'
 import { BreakEvenHistory } from './break-even-history'
 import { BreakEvenExport } from './break-even-export'
 import { Button } from '@/components/ui/button'
@@ -362,11 +362,14 @@ export function BreakEvenCalculator({
 
       {/* Info Box */}
       <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 p-4">
-        <p className="text-sm text-amber-800 dark:text-amber-200">
-          💡 <strong>Hinweis:</strong> Diese Analyse basiert auf durchschnittlichen
-          Deckungsbeiträgen. Die tatsächliche Anzahl der benötigten Sitzungen kann je
-          nach Ihre Therapieart-Mix variieren.
-        </p>
+        <div className="flex items-start gap-3">
+          <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-amber-800 dark:text-amber-200">
+            <strong>Hinweis:</strong> Diese Analyse basiert auf durchschnittlichen
+            Deckungsbeiträgen. Die tatsächliche Anzahl der benötigten Sitzungen kann je
+            nach Ihre Therapieart-Mix variieren.
+          </p>
+        </div>
       </div>
     </div>
   )

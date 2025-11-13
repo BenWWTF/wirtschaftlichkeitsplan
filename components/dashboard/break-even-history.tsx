@@ -16,7 +16,7 @@ import {
   Area,
   AreaChart
 } from 'recharts'
-import { TrendingUp, TrendingDown, AlertCircle } from 'lucide-react'
+import { TrendingUp, TrendingDown, AlertCircle, CheckCircle2, AlertTriangle, BarChart3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface BreakEvenHistoryProps {
@@ -182,8 +182,9 @@ export function BreakEvenHistory({ fixedCosts }: BreakEvenHistoryProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Best Month */}
           <div className="bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 p-4">
-            <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2">
-              ✅ Bester Monat
+            <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2 flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              Bester Monat
             </h4>
             <p className="text-2xl font-bold text-green-600 dark:text-green-400">
               {summaryStats.bestMonth.month}
@@ -195,8 +196,9 @@ export function BreakEvenHistory({ fixedCosts }: BreakEvenHistoryProps) {
 
           {/* Worst Month */}
           <div className="bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800 p-4">
-            <h4 className="font-semibold text-red-900 dark:text-red-100 mb-2">
-              ⚠️ Schwächster Monat
+            <h4 className="font-semibold text-red-900 dark:text-red-100 mb-2 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              Schwächster Monat
             </h4>
             <p className="text-2xl font-bold text-red-600 dark:text-red-400">
               {summaryStats.worstMonth.month}
@@ -208,8 +210,9 @@ export function BreakEvenHistory({ fixedCosts }: BreakEvenHistoryProps) {
 
           {/* Trend */}
           <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 p-4">
-            <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-              📈 Trend
+            <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2 flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-blue-600" />
+              Trend
             </h4>
             <div className="flex items-center gap-2">
               {summaryStats.trend === 'improving' ? (
@@ -231,8 +234,9 @@ export function BreakEvenHistory({ fixedCosts }: BreakEvenHistoryProps) {
 
           {/* Average Sessions */}
           <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 p-4">
-            <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-2">
-              📊 Durchschnitt
+            <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-2 flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-amber-600" />
+              Durchschnitt
             </h4>
             <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
               {Math.round(summaryStats.avgSessionsNeeded)}
@@ -296,7 +300,7 @@ export function BreakEvenHistory({ fixedCosts }: BreakEvenHistoryProps) {
                   </td>
                   <td className="px-4 py-3 text-center">
                     <span
-                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
                         row.profitabilityStatus === 'surplus'
                           ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
                           : row.profitabilityStatus === 'breakeven'
@@ -304,11 +308,22 @@ export function BreakEvenHistory({ fixedCosts }: BreakEvenHistoryProps) {
                             : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
                       }`}
                     >
-                      {row.profitabilityStatus === 'surplus'
-                        ? '✓ Überschuss'
-                        : row.profitabilityStatus === 'breakeven'
-                          ? '= Break-Even'
-                          : '✗ Defizit'}
+                      {row.profitabilityStatus === 'surplus' ? (
+                        <>
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Überschuss
+                        </>
+                      ) : row.profitabilityStatus === 'breakeven' ? (
+                        <>
+                          <AlertTriangle className="h-3.5 w-3.5" />
+                          Break-Even
+                        </>
+                      ) : (
+                        <>
+                          <AlertTriangle className="h-3.5 w-3.5" />
+                          Defizit
+                        </>
+                      )}
                     </span>
                   </td>
                 </tr>

@@ -6,6 +6,7 @@ import { MonthSelector } from './month-selector'
 import { PlannerGrid } from './planner-grid'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { Lightbulb, ClipboardList } from 'lucide-react'
 
 interface PlanningViewProps {
   therapies?: any[] // Optional for backwards compatibility during transition
@@ -48,9 +49,12 @@ export function PlanningView({ therapies: initialTherapies }: PlanningViewProps)
       {/* Info Box */}
       {therapies.length === 0 && (
         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 p-6">
-          <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-            💡 Erste Schritte
-          </h3>
+          <div className="flex items-center gap-2 mb-2">
+            <Lightbulb className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <h3 className="font-semibold text-blue-900 dark:text-blue-100">
+              Erste Schritte
+            </h3>
+          </div>
           <p className="text-blue-800 dark:text-blue-200 text-sm mb-3">
             Sie müssen zuerst Therapiearten erstellen, bevor Sie Ihre Planung beginnen können.
           </p>
@@ -75,9 +79,12 @@ export function PlanningView({ therapies: initialTherapies }: PlanningViewProps)
 
       {/* Quick Help */}
       <div className="bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 p-6">
-        <h3 className="font-semibold text-neutral-900 dark:text-white mb-3">
-          📋 Wie funktioniert die Planung?
-        </h3>
+        <div className="flex items-center gap-2 mb-3">
+          <ClipboardList className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
+          <h3 className="font-semibold text-neutral-900 dark:text-white">
+            Wie funktioniert die Planung?
+          </h3>
+        </div>
         <ul className="space-y-2 text-sm text-neutral-600 dark:text-neutral-400">
           <li className="flex gap-3">
             <span className="text-blue-600 dark:text-blue-400 font-semibold">1.</span>
