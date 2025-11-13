@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import dynamic from 'next/dynamic'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { BreakEvenAnalysis } from '@/lib/types'
 import { PracticeSettingsSchema, type PracticeSettingsInput } from '@/lib/validations'
 import { formatEuro } from '@/lib/utils'
+import { DynamicBreakEvenChart } from '@/lib/utils/dynamic-imports'
 import {
   Form,
   FormField,
@@ -21,14 +21,6 @@ import { TrendingUp, AlertCircle, CheckCircle, BarChart3, History, Lightbulb } f
 import { BreakEvenHistory } from './break-even-history'
 import { BreakEvenExport } from './break-even-export'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-
-// Dynamic import for break-even chart (heavy Recharts visualization)
-// Disable SSR since Recharts renders only on client - improves server bundle size
-const BreakEvenChart = dynamic(() => import('./break-even-chart').then(mod => ({ default: mod.BreakEvenChart })), {
-  loading: () => <Skeleton className="h-96 rounded-lg" />,
-  ssr: false
-})
 
 interface BreakEvenCalculatorProps {
   therapies: BreakEvenAnalysis[]
@@ -342,7 +334,7 @@ export function BreakEvenCalculator({
               Visualisieren Sie Ihre Break-Even-Analyse mit interaktiven Diagrammen
             </p>
           </div>
-          <BreakEvenChart therapies={therapies} fixedCosts={fixedCosts} />
+          <DynamicBreakEvenChart therapies={therapies} fixedCosts={fixedCosts} />
         </div>
       )}
 

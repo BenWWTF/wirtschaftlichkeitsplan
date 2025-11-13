@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Toaster } from 'sonner'
 import './globals.css'
 import { Providers } from '@/components/providers'
+import { PerformanceMonitor } from '@/components/performance-monitor'
 
 export const metadata: Metadata = {
   title: 'Wirtschaftlichkeitsplan',
@@ -20,6 +21,7 @@ export default function RootLayout({
     <html lang="de" suppressHydrationWarning>
       <body className="antialiased">
         <Providers>
+          <PerformanceMonitor />
           {children}
           <Toaster richColors position="bottom-right" />
         </Providers>

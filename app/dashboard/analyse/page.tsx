@@ -1,5 +1,17 @@
+import dynamic from 'next/dynamic'
 import { getBreakEvenAnalysis } from '@/lib/actions/analysis'
-import { AnalysisView } from '@/components/dashboard/analysis-view'
+
+const AnalysisView = dynamic(() => import('@/components/dashboard/analysis-view').then(mod => ({ default: mod.AnalysisView })), {
+  loading: () => (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center">
+        <div className="h-8 w-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-gray-600 dark:text-gray-400">Loading analysis...</p>
+      </div>
+    </div>
+  ),
+  ssr: true,
+})
 
 export const metadata = {
   title: 'Break-Even Analyse - Wirtschaftlichkeitsplan',

@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import type { MonthlyMetrics, TherapyMetrics, DashboardSummary } from '@/lib/actions/dashboard'
 import { formatEuro } from '@/lib/utils'
-import { RevenueChart } from './revenue-chart'
+import { DynamicRevenueChart } from '@/lib/utils/dynamic-imports'
 import { TherapyComparison } from './therapy-comparison'
 import { TrendingUp, TrendingDown, DollarSign, BarChart3 } from 'lucide-react'
 
@@ -190,7 +190,7 @@ export function BusinessDashboard({
             <option value="bar">Balken</option>
           </select>
         </div>
-        <RevenueChart data={monthlyData} chartType={chartType} />
+        <DynamicRevenueChart data={monthlyData} chartType={chartType} />
       </div>
 
       {/* Therapy Comparison */}
