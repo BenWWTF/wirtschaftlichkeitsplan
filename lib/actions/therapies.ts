@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { TherapyTypeSchema, type TherapyTypeInput } from '@/lib/validations'
 import type { TherapyType } from '@/lib/types'
+import { generateMockTherapyTypes, isDevelopmentMode } from '@/lib/utils/mock-data'
 
 /**
  * Create a new therapy type
@@ -147,17 +148,27 @@ export async function getTherapies(): Promise<TherapyType[]> {
 
     if (error) {
       console.error('Supabase error fetching therapies:', {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint
+        message: error?.message || 'Unknown error',
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint
       })
+      // Return mock data in development mode
+      if (isDevelopmentMode()) {
+        console.log('Using mock therapy types for development')
+        return generateMockTherapyTypes()
+      }
       return []
     }
 
     return data || []
   } catch (err) {
     console.error('Exception fetching therapies:', err)
+    // Return mock data in development mode on exception
+    if (isDevelopmentMode()) {
+      console.log('Using mock therapy types for development (exception fallback)')
+      return generateMockTherapyTypes()
+    }
     return []
   }
 }

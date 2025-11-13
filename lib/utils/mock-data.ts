@@ -8,7 +8,7 @@ import type {
   TherapyMetrics,
   DashboardSummary
 } from '@/lib/actions/dashboard'
-import type { BreakEvenAnalysis } from '@/lib/types'
+import type { BreakEvenAnalysis, TherapyType } from '@/lib/types'
 
 const MOCK_THERAPY_TYPES = [
   {
@@ -30,6 +30,21 @@ const MOCK_THERAPY_TYPES = [
     variable_cost_per_session: 8
   }
 ]
+
+/**
+ * Generate mock therapy types for development
+ */
+export function generateMockTherapyTypes(): TherapyType[] {
+  return MOCK_THERAPY_TYPES.map((therapy, index) => ({
+    id: therapy.id,
+    user_id: '00000000-0000-0000-0000-000000000000',
+    name: therapy.name,
+    price_per_session: therapy.price_per_session,
+    variable_cost_per_session: therapy.variable_cost_per_session,
+    created_at: new Date(Date.now() - (2 - index) * 7 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - (2 - index) * 7 * 24 * 60 * 60 * 1000).toISOString()
+  }))
+}
 
 export function generateMockMonthlyMetrics(month: string): MonthlyMetrics {
   const plannedSessions = Math.floor(Math.random() * 30) + 20
