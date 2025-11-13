@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import type { MonthlyMetrics, TherapyMetrics, DashboardSummary } from '@/lib/actions/dashboard'
 import { BusinessDashboard } from './business-dashboard'
 import { TherapyPerformanceReport } from '@/components/reports/therapy-performance-report'
@@ -10,8 +11,14 @@ import { ForecastReport } from '@/components/reports/forecast-report'
 import { ReportExporter } from '@/components/reports/report-exporter'
 import { getAdvancedAnalytics } from '@/lib/actions/analytics'
 import type { AdvancedAnalytics } from '@/lib/actions/analytics'
-import { TaxPlanningCard } from './tax-planning-card'
 import { BarChart3, TrendingUp, Download } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+
+// Dynamic import for tax planning card (heavy component with complex calculations)
+const TaxPlanningCard = dynamic(() => import('./tax-planning-card').then(mod => ({ default: mod.TaxPlanningCard })), {
+  loading: () => <Skeleton className="h-80 rounded-lg" />,
+  ssr: true
+})
 
 interface ReportsViewProps {
   monthlyData: MonthlyMetrics[]

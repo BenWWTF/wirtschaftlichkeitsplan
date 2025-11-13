@@ -1,15 +1,21 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Plus, Filter } from 'lucide-react'
 import type { Expense } from '@/lib/types'
 import { ExpenseTable } from './expense-table'
-import { ExpenseDialog } from './expense-dialog'
 import { deleteExpenseAction } from '@/lib/actions/expenses'
 import { toast } from 'sonner'
 import { formatEuro } from '@/lib/utils'
 import { AUSTRIAN_EXPENSE_CATEGORIES } from '@/lib/constants'
+
+// Dynamic import for expense dialog (form-heavy component)
+const ExpenseDialog = dynamic(() => import('./expense-dialog').then(mod => ({ default: mod.ExpenseDialog })), {
+  loading: () => null,
+  ssr: false
+})
 
 interface ExpenseListProps {
   expenses: Expense[]

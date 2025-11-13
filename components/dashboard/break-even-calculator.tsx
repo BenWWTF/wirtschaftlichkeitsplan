@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { BreakEvenAnalysis } from '@/lib/types'
@@ -17,10 +18,16 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { TrendingUp, AlertCircle, CheckCircle, BarChart3, History } from 'lucide-react'
-import { BreakEvenChart } from './break-even-chart'
 import { BreakEvenHistory } from './break-even-history'
 import { BreakEvenExport } from './break-even-export'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+
+// Dynamic import for break-even chart (heavy Recharts visualization)
+const BreakEvenChart = dynamic(() => import('./break-even-chart').then(mod => ({ default: mod.BreakEvenChart })), {
+  loading: () => <Skeleton className="h-96 rounded-lg" />,
+  ssr: true
+})
 
 interface BreakEvenCalculatorProps {
   therapies: BreakEvenAnalysis[]

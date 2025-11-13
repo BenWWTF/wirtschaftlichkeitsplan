@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -9,8 +10,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { DataImportDialog } from '@/components/dashboard/data-import-dialog'
 import { Upload, FileText, Database, CheckCircle2, Info } from 'lucide-react'
+
+// Dynamic import for data import dialog (complex CSV parsing and form)
+const DataImportDialog = dynamic(() => import('@/components/dashboard/data-import-dialog').then(mod => ({ default: mod.DataImportDialog })), {
+  loading: () => null,
+  ssr: false
+})
 
 export default function ImportPage() {
   const [importDialogOpen, setImportDialogOpen] = useState(false)
