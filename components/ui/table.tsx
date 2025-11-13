@@ -10,11 +10,24 @@ const Table = React.forwardRef<
     <table
       ref={ref}
       className={cn('w-full caption-bottom text-sm', className)}
+      role="table"
       {...props}
     />
   </div>
 ))
 Table.displayName = 'Table'
+
+const TableCaption = React.forwardRef<
+  HTMLTableCaptionElement,
+  React.HTMLAttributes<HTMLTableCaptionElement>
+>(({ className, ...props }, ref) => (
+  <caption
+    ref={ref}
+    className={cn('mt-4 text-sm font-medium text-neutral-500 dark:text-neutral-400', className)}
+    {...props}
+  />
+))
+TableCaption.displayName = 'TableCaption'
 
 const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
@@ -64,10 +77,11 @@ TableRow.displayName = 'TableRow'
 
 const TableHead = React.forwardRef<
   HTMLTableCellElement,
-  React.ThHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
+  React.ThHTMLAttributes<HTMLTableCellElement> & { scope?: string }
+>(({ className, scope = 'col', ...props }, ref) => (
   <th
     ref={ref}
+    scope={scope as 'col' | 'row' | 'colgroup' | 'rowgroup' | undefined}
     className={cn(
       'h-12 px-4 text-left align-middle font-medium text-neutral-600 dark:text-neutral-400 [&:has([role=checkbox])]:pr-0',
       className
@@ -87,6 +101,7 @@ TableCell.displayName = 'TableCell'
 
 export {
   Table,
+  TableCaption,
   TableHeader,
   TableBody,
   TableFooter,
