@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import type { TherapyType } from '@/lib/types'
+import { useTherapies } from '@/lib/hooks/useTherapies'
 import { MonthSelector } from './month-selector'
 import { PlannerGrid } from './planner-grid'
 import { Button } from '@/components/ui/button'
@@ -9,10 +9,13 @@ import { Plus } from 'lucide-react'
 import Link from 'next/link'
 
 interface PlanningViewProps {
-  therapies: TherapyType[]
+  therapies?: any[] // Optional for backwards compatibility during transition
 }
 
-export function PlanningView({ therapies }: PlanningViewProps) {
+export function PlanningView({ therapies: initialTherapies }: PlanningViewProps) {
+  // Use SWR hook for automatic caching and deduplication
+  const { therapies: cachedTherapies, isLoading } = useTherapies()
+  const therapies = cachedTherapies || initialTherapies || []
   // Get current month in YYYY-MM format
   const currentMonth = useMemo(() => {
     const now = new Date()
