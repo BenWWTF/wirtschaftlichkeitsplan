@@ -45,6 +45,7 @@ interface ExpenseDialogProps {
 export function ExpenseDialog({ open, onOpenChange, expense }: ExpenseDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<string>('')
+  const [submittedAt, setSubmittedAt] = useState<number>(0)
 
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0]
@@ -125,6 +126,16 @@ export function ExpenseDialog({ open, onOpenChange, expense }: ExpenseDialogProp
     }
   }
 
+  // Prevent rapid form submissions (debounce-like behavior)
+  // Allows immediate submission but prevents spam within 1 second
+  const canSubmit = Date.now() - submittedAt >= 1000 || !isLoading
+
+  const handleSubmit = () => {
+    if (!canSubmit) return
+    setSubmittedAt(Date.now())
+    form.handleSubmit(onSubmit)()
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
@@ -140,7 +151,7 @@ export function ExpenseDialog({ open, onOpenChange, expense }: ExpenseDialogProp
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={(e) => { e.preventDefault(); handleSubmit() }} className="space-y-4">
             <FormField
               control={form.control}
               name="expense_date"
@@ -327,7 +338,7 @@ export function ExpenseDialog({ open, onOpenChange, expense }: ExpenseDialogProp
               >
                 Abbrechen
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading || !canSubmit}>
                 {isLoading ? 'Speichern...' : expense ? 'Aktualisieren' : 'Erstellen'}
               </Button>
             </div>
