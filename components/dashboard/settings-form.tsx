@@ -34,6 +34,7 @@ interface SettingsFormProps {
 
 export function SettingsForm({ settings }: SettingsFormProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [submittedAt, setSubmittedAt] = useState<number>(0)
 
   const form = useForm<PracticeSettingsInput>({
     resolver: zodResolver(PracticeSettingsSchema),
@@ -76,10 +77,20 @@ export function SettingsForm({ settings }: SettingsFormProps) {
     }
   }
 
+  // Prevent rapid form submissions (debounce-like behavior)
+  // Allows immediate submission but prevents spam within 1 second
+  const canSubmit = Date.now() - submittedAt >= 1000 || !isLoading
+
+  const handleSubmit = () => {
+    if (!canSubmit) return
+    setSubmittedAt(Date.now())
+    form.handleSubmit(onSubmit)()
+  }
+
   return (
     <div className="max-w-3xl">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={(e) => { e.preventDefault(); handleSubmit() }} className="space-y-8">
           {/* Practice Information */}
           <div className="space-y-4">
             <div>
@@ -252,7 +263,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
           </div>
 
           <div className="flex justify-end gap-4">
-            <Button type="submit" disabled={isLoading} size="lg">
+            <Button type="submit" disabled={isLoading || !canSubmit} size="lg">
               <Save className="h-4 w-4 mr-2" />
               {isLoading ? 'Speichern...' : 'Einstellungen speichern'}
             </Button>
