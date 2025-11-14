@@ -15,7 +15,7 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-4">
             <Link
-              href="/dashboard"
+              href="/login"
               className="px-4 py-2 text-sm font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
             >
               Zum Tool
