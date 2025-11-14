@@ -1,6 +1,7 @@
 import Link from 'next/link'
-import { getMonthlyMetrics } from '@/lib/actions/dashboard'
+import { getMonthlyMetrics, getDashboardSummary } from '@/lib/actions/dashboard'
 import { DashboardKPISection } from '@/components/dashboard/dashboard-kpi-section'
+import { TaxPlanningCardClient } from '@/components/dashboard/tax-planning-card-client'
 import { DollarSign, BarChart3, Settings, TrendingUp, CheckCircle2, Wrench, Lightbulb, Building, Calendar, CreditCard, Download } from 'lucide-react'
 
 export const metadata = {
@@ -14,6 +15,7 @@ export default async function DashboardPage() {
   // Fetch monthly metrics (not cached - changes frequently)
   const currentMonth = new Date().toISOString().slice(0, 7) // YYYY-MM format
   const monthlyMetrics = await getMonthlyMetrics(currentMonth)
+  const summary = await getDashboardSummary()
 
   return (
     <main className="min-h-screen bg-white dark:bg-neutral-950">
@@ -39,6 +41,15 @@ export default async function DashboardPage() {
 
           {/* KPI Cards - Using SWR caching for deduplication */}
           <DashboardKPISection />
+
+          {/* Tax Planning Section */}
+          {summary && summary.total_revenue > 0 && (
+            <TaxPlanningCardClient
+              grossRevenue={summary.total_revenue}
+              totalExpenses={summary.total_expenses}
+              practiceType="wahlarzt"
+            />
+          )}
 
           {/* Quick Actions */}
           <div>

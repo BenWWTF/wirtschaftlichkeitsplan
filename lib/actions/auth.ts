@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { logError } from '@/lib/utils/logger'
 import { LoginInput, SignUpInput } from '@/lib/validations'
 
 export async function loginAction(input: LoginInput) {
@@ -54,7 +55,7 @@ export async function signUpAction(input: SignUpInput) {
     })
 
   if (settingsError) {
-    console.error('Error creating practice settings:', settingsError)
+    logError('signUpAction', 'Error creating practice settings', settingsError, { userId: authData.user.id })
     // Don't block signup if settings creation fails
   }
 

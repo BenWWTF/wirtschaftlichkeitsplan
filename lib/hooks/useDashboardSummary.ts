@@ -8,7 +8,7 @@ import type { DashboardSummary } from '@/lib/actions/dashboard'
  */
 export function useDashboardSummary(userId?: string) {
   const { data, error, isLoading, mutate } = useSWR<DashboardSummary>(
-    userId ? [`dashboard-summary-${userId}`] : null,
+    'dashboard-summary',
     () => getDashboardSummary(),
     {
       revalidateOnFocus: false,

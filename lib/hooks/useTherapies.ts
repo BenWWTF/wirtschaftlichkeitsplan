@@ -8,7 +8,7 @@ import type { TherapyType } from '@/lib/types'
  */
 export function useTherapies(userId?: string) {
   const { data, error, isLoading, mutate } = useSWR<TherapyType[]>(
-    userId ? [`therapies-${userId}`] : null,
+    'therapies',
     () => getTherapies(),
     {
       // Don't revalidate when window regains focus (avoid unnecessary refreshes)

@@ -70,7 +70,7 @@ function TherapyTableComponent({ therapies, onEdit, onDelete }: TherapyTableProp
       cell: (value) => <span className="text-muted-foreground">{formatEuro(value)}</span>,
     },
     {
-      key: 'id',
+      key: 'contribution_margin',
       header: 'Beitragsmarge',
       align: 'right',
       cell: (_, therapy) => {
@@ -88,7 +88,7 @@ function TherapyTableComponent({ therapies, onEdit, onDelete }: TherapyTableProp
       },
     },
     {
-      key: 'id',
+      key: 'actions',
       header: 'Aktionen',
       align: 'right',
       cell: (_, therapy) => (

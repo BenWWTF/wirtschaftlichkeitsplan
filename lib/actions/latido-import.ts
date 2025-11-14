@@ -2,6 +2,8 @@
 
 import { createClient } from '@/utils/supabase/server'
 import * as XLSX from 'xlsx'
+import { parseAndValidateDate } from '@/lib/utils/validators'
+import { logError } from '@/lib/utils/logger'
 
 export interface LatidoInvoiceRow {
   rechnungsdatum: string
@@ -49,14 +51,24 @@ export async function parseLatidoExcel(fileBuffer: Buffer): Promise<LatidoInvoic
     header: 1,
     blankrows: false,
     defval: null,
-  }) as (string | number | null)[][]
+  })
+
+  // Type guard for rows array
+  if (!Array.isArray(rows)) {
+    throw new Error('Invalid Excel format: expected array of rows')
+  }
 
   if (rows.length < 2) {
     throw new Error('Excel file must contain header row and at least one data row')
   }
 
-  // Parse header row and normalize column names
-  const headerRow = rows[0] as string[]
+  // Type guard and parse header row
+  const firstRow = rows[0]
+  if (!Array.isArray(firstRow) || firstRow.length === 0) {
+    throw new Error('Excel file header row is invalid')
+  }
+
+  const headerRow = firstRow.map(h => String(h ?? ''))
   const normalizedHeaders = headerRow.map((h: string) =>
     h
       .toLowerCase()
@@ -65,9 +77,13 @@ export async function parseLatidoExcel(fileBuffer: Buffer): Promise<LatidoInvoic
       .replace(/^_|_$/g, '')
   )
 
-  // Parse data rows
-  const invoices: LatidoInvoiceRow[] = rows.slice(1).map((row: (string | number | null)[]) => {
-    const invoice: any = {}
+  // Parse data rows with validation
+  const invoices: LatidoInvoiceRow[] = rows.slice(1).map((row: any) => {
+    if (!Array.isArray(row)) {
+      throw new Error('Invalid Excel row format')
+    }
+
+    const invoice: Record<string, any> = {}
     normalizedHeaders.forEach((header, index) => {
       const value = row[index]
       // Convert numeric values to numbers
@@ -88,16 +104,35 @@ export async function parseLatidoExcel(fileBuffer: Buffer): Promise<LatidoInvoic
  */
 export async function processLatidoInvoices(rows: LatidoInvoiceRow[]): Promise<ProcessedLatidoInvoice[]> {
   return rows.map((row) => {
-    // Parse date from DD.MM.YYYY format
+    // Parse date from DD.MM.YYYY format with validation
     const dateStr = row.rechnungsdatum
-    const [day, month, year] = dateStr.split('.')
-    const invoiceDateISO = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+    const parsedDate = parseAndValidateDate(dateStr, '.')
+
+    if (!parsedDate) {
+      logError('processLatidoInvoices', 'Invalid invoice date format', new Error('Date parsing failed'), {
+        rechnungsnummer: row.rechnungsnummer,
+        dateStr
+      })
+      // Return invalid date marker instead of crashing
+      throw new Error(`Invalid date format for invoice ${row.rechnungsnummer}: ${dateStr}`)
+    }
+
+    const invoiceDateISO = parsedDate.toISOString().split('T')[0]
 
     // Parse payment date if exists
     let paymentDateISO: string | null = null
     if (row.zahlungsdatum) {
-      const [pDay, pMonth, pYear] = row.zahlungsdatum.split('.')
-      paymentDateISO = `${pYear}-${pMonth.padStart(2, '0')}-${pDay.padStart(2, '0')}`
+      const parsedPaymentDate = parseAndValidateDate(row.zahlungsdatum, '.')
+
+      if (!parsedPaymentDate) {
+        logError('processLatidoInvoices', 'Invalid payment date format', new Error('Date parsing failed'), {
+          rechnungsnummer: row.rechnungsnummer,
+          zahlungsdatum: row.zahlungsdatum
+        })
+        paymentDateISO = null
+      } else {
+        paymentDateISO = parsedPaymentDate.toISOString().split('T')[0]
+      }
     }
 
     // Normalize payment status
@@ -184,7 +219,7 @@ export async function importLatidoInvoices(userId: string, processedInvoices: Pr
       invoices: invoices || [],
     }
   } catch (error) {
-    console.error('Error importing Latido invoices:', error)
+    logError('importLatidoInvoices', 'Error importing Latido invoices', error, { fileName, invoiceCount: processedInvoices.length })
     throw error
   }
 }
@@ -211,7 +246,7 @@ export async function getLatidoInvoices(userId: string, month?: string) {
     if (error) throw error
     return data || []
   } catch (error) {
-    console.error('Error fetching Latido invoices:', error)
+    logError('getLatidoInvoices', 'Error fetching Latido invoices', error, { userId, month })
     throw error
   }
 }
@@ -230,7 +265,7 @@ export async function getLatidoReconciliationSummary(userId: string) {
     if (error) throw error
     return data
   } catch (error) {
-    console.error('Error fetching reconciliation summary:', error)
+    logError('getLatidoReconciliationSummary', 'Error fetching reconciliation summary', error, { userId })
     throw error
   }
 }

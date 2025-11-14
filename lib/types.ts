@@ -42,6 +42,7 @@ export type PracticeSettings = {
   monthly_fixed_costs: number
   average_variable_cost_per_session: number
   expected_growth_rate: number // as percentage (e.g., 5 for 5%)
+  max_sessions_per_week?: number | null // capacity limit for practice
   created_at: string
   updated_at: string
 }

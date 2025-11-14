@@ -1,6 +1,8 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import { getAuthUserId } from '@/lib/utils/auth'
+import { logError } from '@/lib/utils/logger'
 import type { TherapyType, MonthlyPlan } from '@/lib/types'
 import {
   calculateOccupancyRate,
@@ -13,8 +15,6 @@ import {
   forecastRevenue,
   calculateAverageTherapyPrice,
 } from '@/lib/utils/kpi-helpers'
-
-const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
 export interface AdvancedAnalytics {
   // Basic KPIs
@@ -57,6 +57,7 @@ export interface AdvancedAnalytics {
  * Get advanced analytics for dashboard
  */
 export async function getAdvancedAnalytics(): Promise<AdvancedAnalytics | null> {
+  const userId = await getAuthUserId()
   const supabase = await createClient()
 
   try {
@@ -69,21 +70,23 @@ export async function getAdvancedAnalytics(): Promise<AdvancedAnalytics | null> 
     const { data: therapies } = await supabase
       .from('therapy_types')
       .select('id, name, price_per_session, variable_cost_per_session')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', userId)
 
     // Fetch monthly plans for last 3 months
     const { data: monthlyPlans } = await supabase
       .from('monthly_plans')
       .select('id, user_id, therapy_type_id, month, planned_sessions, actual_sessions')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', userId)
       .gte('month', threeMonthsAgoStr)
+      .limit(5000)
 
     // Fetch expenses
     const { data: expenses } = await supabase
       .from('expenses')
       .select('id, user_id, amount, month')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', userId)
       .gte('month', threeMonthsAgoStr)
+      .limit(10000)
 
     if (!therapies || !monthlyPlans || !expenses) {
       return null
@@ -291,7 +294,7 @@ export async function getAdvancedAnalytics(): Promise<AdvancedAnalytics | null> 
       },
     }
   } catch (error) {
-    console.error('[getAdvancedAnalytics] Error:', error)
+    logError('getAdvancedAnalytics', 'Error in getAdvancedAnalytics', error)
     return null
   }
 }

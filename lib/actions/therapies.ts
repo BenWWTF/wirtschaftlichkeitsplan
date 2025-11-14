@@ -2,28 +2,25 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { getAuthUserId } from '@/lib/utils/auth'
+import { logError } from '@/lib/utils/logger'
 import { TherapyTypeSchema, type TherapyTypeInput } from '@/lib/validations'
 import type { TherapyType } from '@/lib/types'
-import { generateMockTherapyTypes, isDevelopmentMode } from '@/lib/utils/mock-data'
 
 /**
  * Create a new therapy type
  */
 export async function createTherapyAction(input: TherapyTypeInput) {
-  const supabase = await createClient()
-
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
-
-  // Validate input
   try {
+    const userId = await getAuthUserId()
+    const supabase = await createClient()
     const validated = TherapyTypeSchema.parse(input)
 
     // Insert into database
     const { data, error } = await supabase
       .from('therapy_types')
       .insert({
-        user_id: DEMO_USER_ID,
+        user_id: userId,
         name: validated.name,
         price_per_session: validated.price_per_session,
         variable_cost_per_session: validated.variable_cost_per_session
@@ -31,7 +28,9 @@ export async function createTherapyAction(input: TherapyTypeInput) {
       .select()
 
     if (error) {
-      console.error('Database error:', JSON.stringify(error, null, 2))
+      logError('createTherapyAction', 'Database error while creating therapy', error, {
+        therapyName: validated.name
+      })
       return { error: `Fehler: ${error.message || 'Speichern fehlgeschlagen'}` }
     }
 
@@ -54,12 +53,9 @@ export async function updateTherapyAction(
   id: string,
   input: TherapyTypeInput
 ) {
-  const supabase = await createClient()
-
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
-
   try {
+    const userId = await getAuthUserId()
+    const supabase = await createClient()
     const validated = TherapyTypeSchema.parse(input)
 
     // Update in database
@@ -72,11 +68,14 @@ export async function updateTherapyAction(
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', userId)
       .select()
 
     if (error) {
-      console.error('Database error:', JSON.stringify(error, null, 2))
+      logError('updateTherapyAction', 'Database error while updating therapy', error, {
+        therapyId: id,
+        therapyName: validated.name
+      })
       return { error: `Fehler: ${error.message || 'Aktualisieren fehlgeschlagen'}` }
     }
 
@@ -100,21 +99,19 @@ export async function updateTherapyAction(
  * Delete a therapy type
  */
 export async function deleteTherapyAction(id: string) {
-  const supabase = await createClient()
-
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
-
   try {
+    const userId = await getAuthUserId()
+    const supabase = await createClient()
+
     // Delete from database
     const { error } = await supabase
       .from('therapy_types')
       .delete()
       .eq('id', id)
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', userId)
 
     if (error) {
-      console.error('Database error:', JSON.stringify(error, null, 2))
+      logError('deleteTherapyAction', 'Database error while deleting therapy', error, { therapyId: id })
       return { error: `Fehler: ${error.message || 'Löschen fehlgeschlagen'}` }
     }
 
@@ -135,40 +132,28 @@ export async function deleteTherapyAction(id: string) {
  */
 export async function getTherapies(): Promise<TherapyType[]> {
   try {
+    const userId = await getAuthUserId()
     const supabase = await createClient()
-
-    // Use demo/default user ID for public access (no authentication required)
-    const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
     const { data, error } = await supabase
       .from('therapy_types')
       .select('*')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Supabase error fetching therapies:', {
+      logError('getTherapies', 'Supabase error fetching therapies', error, {
         message: error?.message || 'Unknown error',
         code: error?.code,
         details: error?.details,
         hint: error?.hint
       })
-      // Return mock data in development mode
-      if (isDevelopmentMode()) {
-        console.log('Using mock therapy types for development')
-        return generateMockTherapyTypes()
-      }
       return []
     }
 
     return data || []
   } catch (err) {
-    console.error('Exception fetching therapies:', err)
-    // Return mock data in development mode on exception
-    if (isDevelopmentMode()) {
-      console.log('Using mock therapy types for development (exception fallback)')
-      return generateMockTherapyTypes()
-    }
+    logError('getTherapies', 'Exception fetching therapies', err)
     return []
   }
 }

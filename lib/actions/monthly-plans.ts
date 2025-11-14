@@ -2,15 +2,16 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { getAuthUserId } from '@/lib/utils/auth'
+import { logError } from '@/lib/utils/logger'
 import { MonthlyPlanSchema, type MonthlyPlanInput } from '@/lib/validations'
 import type { MonthlyPlan, TherapyType } from '@/lib/types'
-
-const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
 /**
  * Get all monthly plans for a specific month
  */
 export async function getMonthlyPlans(month: string): Promise<MonthlyPlan[]> {
+  const userId = await getAuthUserId()
   const supabase = await createClient()
 
   // Convert YYYY-MM to YYYY-MM-01 for date column
@@ -21,12 +22,12 @@ export async function getMonthlyPlans(month: string): Promise<MonthlyPlan[]> {
   const { data, error } = await supabase
     .from('monthly_plans')
     .select('id, user_id, therapy_type_id, month, planned_sessions, actual_sessions, notes, created_at, updated_at')
-    .eq('user_id', DEMO_USER_ID)
+    .eq('user_id', userId)
     .eq('month', monthDate)
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('[getMonthlyPlans] Database error:', error)
+    logError('getMonthlyPlans', 'Database error fetching monthly plans', error, { month })
     return []
   }
 
@@ -37,6 +38,7 @@ export async function getMonthlyPlans(month: string): Promise<MonthlyPlan[]> {
  * Get monthly plans with therapy details
  */
 export async function getMonthlyPlansWithTherapies(month: string) {
+  const userId = await getAuthUserId()
   const supabase = await createClient()
 
   // Convert YYYY-MM to YYYY-MM-01 for date column
@@ -48,12 +50,12 @@ export async function getMonthlyPlansWithTherapies(month: string) {
   const { data: plans, error: plansError } = await supabase
     .from('monthly_plans')
     .select('id, user_id, therapy_type_id, month, planned_sessions, actual_sessions, notes, created_at, updated_at')
-    .eq('user_id', DEMO_USER_ID)
+    .eq('user_id', userId)
     .eq('month', monthDate)
     .order('created_at', { ascending: false })
 
   if (plansError) {
-    console.error('Error fetching monthly plans with therapies:', plansError)
+    logError('getMonthlyPlansWithTherapies', 'Error fetching monthly plans with therapies', plansError, { month })
     return []
   }
 
@@ -65,7 +67,7 @@ export async function getMonthlyPlansWithTherapies(month: string) {
   const therapyTypeIds = [...new Set(plans.map(p => p.therapy_type_id))]
 
   if (therapyTypeIds.length === 0) {
-    console.warn('[getMonthlyPlansWithTherapies] No therapy type IDs found')
+    logError('getMonthlyPlansWithTherapies', 'No therapy type IDs found', new Error('Empty therapy type IDs'), { month })
     return plans.map(p => ({ ...p, therapy_types: null }))
   }
 
@@ -75,7 +77,7 @@ export async function getMonthlyPlansWithTherapies(month: string) {
     .in('id', therapyTypeIds)
 
   if (therapiesError) {
-    console.error('[getMonthlyPlansWithTherapies] Error fetching therapy types:', therapiesError)
+    logError('getMonthlyPlansWithTherapies', 'Error fetching therapy types', therapiesError, { month, therapyTypeIds })
     return plans.map(p => ({ ...p, therapy_types: null }))
   }
 
@@ -92,6 +94,7 @@ export async function getMonthlyPlansWithTherapies(month: string) {
  * Create or update a monthly plan
  */
 export async function upsertMonthlyPlanAction(input: MonthlyPlanInput) {
+  const userId = await getAuthUserId()
   const supabase = await createClient()
 
   try {
@@ -107,7 +110,7 @@ export async function upsertMonthlyPlanAction(input: MonthlyPlanInput) {
       .from('therapy_types')
       .select('id')
       .eq('id', validated.therapy_type_id)
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', userId)
       .single()
 
     if (therapyError || !therapy) {
@@ -119,7 +122,7 @@ export async function upsertMonthlyPlanAction(input: MonthlyPlanInput) {
       .from('monthly_plans')
       .select('id')
       .eq('therapy_type_id', validated.therapy_type_id)
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', userId)
       .eq('month', monthDate)
       .single()
 
@@ -146,7 +149,7 @@ export async function upsertMonthlyPlanAction(input: MonthlyPlanInput) {
       const { data, error } = await supabase
         .from('monthly_plans')
         .insert({
-          user_id: DEMO_USER_ID,
+          user_id: userId,
           therapy_type_id: validated.therapy_type_id,
           month: monthDate,
           planned_sessions: validated.planned_sessions,
@@ -174,6 +177,7 @@ export async function upsertMonthlyPlanAction(input: MonthlyPlanInput) {
  * Delete a monthly plan
  */
 export async function deleteMonthlyPlanAction(id: string) {
+  const userId = await getAuthUserId()
   const supabase = await createClient()
 
   try {
@@ -181,7 +185,7 @@ export async function deleteMonthlyPlanAction(id: string) {
       .from('monthly_plans')
       .delete()
       .eq('id', id)
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', userId)
 
     if (error) {
       return { error: `Fehler beim Löschen: ${error.message}` }

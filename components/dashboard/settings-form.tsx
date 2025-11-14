@@ -23,10 +23,10 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { PracticeSettingsSchema, type PracticeSettingsInput } from '@/lib/validations'
 import type { PracticeSettings } from '@/lib/types'
-import { upsertPracticeSettingsAction } from '@/lib/actions/settings'
+import { upsertPracticeSettingsAction, deleteDemoDataAction } from '@/lib/actions/settings'
 import { PRACTICE_TYPES } from '@/lib/constants'
 import { toast } from 'sonner'
-import { Save, Lightbulb } from 'lucide-react'
+import { Save, Lightbulb, Trash2 } from 'lucide-react'
 
 interface SettingsFormProps {
   settings: PracticeSettings | null
@@ -45,6 +45,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
           monthly_fixed_costs: settings.monthly_fixed_costs,
           average_variable_cost_per_session: settings.average_variable_cost_per_session,
           expected_growth_rate: settings.expected_growth_rate,
+          max_sessions_per_week: settings.max_sessions_per_week || 30,
         }
       : {
           practice_name: '',
@@ -52,6 +53,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
           monthly_fixed_costs: 8000,
           average_variable_cost_per_session: 20,
           expected_growth_rate: 5,
+          max_sessions_per_week: 30,
         },
   })
 
@@ -85,6 +87,30 @@ export function SettingsForm({ settings }: SettingsFormProps) {
     if (!canSubmit) return
     setSubmittedAt(Date.now())
     form.handleSubmit(onSubmit)()
+  }
+
+  const handleDeleteDemoData = async () => {
+    const confirmed = window.confirm(
+      'Sind Sie sicher, dass Sie alle Demo-Daten löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.'
+    )
+    if (!confirmed) return
+
+    setIsLoading(true)
+    try {
+      const result = await deleteDemoDataAction()
+      if (result.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Demo-Daten erfolgreich gelöscht')
+        // Refresh the page to show empty state
+        window.location.reload()
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      toast.error('Fehler beim Löschen der Demo-Daten')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -180,7 +206,8 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                       min="0"
                       placeholder="8000.00"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                      value={field.value ?? ''}
+                      onChange={(e) => field.onChange(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
                       disabled={isLoading}
                     />
                   </FormControl>
@@ -205,7 +232,8 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                       min="0"
                       placeholder="20.00"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                      value={field.value ?? ''}
+                      onChange={(e) => field.onChange(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
                       disabled={isLoading}
                     />
                   </FormControl>
@@ -231,12 +259,40 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                       max="1000"
                       placeholder="5.0"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                      value={field.value ?? ''}
+                      onChange={(e) => field.onChange(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
                       disabled={isLoading}
                     />
                   </FormControl>
                   <FormDescription>
                     Erwartetes jährliches Wachstum in Prozent (kann negativ sein)
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="max_sessions_per_week"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Maximale Sitzungen pro Woche</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="1"
+                      min="1"
+                      placeholder="30"
+                      value={field.value ?? ''}
+                      onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                      disabled={isLoading}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Kapazitätslimit für Therapiesitzungen pro Woche (z.B. 30 Sitzungen)
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -254,7 +310,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
             </div>
             <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-2">
               <li>
-                • <strong>Monatliche Fixkosten:</strong> Werden für Break-Even-Berechnungen verwendet
+                • <strong>Monatliche Fixkosten:</strong> Werden für Break-Even-Berechnungen und Steuern verwendet
               </li>
               <li>
                 • <strong>Variable Kosten:</strong> Dienen als Standard für neue Therapiearten
@@ -262,10 +318,23 @@ export function SettingsForm({ settings }: SettingsFormProps) {
               <li>
                 • <strong>Wachstumsrate:</strong> Wird für Prognosen und Projektionen genutzt
               </li>
+              <li>
+                • <strong>Max. Sitzungen/Woche:</strong> Definiert die Kapazitätsgrenze Ihrer Praxis
+              </li>
             </ul>
           </div>
 
-          <div className="flex justify-end gap-4">
+          <div className="flex justify-between gap-4">
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDeleteDemoData}
+              disabled={isLoading}
+              size="lg"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Demo-Daten löschen
+            </Button>
             <Button type="submit" disabled={isLoading || !canSubmit} size="lg">
               <Save className="h-4 w-4 mr-2" />
               {isLoading ? 'Speichern...' : 'Einstellungen speichern'}

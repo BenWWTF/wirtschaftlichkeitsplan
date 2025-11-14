@@ -2,6 +2,8 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { getAuthUserId } from '@/lib/utils/auth'
+import { logError } from '@/lib/utils/logger'
 import { ExpenseSchema, type ExpenseInput } from '@/lib/validations'
 import type { Expense } from '@/lib/types'
 
@@ -9,19 +11,16 @@ import type { Expense } from '@/lib/types'
  * Create a new expense
  */
 export async function createExpenseAction(input: ExpenseInput) {
-  const supabase = await createClient()
-
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
-
   try {
+    const userId = await getAuthUserId()
+    const supabase = await createClient()
     const validated = ExpenseSchema.parse(input)
 
     // Insert into database
     const { data, error } = await supabase
       .from('expenses')
       .insert({
-        user_id: DEMO_USER_ID,
+        user_id: userId,
         category: validated.category,
         subcategory: validated.subcategory || null,
         amount: validated.amount,
@@ -33,7 +32,11 @@ export async function createExpenseAction(input: ExpenseInput) {
       .select()
 
     if (error) {
-      console.error('Database error:', JSON.stringify(error, null, 2))
+      logError('createExpenseAction', 'Database error while creating expense', error, {
+        message: error.message,
+        code: error.code,
+        details: error.details
+      })
       return { error: `Fehler: ${error.message || 'Speichern fehlgeschlagen'}` }
     }
 
@@ -58,12 +61,9 @@ export async function updateExpenseAction(
   id: string,
   input: ExpenseInput
 ) {
-  const supabase = await createClient()
-
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
-
   try {
+    const userId = await getAuthUserId()
+    const supabase = await createClient()
     const validated = ExpenseSchema.parse(input)
 
     // Update in database
@@ -80,11 +80,15 @@ export async function updateExpenseAction(
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', userId)
       .select()
 
     if (error) {
-      console.error('Database error:', JSON.stringify(error, null, 2))
+      logError('updateExpenseAction', 'Database error while updating expense', error, {
+        id,
+        message: error.message,
+        code: error.code
+      })
       return { error: `Fehler: ${error.message || 'Aktualisieren fehlgeschlagen'}` }
     }
 
@@ -110,21 +114,19 @@ export async function updateExpenseAction(
  * Delete an expense
  */
 export async function deleteExpenseAction(id: string) {
-  const supabase = await createClient()
-
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
-
   try {
+    const userId = await getAuthUserId()
+    const supabase = await createClient()
+
     // Delete from database
     const { error } = await supabase
       .from('expenses')
       .delete()
       .eq('id', id)
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', userId)
 
     if (error) {
-      console.error('Database error:', JSON.stringify(error, null, 2))
+      logError('deleteExpenseAction', 'Database error while deleting expense', error, { id })
       return { error: `Fehler: ${error.message || 'Löschen fehlgeschlagen'}` }
     }
 
@@ -147,19 +149,18 @@ export async function deleteExpenseAction(id: string) {
  */
 export async function getExpenses(): Promise<Expense[]> {
   try {
+    const userId = await getAuthUserId()
     const supabase = await createClient()
-
-    // Use demo/default user ID for public access (no authentication required)
-    const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
     const { data, error } = await supabase
       .from('expenses')
       .select('*')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', userId)
       .order('expense_date', { ascending: false })
+      .limit(1000)
 
     if (error) {
-      console.error('Supabase error fetching expenses:', {
+      logError('getExpenses', 'Supabase error fetching expenses', error, {
         message: error.message,
         code: error.code,
         details: error.details,
@@ -170,7 +171,7 @@ export async function getExpenses(): Promise<Expense[]> {
 
     return data || []
   } catch (err) {
-    console.error('Exception fetching expenses:', err)
+    logError('getExpenses', 'Exception fetching expenses', err)
     return []
   }
 }
@@ -183,25 +184,26 @@ export async function getExpensesByDateRange(
   endDate: string
 ): Promise<Expense[]> {
   try {
+    const userId = await getAuthUserId()
     const supabase = await createClient()
-    const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
     const { data, error } = await supabase
       .from('expenses')
       .select('*')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', userId)
       .gte('expense_date', startDate)
       .lte('expense_date', endDate)
       .order('expense_date', { ascending: false })
+      .limit(1000)
 
     if (error) {
-      console.error('Supabase error fetching expenses by date range:', error)
+      logError('getExpensesByDateRange', 'Supabase error fetching expenses by date range', error, { startDate, endDate })
       return []
     }
 
     return data || []
   } catch (err) {
-    console.error('Exception fetching expenses by date range:', err)
+    logError('getExpensesByDateRange', 'Exception fetching expenses by date range', err, { startDate, endDate })
     return []
   }
 }
@@ -211,24 +213,25 @@ export async function getExpensesByDateRange(
  */
 export async function getExpensesByCategory(category: string): Promise<Expense[]> {
   try {
+    const userId = await getAuthUserId()
     const supabase = await createClient()
-    const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
     const { data, error } = await supabase
       .from('expenses')
       .select('*')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', userId)
       .eq('category', category)
       .order('expense_date', { ascending: false })
+      .limit(1000)
 
     if (error) {
-      console.error('Supabase error fetching expenses by category:', error)
+      logError('getExpensesByCategory', 'Supabase error fetching expenses by category', error, { category })
       return []
     }
 
     return data || []
   } catch (err) {
-    console.error('Exception fetching expenses by category:', err)
+    logError('getExpensesByCategory', 'Exception fetching expenses by category', err, { category })
     return []
   }
 }
@@ -238,8 +241,8 @@ export async function getExpensesByCategory(category: string): Promise<Expense[]
  */
 export async function getMonthlyExpenseTotal(month: string): Promise<number> {
   try {
+    const userId = await getAuthUserId()
     const supabase = await createClient()
-    const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
     // Calculate month boundaries (month is in YYYY-MM format)
     const startDate = `${month}-01`
@@ -250,19 +253,19 @@ export async function getMonthlyExpenseTotal(month: string): Promise<number> {
     const { data, error } = await supabase
       .from('expenses')
       .select('amount')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', userId)
       .gte('expense_date', startDate)
       .lte('expense_date', endDate)
 
     if (error) {
-      console.error('Supabase error calculating monthly expense total:', error)
+      logError('getMonthlyExpenseTotal', 'Supabase error calculating monthly expense total', error, { month })
       return 0
     }
 
     const total = (data || []).reduce((sum, exp) => sum + parseFloat(exp.amount.toString()), 0)
     return total
   } catch (err) {
-    console.error('Exception calculating monthly expense total:', err)
+    logError('getMonthlyExpenseTotal', 'Exception calculating monthly expense total', err, { month })
     return 0
   }
 }

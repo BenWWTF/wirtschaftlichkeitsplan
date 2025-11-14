@@ -2,9 +2,8 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { getAuthUserId } from '@/lib/utils/auth'
 import type { SessionImportRow, ImportResult } from '@/lib/types/import'
-
-const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
 /**
  * Process session import data
@@ -13,6 +12,7 @@ const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 export async function processSessionImport(
   sessions: SessionImportRow[]
 ): Promise<ImportResult> {
+  const userId = await getAuthUserId()
   const supabase = await createClient()
   const errors: any[] = []
   const warnings: any[] = []
@@ -24,7 +24,7 @@ export async function processSessionImport(
     const { data: therapyTypes, error: therapyError } = await supabase
       .from('therapy_types')
       .select('id, name, price_per_session')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', userId)
 
     if (therapyError) {
       return {
@@ -88,7 +88,7 @@ export async function processSessionImport(
         const { data: existingPlan, error: planError } = await supabase
           .from('monthly_plans')
           .select('id, planned_sessions')
-          .eq('user_id', DEMO_USER_ID)
+          .eq('user_id', userId)
           .eq('therapy_type_id', therapyId)
           .eq('month', month)
           .maybeSingle()
@@ -124,7 +124,7 @@ export async function processSessionImport(
           const { error: insertError } = await supabase
             .from('monthly_plans')
             .insert({
-              user_id: DEMO_USER_ID,
+              user_id: userId,
               therapy_type_id: therapyId,
               month,
               planned_sessions: 0, // No planning data, just actuals
@@ -187,12 +187,13 @@ export async function getImportTemplates() {
 export async function validateTherapyTypes(
   therapyNames: string[]
 ): Promise<{ missing: string[]; existing: string[] }> {
+  const userId = await getAuthUserId()
   const supabase = await createClient()
 
   const { data: therapyTypes } = await supabase
     .from('therapy_types')
     .select('name')
-    .eq('user_id', DEMO_USER_ID)
+    .eq('user_id', userId)
 
   const existingNames = new Set(
     therapyTypes?.map(t => t.name.toLowerCase()) || []

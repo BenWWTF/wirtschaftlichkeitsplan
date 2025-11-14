@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -52,6 +52,23 @@ export function TherapyDialog({ open, onOpenChange, therapy }: TherapyDialogProp
           variable_cost_per_session: 0,
         },
   })
+
+  // Reset form when therapy changes or dialog opens
+  useEffect(() => {
+    if (open && therapy) {
+      form.reset({
+        name: therapy.name,
+        price_per_session: therapy.price_per_session,
+        variable_cost_per_session: therapy.variable_cost_per_session,
+      })
+    } else if (open && !therapy) {
+      form.reset({
+        name: '',
+        price_per_session: 0,
+        variable_cost_per_session: 0,
+      })
+    }
+  }, [open, therapy, form])
 
   const onSubmit = async (values: TherapyTypeInput) => {
     setIsLoading(true)
@@ -141,6 +158,7 @@ export function TherapyDialog({ open, onOpenChange, therapy }: TherapyDialogProp
               render={({ field, fieldState }) => (
                 <NumberField
                   {...field}
+                  value={field.value || ''}
                   label="Sitzungspreis"
                   placeholder="60.00"
                   suffix="€"
@@ -164,6 +182,7 @@ export function TherapyDialog({ open, onOpenChange, therapy }: TherapyDialogProp
               render={({ field, fieldState }) => (
                 <NumberField
                   {...field}
+                  value={field.value || ''}
                   label="Variable Kosten pro Sitzung"
                   placeholder="15.00"
                   suffix="€"
