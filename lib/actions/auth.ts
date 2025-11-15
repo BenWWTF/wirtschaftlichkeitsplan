@@ -80,3 +80,21 @@ export async function getUser() {
 
   return data.user
 }
+
+export async function sendMagicLink(email: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
+    }
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  // Magic link has been sent (or would be sent with email provider)
+  return { success: true, data }
+}
