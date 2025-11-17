@@ -1,5 +1,6 @@
 import { ReactNode } from 'react'
 import { DashboardNav } from '@/components/dashboard/dashboard-nav'
+import { createClient } from '@/utils/supabase/server'
 
 /**
  * Layout for dashboard routes
@@ -15,11 +16,33 @@ import { DashboardNav } from '@/components/dashboard/dashboard-nav'
  * - Responsive mobile menu
  * - Dark mode support
  */
-export default function DashboardLayout({ children }: { children: ReactNode }) {
+export default async function DashboardLayout({ children }: { children: ReactNode }) {
+  let practiceName = ''
+
+  try {
+    const supabase = await createClient()
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (!authError && user) {
+      const { data: settings } = await supabase
+        .from('practice_settings')
+        .select('practice_name')
+        .eq('user_id', user.id)
+        .single()
+
+      if (settings?.practice_name) {
+        practiceName = settings.practice_name
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching practice settings:', error)
+  }
+
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-neutral-50 dark:bg-neutral-950">
       {/* Navigation */}
-      <DashboardNav />
+      <DashboardNav practiceName={practiceName} />
 
       {/* Main Content Area */}
       <main className="flex-1 mt-14 md:mt-0 md:ml-64">

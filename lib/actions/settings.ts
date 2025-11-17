@@ -12,8 +12,10 @@ import type { PracticeSettings } from '@/lib/types'
 export async function upsertPracticeSettingsAction(input: PracticeSettingsInput) {
   const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { error: 'Authentifizierung fehlgeschlagen' }
+  }
 
   try {
     const validated = PracticeSettingsSchema.parse(input)
@@ -22,7 +24,7 @@ export async function upsertPracticeSettingsAction(input: PracticeSettingsInput)
     const { data: existing } = await supabase
       .from('practice_settings')
       .select('*')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
       .single()
 
     let result
@@ -39,7 +41,7 @@ export async function upsertPracticeSettingsAction(input: PracticeSettingsInput)
           expected_growth_rate: validated.expected_growth_rate,
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', user.id)
         .select()
 
       result = { data, error }
@@ -48,7 +50,7 @@ export async function upsertPracticeSettingsAction(input: PracticeSettingsInput)
       const { data, error } = await supabase
         .from('practice_settings')
         .insert({
-          user_id: DEMO_USER_ID,
+          user_id: user.id,
           practice_name: validated.practice_name,
           practice_type: validated.practice_type,
           monthly_fixed_costs: validated.monthly_fixed_costs,
@@ -87,13 +89,16 @@ export async function getPracticeSettings(): Promise<PracticeSettings | null> {
   try {
     const supabase = await createClient()
 
-    // Use demo/default user ID for public access (no authentication required)
-    const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      console.error('[getPracticeSettings] Authentication error:', authError)
+      return null
+    }
 
     const { data, error } = await supabase
       .from('practice_settings')
       .select('*')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
       .single()
 
     if (error) {

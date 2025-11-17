@@ -5,13 +5,17 @@ import { revalidatePath } from 'next/cache'
 import { MonthlyPlanSchema, type MonthlyPlanInput } from '@/lib/validations'
 import type { MonthlyPlan, TherapyType } from '@/lib/types'
 
-const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
-
 /**
  * Get all monthly plans for a specific month
  */
 export async function getMonthlyPlans(month: string): Promise<MonthlyPlan[]> {
   const supabase = await createClient()
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    console.error('[getMonthlyPlans] Authentication error:', authError)
+    return []
+  }
 
   // Convert YYYY-MM to YYYY-MM-01 for date column
   const monthDate = month.includes('-') && month.length === 7
@@ -21,7 +25,7 @@ export async function getMonthlyPlans(month: string): Promise<MonthlyPlan[]> {
   const { data, error } = await supabase
     .from('monthly_plans')
     .select('*')
-    .eq('user_id', DEMO_USER_ID)
+    .eq('user_id', user.id)
     .eq('month', monthDate)
     .order('created_at', { ascending: false })
 
@@ -39,6 +43,12 @@ export async function getMonthlyPlans(month: string): Promise<MonthlyPlan[]> {
 export async function getMonthlyPlansWithTherapies(month: string) {
   const supabase = await createClient()
 
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    console.error('[getMonthlyPlansWithTherapies] Authentication error:', authError)
+    return []
+  }
+
   // Convert YYYY-MM to YYYY-MM-01 for date column
   const monthDate = month.includes('-') && month.length === 7
     ? `${month}-01`
@@ -48,7 +58,7 @@ export async function getMonthlyPlansWithTherapies(month: string) {
   const { data: plans, error: plansError } = await supabase
     .from('monthly_plans')
     .select('*')
-    .eq('user_id', DEMO_USER_ID)
+    .eq('user_id', user.id)
     .eq('month', monthDate)
     .order('created_at', { ascending: false })
 
@@ -94,6 +104,11 @@ export async function getMonthlyPlansWithTherapies(month: string) {
 export async function upsertMonthlyPlanAction(input: MonthlyPlanInput) {
   const supabase = await createClient()
 
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { error: 'Authentifizierung fehlgeschlagen' }
+  }
+
   try {
     const validated = MonthlyPlanSchema.parse(input)
 
@@ -107,7 +122,7 @@ export async function upsertMonthlyPlanAction(input: MonthlyPlanInput) {
       .from('therapy_types')
       .select('id')
       .eq('id', validated.therapy_type_id)
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
       .single()
 
     if (therapyError || !therapy) {
@@ -119,7 +134,7 @@ export async function upsertMonthlyPlanAction(input: MonthlyPlanInput) {
       .from('monthly_plans')
       .select('id')
       .eq('therapy_type_id', validated.therapy_type_id)
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
       .eq('month', monthDate)
       .single()
 
@@ -146,7 +161,7 @@ export async function upsertMonthlyPlanAction(input: MonthlyPlanInput) {
       const { data, error } = await supabase
         .from('monthly_plans')
         .insert({
-          user_id: DEMO_USER_ID,
+          user_id: user.id,
           therapy_type_id: validated.therapy_type_id,
           month: monthDate,
           planned_sessions: validated.planned_sessions,
@@ -176,12 +191,17 @@ export async function upsertMonthlyPlanAction(input: MonthlyPlanInput) {
 export async function deleteMonthlyPlanAction(id: string) {
   const supabase = await createClient()
 
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { error: 'Authentifizierung fehlgeschlagen' }
+  }
+
   try {
     const { error } = await supabase
       .from('monthly_plans')
       .delete()
       .eq('id', id)
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
 
     if (error) {
       return { error: `Fehler beim Löschen: ${error.message}` }
@@ -194,5 +214,90 @@ export async function deleteMonthlyPlanAction(id: string) {
       return { error: error.message }
     }
     return { error: 'Fehler beim Löschen' }
+  }
+}
+
+/**
+ * Copy monthly plans from one month to multiple future months
+ */
+export async function copyMonthlyPlansAction(input: {
+  fromMonth: string
+  toMonths: number
+}) {
+  const supabase = await createClient()
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { error: 'Authentifizierung fehlgeschlagen' }
+  }
+
+  try {
+    // Get the source month's plans
+    const sourceMonth = input.fromMonth.includes('-') && input.fromMonth.length === 7
+      ? `${input.fromMonth}-01`
+      : input.fromMonth
+
+    const { data: sourcePlans, error: sourceError } = await supabase
+      .from('monthly_plans')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('month', sourceMonth)
+
+    if (sourceError || !sourcePlans) {
+      return { error: `Fehler beim Abrufen der Quellpläne: ${sourceError?.message}` }
+    }
+
+    // Generate target months
+    const [year, month] = input.fromMonth.split('-').map(Number)
+    const targetMonths = []
+
+    for (let i = 1; i <= input.toMonths; i++) {
+      let targetMonth = month + i
+      let targetYear = year
+
+      while (targetMonth > 12) {
+        targetMonth -= 12
+        targetYear += 1
+      }
+
+      const monthStr = String(targetMonth).padStart(2, '0')
+      targetMonths.push(`${targetYear}-${monthStr}-01`)
+    }
+
+    // Copy plans to each target month
+    const newPlans = []
+    for (const targetMonth of targetMonths) {
+      for (const plan of sourcePlans) {
+        newPlans.push({
+          user_id: user.id,
+          therapy_type_id: plan.therapy_type_id,
+          month: targetMonth,
+          planned_sessions: plan.planned_sessions,
+          actual_sessions: plan.actual_sessions,
+          notes: plan.notes
+        })
+      }
+    }
+
+    if (newPlans.length === 0) {
+      return { success: true, data: [] }
+    }
+
+    const { data, error } = await supabase
+      .from('monthly_plans')
+      .insert(newPlans)
+      .select()
+
+    if (error) {
+      return { error: `Fehler beim Kopieren: ${error.message}` }
+    }
+
+    revalidatePath('/dashboard/planung')
+    return { success: true, data }
+  } catch (error) {
+    if (error instanceof Error) {
+      return { error: error.message }
+    }
+    return { error: 'Fehler beim Kopieren der Pläne' }
   }
 }

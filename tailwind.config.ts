@@ -68,7 +68,18 @@ const config = {
           700: '#101010',
           800: '#0E0E0E',
           900: '#000000'
-        }
+        },
+        popover: 'hsl(var(--popover))',
+        'popover-foreground': 'hsl(var(--popover-foreground))',
+        background: 'hsl(var(--background, 0 0% 100%))',
+        foreground: 'hsl(var(--foreground, 0 0% 3.6%))',
+        card: 'hsl(var(--card, 0 0% 100%))',
+        'card-foreground': 'hsl(var(--card-foreground, 0 0% 3.6%))',
+        muted: 'hsl(var(--muted, 0 0% 96%))',
+        'muted-foreground': 'hsl(var(--muted-foreground, 0 0% 45%))',
+        ring: 'hsl(var(--ring, 0 0% 3.6%))',
+        border: 'hsl(var(--border, 0 0% 89%))',
+        input: 'hsl(var(--input, 0 0% 89%))',
       },
       spacing: {
         '4.5': '1.125rem',

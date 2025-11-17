@@ -353,14 +353,6 @@ export function BreakEvenCalculator({
         </div>
       )}
 
-      {/* Info Box */}
-      <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 p-4">
-        <p className="text-sm text-amber-800 dark:text-amber-200">
-          💡 <strong>Hinweis:</strong> Diese Analyse basiert auf durchschnittlichen
-          Deckungsbeiträgen. Die tatsächliche Anzahl der benötigten Sitzungen kann je
-          nach Ihre Therapieart-Mix variieren.
-        </p>
-      </div>
     </div>
   )
 }

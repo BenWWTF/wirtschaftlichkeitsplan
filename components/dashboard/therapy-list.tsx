@@ -70,6 +70,12 @@ export function TherapyList({ therapies }: TherapyListProps) {
         open={open}
         onOpenChange={setOpen}
         therapy={selectedTherapy}
+        onSuccess={() => {
+          setOpen(false)
+          setSelectedTherapy(null)
+          // Trigger a page refresh or reload from server
+          window.location.reload()
+        }}
       />
     </div>
   )

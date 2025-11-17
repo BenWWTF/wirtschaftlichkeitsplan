@@ -3,7 +3,6 @@ export type TherapyType = {
   user_id: string
   name: string
   price_per_session: number
-  variable_cost_per_session: number
   created_at: string
   updated_at: string
 }
@@ -58,7 +57,6 @@ export type BreakEvenAnalysis = {
   therapy_type_id: string
   therapy_type_name: string
   price_per_session: number
-  variable_cost_per_session: number
   contribution_margin: number
   contribution_margin_percent: number
 }
@@ -66,4 +64,19 @@ export type BreakEvenAnalysis = {
 export type AustrianExpenseCategory = {
   category: string
   subcategories: string[]
+}
+
+export type ExpenseDocument = {
+  id: string
+  user_id: string
+  expense_id: string
+  file_name: string
+  file_path: string
+  file_size: number
+  file_type: string
+  storage_bucket: string
+  extracted_text: string | null
+  upload_date: string
+  created_at: string
+  updated_at: string
 }

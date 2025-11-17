@@ -28,10 +28,10 @@ export function exportAsCSV(data: BreakEvenReportData): void {
   csv += `Sitzungen für Break-Even,${sessionsNeeded}\n\n`
 
   csv += 'Therapiearten\n'
-  csv += 'Name,Preis pro Sitzung,Variable Kosten,Deckungsbeitrag,Deckungsbeitrag %\n'
+  csv += 'Name,Preis pro Sitzung,Deckungsbeitrag,Deckungsbeitrag %\n'
 
   therapies.forEach((therapy) => {
-    csv += `${therapy.therapy_type_name},${therapy.price_per_session.toFixed(2)}€,${therapy.variable_cost_per_session.toFixed(2)}€,${therapy.contribution_margin.toFixed(2)}€,${therapy.contribution_margin_percent.toFixed(1)}%\n`
+    csv += `${therapy.therapy_type_name},${therapy.price_per_session.toFixed(2)}€,${therapy.contribution_margin.toFixed(2)}€,${therapy.contribution_margin_percent.toFixed(1)}%\n`
   })
 
   // Trigger download
@@ -196,7 +196,6 @@ export function exportAsHTML(data: BreakEvenReportData): void {
       <tr>
         <th>Therapieart</th>
         <th>Preis pro Sitzung</th>
-        <th>Variable Kosten</th>
         <th>Deckungsbeitrag</th>
         <th>Deckungsbeitrag %</th>
       </tr>
@@ -208,7 +207,6 @@ export function exportAsHTML(data: BreakEvenReportData): void {
         <tr>
           <td>${therapy.therapy_type_name}</td>
           <td>${therapy.price_per_session.toFixed(2)} €</td>
-          <td>${therapy.variable_cost_per_session.toFixed(2)} €</td>
           <td>${therapy.contribution_margin.toFixed(2)} €</td>
           <td>${therapy.contribution_margin_percent.toFixed(1)} %</td>
         </tr>

@@ -148,9 +148,6 @@ export function PlannerCard({
   // Calculate values for display
   const plannedSessions = form.watch('planned_sessions')
   const plannedRevenue = plannedSessions * therapy.price_per_session
-  const plannedMargin =
-    plannedSessions *
-    (therapy.price_per_session - therapy.variable_cost_per_session)
 
   return (
     <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden hover:shadow-lg transition-shadow">
@@ -268,14 +265,6 @@ export function PlannerCard({
                     {formatEuro(plannedRevenue)}
                   </span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-neutral-600 dark:text-neutral-400">
-                    Deckungsbeitrag:
-                  </span>
-                  <span className="font-semibold text-green-600 dark:text-green-400">
-                    {formatEuro(plannedMargin)}
-                  </span>
-                </div>
               </div>
 
               {/* Actions */}
@@ -302,23 +291,6 @@ export function PlannerCard({
               </div>
             </form>
           </Form>
-        </div>
-      )}
-
-      {/* Collapsed Summary */}
-      {!isExpanded && planData && (
-        <div className="px-4 py-3 bg-neutral-50 dark:bg-neutral-700/30 border-t border-neutral-200 dark:border-neutral-700 flex justify-between items-center text-sm">
-          <span className="text-neutral-600 dark:text-neutral-400">
-            {planData.planned_sessions} Sitzung
-            {planData.planned_sessions !== 1 ? 'en' : ''} geplant
-          </span>
-          <span className="font-semibold text-green-600 dark:text-green-400">
-            {formatEuro(
-              planData.planned_sessions *
-                (therapy.price_per_session -
-                  therapy.variable_cost_per_session)
-            )}
-          </span>
         </div>
       )}
 

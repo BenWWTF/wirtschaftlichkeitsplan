@@ -11,8 +11,10 @@ import type { TherapyType } from '@/lib/types'
 export async function createTherapyAction(input: TherapyTypeInput) {
   const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { error: 'Authentifizierung fehlgeschlagen' }
+  }
 
   // Validate input
   try {
@@ -22,10 +24,9 @@ export async function createTherapyAction(input: TherapyTypeInput) {
     const { data, error } = await supabase
       .from('therapy_types')
       .insert({
-        user_id: DEMO_USER_ID,
+        user_id: user.id,
         name: validated.name,
-        price_per_session: validated.price_per_session,
-        variable_cost_per_session: validated.variable_cost_per_session
+        price_per_session: validated.price_per_session
       })
       .select()
 
@@ -55,8 +56,10 @@ export async function updateTherapyAction(
 ) {
   const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { error: 'Authentifizierung fehlgeschlagen' }
+  }
 
   try {
     const validated = TherapyTypeSchema.parse(input)
@@ -67,11 +70,10 @@ export async function updateTherapyAction(
       .update({
         name: validated.name,
         price_per_session: validated.price_per_session,
-        variable_cost_per_session: validated.variable_cost_per_session,
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
       .select()
 
     if (error) {
@@ -101,8 +103,10 @@ export async function updateTherapyAction(
 export async function deleteTherapyAction(id: string) {
   const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { error: 'Authentifizierung fehlgeschlagen' }
+  }
 
   try {
     // Delete from database
@@ -110,7 +114,7 @@ export async function deleteTherapyAction(id: string) {
       .from('therapy_types')
       .delete()
       .eq('id', id)
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
 
     if (error) {
       console.error('Database error:', JSON.stringify(error, null, 2))
@@ -136,13 +140,16 @@ export async function getTherapies(): Promise<TherapyType[]> {
   try {
     const supabase = await createClient()
 
-    // Use demo/default user ID for public access (no authentication required)
-    const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      console.error('[getTherapies] Authentication error:', authError)
+      return []
+    }
 
     const { data, error } = await supabase
       .from('therapy_types')
       .select('*')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
 
     if (error) {

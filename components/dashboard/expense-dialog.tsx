@@ -72,6 +72,35 @@ export function ExpenseDialog({ open, onOpenChange, expense }: ExpenseDialogProp
         },
   })
 
+  // Reset form when dialog opens with a different expense
+  useEffect(() => {
+    if (open) {
+      if (expense) {
+        form.reset({
+          category: expense.category,
+          subcategory: expense.subcategory || undefined,
+          amount: expense.amount,
+          expense_date: expense.expense_date,
+          is_recurring: expense.is_recurring,
+          recurrence_interval: expense.recurrence_interval || undefined,
+          description: expense.description || undefined,
+        })
+        setSelectedCategory(expense.category)
+      } else {
+        form.reset({
+          category: '',
+          subcategory: undefined,
+          amount: 0,
+          expense_date: today,
+          is_recurring: false,
+          recurrence_interval: undefined,
+          description: undefined,
+        })
+        setSelectedCategory('')
+      }
+    }
+  }, [open, expense, form, today])
+
   // Watch category changes
   const watchCategory = form.watch('category')
   const watchIsRecurring = form.watch('is_recurring')
@@ -135,7 +164,7 @@ export function ExpenseDialog({ open, onOpenChange, expense }: ExpenseDialogProp
           <DialogDescription>
             {expense
               ? 'Aktualisieren Sie die Details dieser Ausgabe.'
-              : 'Erfassen Sie eine neue Betriebsausgabe für Ihre Praxis.'}
+              : 'Erfassen Sie eine neue Betriebsausgabe für Ihre Ordination.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -231,8 +260,8 @@ export function ExpenseDialog({ open, onOpenChange, expense }: ExpenseDialogProp
                       step="0.01"
                       min="0"
                       placeholder="0.00"
-                      {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                      value={field.value && field.value > 0 ? field.value : ''}
+                      onChange={(e) => field.onChange(e.target.value === '' ? 0 : parseFloat(e.target.value))}
                       disabled={isLoading}
                     />
                   </FormControl>

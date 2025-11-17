@@ -62,10 +62,10 @@ export function OperationalReport() {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Occupancy Rate */}
+          {/* Sessions */}
           <div className="bg-neutral-50 dark:bg-neutral-900/50 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700">
             <h3 className="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-3">
-              Auslastungsquote
+              Sitzungen
             </h3>
             <div className="space-y-2">
               <div className="flex items-end gap-2">

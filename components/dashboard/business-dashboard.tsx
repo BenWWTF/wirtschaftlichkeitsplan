@@ -238,9 +238,6 @@ export function BusinessDashboard({
                   <p className="font-semibold text-neutral-900 dark:text-white">
                     {formatEuro(therapy.total_revenue)}
                   </p>
-                  <p className="text-sm text-green-600 dark:text-green-400">
-                    {formatEuro(therapy.total_margin)} Gewinn
-                  </p>
                 </div>
               </div>
             ))}

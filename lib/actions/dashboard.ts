@@ -19,12 +19,9 @@ export interface TherapyMetrics {
   therapy_id: string
   therapy_name: string
   price_per_session: number
-  variable_cost_per_session: number
-  contribution_margin: number
   total_planned_sessions: number
   total_actual_sessions: number
   total_revenue: number
-  total_margin: number
   profitability_percent: number
 }
 
@@ -44,8 +41,11 @@ export interface DashboardSummary {
 export async function getMonthlyMetrics(month: string): Promise<MonthlyMetrics | null> {
   const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    console.error('[getMonthlyMetrics] Authentication error:', authError)
+    return null
+  }
 
   // Convert YYYY-MM to YYYY-MM-01 for date column
   const monthDate = month.includes('-') && month.length === 7
@@ -56,7 +56,7 @@ export async function getMonthlyMetrics(month: string): Promise<MonthlyMetrics |
   const { data: plans, error: plansError } = await supabase
     .from('monthly_plans')
     .select('id, planned_sessions, actual_sessions, therapy_type_id')
-    .eq('user_id', DEMO_USER_ID)
+    .eq('user_id', user.id)
     .eq('month', monthDate)
 
   if (plansError || !plans) {
@@ -84,7 +84,7 @@ export async function getMonthlyMetrics(month: string): Promise<MonthlyMetrics |
   const { data: expenses, error: expensesError } = await supabase
     .from('expenses')
     .select('amount')
-    .eq('user_id', DEMO_USER_ID)
+    .eq('user_id', user.id)
 
   if (expensesError) {
     console.error('Error fetching expenses:', expensesError)
@@ -149,8 +149,11 @@ export async function getMonthlyMetricsRange(
 ): Promise<MonthlyMetrics[]> {
   const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    console.error('[getMonthlyMetricsRange] Authentication error:', authError)
+    return []
+  }
 
   // Convert YYYY-MM to YYYY-MM-01 for date column
   const startDate = startMonth.includes('-') && startMonth.length === 7
@@ -164,7 +167,7 @@ export async function getMonthlyMetricsRange(
   const { data: plans, error: plansError } = await supabase
     .from('monthly_plans')
     .select('month, planned_sessions, actual_sessions, therapy_type_id')
-    .eq('user_id', DEMO_USER_ID)
+    .eq('user_id', user.id)
     .gte('month', startDate)
     .lte('month', endDate)
     .order('month', { ascending: true })
@@ -194,7 +197,7 @@ export async function getMonthlyMetricsRange(
   const { data: expenses } = await supabase
     .from('expenses')
     .select('amount, expense_date')
-    .eq('user_id', DEMO_USER_ID)
+    .eq('user_id', user.id)
 
   // Group by month
   const monthlyData: Record<string, MonthlyMetrics> = {}
@@ -267,14 +270,17 @@ export async function getMonthlyMetricsRange(
 export async function getTherapyMetrics(): Promise<TherapyMetrics[]> {
   const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    console.error('[getTherapyMetrics] Authentication error:', authError)
+    return []
+  }
 
   // Get all therapies
   const { data: therapies, error: therapiesError } = await supabase
     .from('therapy_types')
     .select('*')
-    .eq('user_id', DEMO_USER_ID)
+    .eq('user_id', user.id)
 
   if (therapiesError || !therapies) {
     console.error('Error fetching therapies:', therapiesError)
@@ -285,7 +291,7 @@ export async function getTherapyMetrics(): Promise<TherapyMetrics[]> {
   const { data: plans, error: plansError } = await supabase
     .from('monthly_plans')
     .select('therapy_type_id, planned_sessions, actual_sessions')
-    .eq('user_id', DEMO_USER_ID)
+    .eq('user_id', user.id)
 
   if (plansError) {
     console.error('Error fetching plans:', plansError)
@@ -307,9 +313,6 @@ export async function getTherapyMetrics(): Promise<TherapyMetrics[]> {
     )
     const totalRevenue =
       totalActualSessions * therapy.price_per_session
-    const totalMargin =
-      totalActualSessions *
-      (therapy.price_per_session - therapy.variable_cost_per_session)
     const profitabilityPercent =
       totalPlannedSessions > 0
         ? (totalActualSessions / totalPlannedSessions) * 100
@@ -319,13 +322,9 @@ export async function getTherapyMetrics(): Promise<TherapyMetrics[]> {
       therapy_id: therapy.id,
       therapy_name: therapy.name,
       price_per_session: therapy.price_per_session,
-      variable_cost_per_session: therapy.variable_cost_per_session,
-      contribution_margin:
-        therapy.price_per_session - therapy.variable_cost_per_session,
       total_planned_sessions: totalPlannedSessions,
       total_actual_sessions: totalActualSessions,
       total_revenue: totalRevenue,
-      total_margin: totalMargin,
       profitability_percent: profitabilityPercent
     }
   })
@@ -339,8 +338,19 @@ export async function getTherapyMetrics(): Promise<TherapyMetrics[]> {
 export async function getDashboardSummary(): Promise<DashboardSummary> {
   const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    console.error('[getDashboardSummary] Authentication error:', authError)
+    return {
+      total_revenue: 0,
+      total_expenses: 0,
+      net_income: 0,
+      total_sessions: 0,
+      average_session_price: 0,
+      profitability_rate: 0,
+      break_even_status: 'deficit'
+    }
+  }
 
   // Get therapy metrics
   const therapyMetrics = await getTherapyMetrics()
@@ -349,7 +359,7 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
   const { data: expenses } = await supabase
     .from('expenses')
     .select('amount')
-    .eq('user_id', DEMO_USER_ID)
+    .eq('user_id', user.id)
 
   const totalRevenue = therapyMetrics.reduce((sum, t) => sum + t.total_revenue, 0)
   const totalExpenses = expenses?.reduce((sum, e) => sum + e.amount, 0) || 0

@@ -2,8 +2,7 @@ import { z } from 'zod'
 
 export const TherapyTypeSchema = z.object({
   name: z.string().min(1, 'Therapieart-Name ist erforderlich').max(100),
-  price_per_session: z.number().positive('Preis muss positiv sein'),
-  variable_cost_per_session: z.number().nonnegative('Kosten können nicht negativ sein')
+  price_per_session: z.number().positive('Preis muss positiv sein')
 })
 
 export type TherapyTypeInput = z.infer<typeof TherapyTypeSchema>

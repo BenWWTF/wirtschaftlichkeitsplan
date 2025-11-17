@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, BarChart3, Calendar, FileText, Pill, Home } from 'lucide-react'
+import { Menu, X, Calendar, FileText, Pill, Home, Receipt, Upload, Settings, Calculator } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
@@ -29,23 +29,42 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     href: '/dashboard/planung',
-    label: 'Planung',
+    label: 'Monatliche Planung',
     icon: <Calendar className="w-5 h-5" />,
     shortcut: 'Alt+P',
   },
   {
-    href: '/dashboard/analyse',
-    label: 'Break-Even',
-    icon: <BarChart3 className="w-5 h-5" />,
-    shortcut: 'Alt+A',
+    href: '/dashboard/ausgaben',
+    label: 'Ausgaben',
+    icon: <Receipt className="w-5 h-5" />,
+  },
+  {
+    href: '/dashboard/steuerprognose',
+    label: 'Meine Steuerprognose',
+    icon: <Calculator className="w-5 h-5" />,
+    shortcut: 'Alt+S',
+  },
+  {
+    href: '/dashboard/import',
+    label: 'Daten Import',
+    icon: <Upload className="w-5 h-5" />,
   },
   {
     href: '/dashboard/berichte',
-    label: 'Berichte',
+    label: 'Geschäftsberichte',
     icon: <FileText className="w-5 h-5" />,
     shortcut: 'Alt+R',
   },
+  {
+    href: '/dashboard/einstellungen',
+    label: 'Einstellungen',
+    icon: <Settings className="w-5 h-5" />,
+  },
 ]
+
+interface DashboardNavProps {
+  practiceName?: string
+}
 
 /**
  * DashboardNav Component
@@ -56,8 +75,9 @@ const NAV_ITEMS: NavItem[] = [
  * - Keyboard shortcuts (Alt+key)
  * - Responsive mobile menu
  * - Dark mode support
+ * - Ordination name display
  */
-export function DashboardNav() {
+export function DashboardNav({ practiceName = '' }: DashboardNavProps) {
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
@@ -76,8 +96,8 @@ export function DashboardNav() {
         h: '/dashboard',
         t: '/dashboard/therapien',
         p: '/dashboard/planung',
-        a: '/dashboard/analyse',
         r: '/dashboard/berichte',
+        s: '/dashboard/steuerprognose',
       }
 
       const href = shortcuts[e.key.toLowerCase()]
@@ -102,21 +122,16 @@ export function DashboardNav() {
       {/* Desktop Sidebar */}
       <nav className="hidden md:fixed md:left-0 md:top-0 md:z-40 md:flex md:h-screen md:w-64 md:flex-col md:border-r md:border-neutral-200 md:bg-white md:dark:border-accent-700/30 md:dark:bg-neutral-900/80 md:backdrop-blur-md">
         {/* Logo/Header */}
-        <div className="border-b border-neutral-200 px-6 py-6 dark:border-accent-700/20">
-          <div className="flex items-baseline gap-2">
-            <h1 className="text-2xl font-bold text-neutral-900 dark:text-white font-mono">
-              💼
-            </h1>
-            <div>
-              <h1 className="text-lg font-bold text-neutral-900 dark:text-white">
-                Wirtschaftlich
-              </h1>
-              <p className="text-xs text-accent-600 dark:text-accent-300 font-medium mt-0.5">
-                FINANZPLAN
-              </p>
-            </div>
+        <Link href="/dashboard" className="border-b border-neutral-200 px-6 py-6 dark:border-accent-700/20 hover:opacity-80 transition-opacity block flex items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <span className="text-xl font-bold text-neutral-900 dark:text-white block">Ordi</span>
+            {practiceName && (
+              <span className="text-xs text-neutral-600 dark:text-neutral-400 truncate block">
+                {practiceName}
+              </span>
+            )}
           </div>
-        </div>
+        </Link>
 
         {/* Navigation Items */}
         <nav className="flex-1 overflow-y-auto px-3 py-6 space-y-1" role="navigation" aria-label="Main Navigation">
@@ -133,7 +148,7 @@ export function DashboardNav() {
               )}
               onClick={() => setIsMobileMenuOpen(false)}
               aria-current={isActive(item.href) ? 'page' : undefined}
-              title={`${item.label} (${item.shortcut})`}
+              title={item.label}
             >
               <span className={cn(
                 'flex-shrink-0 w-5 h-5 transition-colors',
@@ -144,11 +159,6 @@ export function DashboardNav() {
                 {item.icon}
               </span>
               <span className="flex-1">{item.label}</span>
-              {item.shortcut && (
-                <kbd className="hidden xl:inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-neutral-500 bg-neutral-100 dark:bg-neutral-800/60 dark:text-neutral-400 group-hover:bg-neutral-200 dark:group-hover:bg-neutral-700/60">
-                  {item.shortcut}
-                </kbd>
-              )}
             </Link>
           ))}
         </nav>
@@ -172,17 +182,16 @@ export function DashboardNav() {
       {/* Mobile Top Bar */}
       <div className="fixed top-0 left-0 right-0 z-50 md:hidden border-b border-neutral-200 bg-white dark:border-accent-700/20 dark:bg-neutral-900/80 dark:backdrop-blur-md">
         <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-bold">💼</span>
-            <div>
-              <h1 className="text-sm font-bold text-neutral-900 dark:text-white">
-                Wirtschaftlich
-              </h1>
-              <p className="text-xs text-accent-600 dark:text-accent-300 font-medium">
-                FINANZPLAN
-              </p>
+          <Link href="/dashboard" className="hover:opacity-80 transition-opacity flex items-center gap-2 flex-1 min-w-0">
+            <div className="flex-1 min-w-0">
+              <span className="text-lg font-bold text-neutral-900 dark:text-white block">Ordi</span>
+              {practiceName && (
+                <span className="text-xs text-neutral-600 dark:text-neutral-400 truncate block leading-tight">
+                  {practiceName}
+                </span>
+              )}
             </div>
-          </div>
+          </Link>
           <Button
             variant="ghost"
             size="sm"

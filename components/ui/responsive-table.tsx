@@ -100,20 +100,20 @@ export function ResponsiveTable<T>({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((row, index) => (
+          {data.map((row, rowIndex) => (
             <TableRow
-              key={rowKey(row, index)}
+              key={`row-${rowIndex}`}
               className={cn(
                 'border-border hover:bg-muted/50',
-                striped && index % 2 !== 0 && 'bg-muted/30',
+                striped && rowIndex % 2 !== 0 && 'bg-muted/30',
                 rowClassName
               )}
             >
-              {columns.map((column) => {
+              {columns.map((column, colIndex) => {
                 const value = (row as any)[column.key]
                 return (
                   <TableCell
-                    key={`${rowKey(row, index)}-${column.key}`}
+                    key={`cell-${rowIndex}-${colIndex}`}
                     className={cn(
                       column.className,
                       column.align === 'center' && 'text-center',

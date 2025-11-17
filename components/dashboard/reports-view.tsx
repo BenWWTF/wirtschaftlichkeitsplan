@@ -39,11 +39,16 @@ export function ReportsView({
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
-            Geschäftsberichte
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
+              Geschäftsberichte
+            </h1>
+            <span className="inline-block px-3 py-1 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-200 text-xs font-semibold rounded">
+              ✅ Resultate
+            </span>
+          </div>
           <p className="text-neutral-600 dark:text-neutral-400 mt-1">
-            Umfassende Übersicht Ihrer Geschäftsentwicklung
+            Übersicht der durchgeführten Sitzungen und erzielten Ergebnisse
           </p>
         </div>
         {analytics && (

@@ -58,7 +58,7 @@ export function PlannerGrid({
     setPlans(data || [])
   }
 
-  // Calculate total planned revenue and margin
+  // Calculate total planned revenue
   const totals = useMemo(() => {
     return plans.reduce(
       (acc, plan) => {
@@ -68,15 +68,13 @@ export function PlannerGrid({
         }
 
         const plannedRevenue = plan.planned_sessions * plan.therapy_types.price_per_session
-        const plannedMargin = plan.planned_sessions * (plan.therapy_types.price_per_session - plan.therapy_types.variable_cost_per_session)
 
         return {
           sessions: acc.sessions + plan.planned_sessions,
-          revenue: acc.revenue + plannedRevenue,
-          margin: acc.margin + plannedMargin
+          revenue: acc.revenue + plannedRevenue
         }
       },
-      { sessions: 0, revenue: 0, margin: 0 }
+      { sessions: 0, revenue: 0 }
     )
   }, [plans])
 

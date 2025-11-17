@@ -2,10 +2,11 @@
 
 import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
-import { Plus, Filter } from 'lucide-react'
+import { Plus, Filter, RotateCw } from 'lucide-react'
 import type { Expense } from '@/lib/types'
 import { ExpenseTable } from './expense-table'
-import { ExpenseDialog } from './expense-dialog'
+import { ExpenseDialogEnhanced } from './expense-dialog-enhanced'
+import { ExportExpensesButton } from './export-expenses-button'
 import { deleteExpenseAction } from '@/lib/actions/expenses'
 import { toast } from 'sonner'
 import { formatEuro } from '@/lib/utils'
@@ -15,11 +16,14 @@ interface ExpenseListProps {
   expenses: Expense[]
 }
 
-export function ExpenseList({ expenses }: ExpenseListProps) {
+export function ExpenseList({ expenses: initialExpenses }: ExpenseListProps) {
   const [open, setOpen] = useState(false)
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [filterCategory, setFilterCategory] = useState<string>('all')
+  const [filterType, setFilterType] = useState<'all' | 'fixkosten' | 'investitionskosten'>('all')
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [expenses, setExpenses] = useState(initialExpenses)
 
   const handleEdit = (expense: Expense) => {
     setSelectedExpense(expense)
@@ -48,11 +52,21 @@ export function ExpenseList({ expenses }: ExpenseListProps) {
     }
   }
 
-  // Filter expenses by category
+  // Filter expenses by category and type
   const filteredExpenses = useMemo(() => {
-    if (filterCategory === 'all') return expenses
-    return expenses.filter((exp) => exp.category === filterCategory)
-  }, [expenses, filterCategory])
+    let filtered = expenses
+
+    // Apply type filter (Fixkosten vs Investitionskosten)
+    if (filterType === 'fixkosten') {
+      filtered = filtered.filter((exp) => exp.is_recurring)
+    } else if (filterType === 'investitionskosten') {
+      filtered = filtered.filter((exp) => !exp.is_recurring)
+    }
+
+    // Apply category filter
+    if (filterCategory === 'all') return filtered
+    return filtered.filter((exp) => exp.category === filterCategory)
+  }, [expenses, filterCategory, filterType])
 
   // Calculate total
   const totalExpenses = useMemo(() => {
@@ -65,6 +79,20 @@ export function ExpenseList({ expenses }: ExpenseListProps) {
     return Array.from(cats).sort()
   }, [expenses])
 
+  // Calculate fixed costs (recurring expenses)
+  const fixedCosts = useMemo(() => {
+    return expenses
+      .filter((exp) => exp.is_recurring)
+      .reduce((sum, exp) => sum + parseFloat(exp.amount.toString()), 0)
+  }, [expenses])
+
+  // Calculate investment costs (one-time, larger amounts)
+  const investmentCosts = useMemo(() => {
+    return expenses
+      .filter((exp) => !exp.is_recurring)
+      .reduce((sum, exp) => sum + parseFloat(exp.amount.toString()), 0)
+  }, [expenses])
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -74,14 +102,53 @@ export function ExpenseList({ expenses }: ExpenseListProps) {
             Verwalten Sie Ihre Betriebsausgaben
           </p>
         </div>
-        <Button onClick={handleCreate} size="lg">
-          <Plus className="h-4 w-4 mr-2" />
-          Neue Ausgabe
-        </Button>
+        <div className="flex gap-2">
+          <ExportExpensesButton />
+          <Button onClick={handleCreate} size="lg">
+            <Plus className="h-4 w-4 mr-2" />
+            Neue Ausgabe
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <button
+          onClick={() => {
+            setFilterType('fixkosten')
+            setFilterCategory('all')
+          }}
+          className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-4 hover:border-blue-500 dark:hover:border-blue-500 transition-colors text-left"
+        >
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            Meine Fixkosten Pro Monat
+          </p>
+          <p className="text-2xl font-bold text-neutral-900 dark:text-white mt-1">
+            {formatEuro(fixedCosts)}
+          </p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-500 mt-1">
+            Wiederkehrende Ausgaben
+          </p>
+        </button>
+
+        <button
+          onClick={() => {
+            setFilterType('investitionskosten')
+            setFilterCategory('all')
+          }}
+          className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-4 hover:border-blue-500 dark:hover:border-blue-500 transition-colors text-left"
+        >
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            Meine Investitionskosten
+          </p>
+          <p className="text-2xl font-bold text-neutral-900 dark:text-white mt-1">
+            {formatEuro(investmentCosts)}
+          </p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-500 mt-1">
+            Einmalige Ausgaben
+          </p>
+        </button>
+
         <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-4">
           <p className="text-sm text-neutral-600 dark:text-neutral-400">
             Gesamt Ausgaben
@@ -90,33 +157,10 @@ export function ExpenseList({ expenses }: ExpenseListProps) {
             {formatEuro(totalExpenses)}
           </p>
           <p className="text-xs text-neutral-500 dark:text-neutral-500 mt-1">
-            {filteredExpenses.length} Ausgaben{filterCategory !== 'all' && ' (gefiltert)'}
+            {filteredExpenses.length} Ausgaben{(filterCategory !== 'all' || filterType !== 'all') && ' (gefiltert)'}
           </p>
         </div>
 
-        <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-4">
-          <p className="text-sm text-neutral-600 dark:text-neutral-400">
-            Kategorien
-          </p>
-          <p className="text-2xl font-bold text-neutral-900 dark:text-white mt-1">
-            {categoriesInUse.length}
-          </p>
-          <p className="text-xs text-neutral-500 dark:text-neutral-500 mt-1">
-            Verschiedene Kategorien
-          </p>
-        </div>
-
-        <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-4">
-          <p className="text-sm text-neutral-600 dark:text-neutral-400">
-            Wiederkehrend
-          </p>
-          <p className="text-2xl font-bold text-neutral-900 dark:text-white mt-1">
-            {expenses.filter((exp) => exp.is_recurring).length}
-          </p>
-          <p className="text-xs text-neutral-500 dark:text-neutral-500 mt-1">
-            Regelmäßige Ausgaben
-          </p>
-        </div>
       </div>
 
       {/* Filter Bar */}
@@ -124,18 +168,44 @@ export function ExpenseList({ expenses }: ExpenseListProps) {
         <Filter className="h-4 w-4 text-neutral-500" />
         <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Filter:</span>
         <Button
-          variant={filterCategory === 'all' ? 'default' : 'outline'}
+          variant={filterType === 'all' && filterCategory === 'all' ? 'default' : 'outline'}
           size="sm"
-          onClick={() => setFilterCategory('all')}
+          onClick={() => {
+            setFilterType('all')
+            setFilterCategory('all')
+          }}
         >
           Alle
+        </Button>
+        <Button
+          variant={filterType === 'fixkosten' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => {
+            setFilterType('fixkosten')
+            setFilterCategory('all')
+          }}
+        >
+          Fixkosten
+        </Button>
+        <Button
+          variant={filterType === 'investitionskosten' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => {
+            setFilterType('investitionskosten')
+            setFilterCategory('all')
+          }}
+        >
+          Investitionskosten
         </Button>
         {AUSTRIAN_EXPENSE_CATEGORIES.map((cat) => (
           <Button
             key={cat.category}
-            variant={filterCategory === cat.category ? 'default' : 'outline'}
+            variant={filterCategory === cat.category && filterType === 'all' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setFilterCategory(cat.category)}
+            onClick={() => {
+              setFilterCategory(cat.category)
+              setFilterType('all')
+            }}
           >
             {cat.category}
           </Button>
@@ -148,10 +218,16 @@ export function ExpenseList({ expenses }: ExpenseListProps) {
         onDelete={handleDelete}
       />
 
-      <ExpenseDialog
+      <ExpenseDialogEnhanced
         open={open}
         onOpenChange={setOpen}
         expense={selectedExpense}
+        onSuccess={() => {
+          setOpen(false)
+          setSelectedExpense(null)
+          setRefreshKey(k => k + 1)
+          toast.success('Ausgabe erfolgreich gespeichert')
+        }}
       />
     </div>
   )

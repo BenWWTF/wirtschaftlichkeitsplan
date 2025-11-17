@@ -5,10 +5,7 @@ import { Providers } from '@/components/providers'
 
 export const metadata: Metadata = {
   title: 'Wirtschaftlichkeitsplan',
-  description: 'Financial planning dashboard for Austrian medical practices',
-  icons: {
-    icon: '📊'
-  }
+  description: 'Financial planning dashboard for Austrian medical practices'
 }
 
 export default function RootLayout({

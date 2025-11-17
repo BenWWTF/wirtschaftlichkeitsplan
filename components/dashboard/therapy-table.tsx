@@ -64,30 +64,6 @@ export function TherapyTable({ therapies, onEdit, onDelete }: TherapyTableProps)
       ),
     },
     {
-      key: 'variable_cost_per_session',
-      header: 'Variable Kosten',
-      align: 'right',
-      cell: (value) => <span className="text-muted-foreground">{formatEuro(value)}</span>,
-    },
-    {
-      key: 'id',
-      header: 'Beitragsmarge',
-      align: 'right',
-      cell: (_, therapy) => {
-        const contributionMargin = therapy.price_per_session - therapy.variable_cost_per_session
-        const contributionMarginPercent =
-          therapy.price_per_session > 0
-            ? ((contributionMargin / therapy.price_per_session) * 100).toFixed(1)
-            : 0
-        return (
-          <div className="flex flex-col items-end">
-            <span className="font-semibold text-green-600">{formatEuro(contributionMargin)}</span>
-            <span className="text-xs text-muted-foreground">{contributionMarginPercent}%</span>
-          </div>
-        )
-      },
-    },
-    {
       key: 'id',
       header: 'Aktionen',
       align: 'right',

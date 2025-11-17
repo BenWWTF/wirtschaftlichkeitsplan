@@ -4,8 +4,6 @@ import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { SessionImportRow, ImportResult } from '@/lib/types/import'
 
-const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
-
 /**
  * Process session import data
  * Maps sessions to therapy types and updates monthly_plans
@@ -14,6 +12,20 @@ export async function processSessionImport(
   sessions: SessionImportRow[]
 ): Promise<ImportResult> {
   const supabase = await createClient()
+
+  // Get the authenticated user
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    return {
+      success: false,
+      imported_count: 0,
+      skipped_count: sessions.length,
+      errors: [{ row: 0, message: 'Authentication required' }],
+      warnings: []
+    }
+  }
+
   const errors: any[] = []
   const warnings: any[] = []
   let imported_count = 0
@@ -24,7 +36,7 @@ export async function processSessionImport(
     const { data: therapyTypes, error: therapyError } = await supabase
       .from('therapy_types')
       .select('id, name, price_per_session')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
 
     if (therapyError) {
       return {
@@ -88,7 +100,7 @@ export async function processSessionImport(
         const { data: existingPlan, error: planError } = await supabase
           .from('monthly_plans')
           .select('id, planned_sessions')
-          .eq('user_id', DEMO_USER_ID)
+          .eq('user_id', user.id)
           .eq('therapy_type_id', therapyId)
           .eq('month', month)
           .maybeSingle()
@@ -124,7 +136,7 @@ export async function processSessionImport(
           const { error: insertError } = await supabase
             .from('monthly_plans')
             .insert({
-              user_id: DEMO_USER_ID,
+              user_id: user.id,
               therapy_type_id: therapyId,
               month,
               planned_sessions: 0, // No planning data, just actuals
@@ -189,10 +201,17 @@ export async function validateTherapyTypes(
 ): Promise<{ missing: string[]; existing: string[] }> {
   const supabase = await createClient()
 
+  // Get the authenticated user
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    return { missing: therapyNames, existing: [] }
+  }
+
   const { data: therapyTypes } = await supabase
     .from('therapy_types')
     .select('name')
-    .eq('user_id', DEMO_USER_ID)
+    .eq('user_id', user.id)
 
   const existingNames = new Set(
     therapyTypes?.map(t => t.name.toLowerCase()) || []
