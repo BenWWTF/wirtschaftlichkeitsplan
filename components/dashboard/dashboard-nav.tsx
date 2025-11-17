@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation'
 import { Menu, X, Calendar, FileText, Pill, Home, Receipt, Upload, Settings, Calculator } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { useIsMobile } from '@/components/ui/hooks/useMediaQuery'
+import { MobileBottomNav } from './mobile-bottom-nav'
 
 interface NavItem {
   href: string
@@ -80,6 +82,7 @@ interface DashboardNavProps {
 export function DashboardNav({ practiceName = '' }: DashboardNavProps) {
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const isMobile = useIsMobile()
 
   // Handle keyboard shortcuts: Alt+H, Alt+T, Alt+P, Alt+A, Alt+R, Escape to close mobile menu
   useEffect(() => {
@@ -119,6 +122,9 @@ export function DashboardNav({ practiceName = '' }: DashboardNavProps) {
 
   return (
     <>
+      {/* Mobile Bottom Navigation - Only rendered on mobile */}
+      {isMobile && <MobileBottomNav />}
+
       {/* Desktop Sidebar */}
       <nav className="hidden md:fixed md:left-0 md:top-0 md:z-40 md:flex md:h-screen md:w-64 md:flex-col md:border-r md:border-neutral-200 md:bg-white md:dark:border-accent-700/30 md:dark:bg-neutral-900/80 md:backdrop-blur-md">
         {/* Logo/Header */}

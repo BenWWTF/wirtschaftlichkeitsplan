@@ -87,7 +87,10 @@ const config = {
         '13': '3.25rem',
         '14': '3.5rem',
         '18': '4.5rem',
-        '22': '5.5rem'
+        '22': '5.5rem',
+        // Mobile bottom nav safe area spacing
+        'safe-bottom': 'calc(64px + env(safe-area-inset-bottom))',
+        'touch-min': '44px',
       },
       borderRadius: {
         none: '0',
@@ -186,6 +189,12 @@ const config = {
         'smooth': 'cubic-bezier(0.11, 0.82, 0.39, 0.92)',
         'ease-in': 'cubic-bezier(0.55, 0.06, 0.68, 0.19)',
         'ease-out': 'cubic-bezier(0.22, 0.61, 0.36, 1)'
+      },
+      fontSize: {
+        // Mobile typography scale
+        'mobile-h1': ['24px', { lineHeight: '1.3' }],
+        'mobile-h2': ['20px', { lineHeight: '1.3' }],
+        'mobile-h3': ['18px', { lineHeight: '1.3' }],
       }
     }
   },
