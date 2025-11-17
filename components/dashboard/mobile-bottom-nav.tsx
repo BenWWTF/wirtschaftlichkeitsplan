@@ -1,10 +1,12 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, Pill, Calendar, Receipt, Menu } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { MoreMenuDrawer } from '@/components/dashboard/more-menu-drawer'
 
 interface NavTab {
   href: string
@@ -54,9 +56,11 @@ interface MobileBottomNavProps {
  * - Touch feedback animations
  * - Safe area handling for notched devices
  * - Mobile-only rendering
+ * - More menu drawer for secondary navigation
  */
 export function MobileBottomNav({ onMoreClick }: MobileBottomNavProps) {
   const pathname = usePathname()
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false)
 
   const isActive = (href: string): boolean => {
     if (href === '/dashboard') {
@@ -101,7 +105,7 @@ export function MobileBottomNav({ onMoreClick }: MobileBottomNavProps) {
 
         {/* More Button */}
         <Button
-          onClick={onMoreClick}
+          onClick={() => setMoreMenuOpen(true)}
           variant="ghost"
           size="sm"
           className={cn(
@@ -118,6 +122,9 @@ export function MobileBottomNav({ onMoreClick }: MobileBottomNavProps) {
           <span className="truncate">Mehr</span>
         </Button>
       </div>
+
+      {/* More Menu Drawer */}
+      <MoreMenuDrawer open={moreMenuOpen} onOpenChange={setMoreMenuOpen} />
     </nav>
   )
 }
