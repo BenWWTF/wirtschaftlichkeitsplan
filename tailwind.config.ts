@@ -91,6 +91,14 @@ const config = {
         // Mobile bottom nav safe area spacing
         'safe-bottom': 'calc(64px + env(safe-area-inset-bottom))',
         'touch-min': '44px',
+        // Mobile-specific spacing
+        'mobile-xs': '0.5rem',  // 8px - small gaps
+        'mobile-sm': '0.75rem', // 12px - standard mobile gap
+        'mobile-md': '1rem',    // 16px - default spacing
+        'mobile-lg': '1.5rem',  // 24px - large spacing
+        'mobile-xl': '2rem',    // 32px - extra large
+        'card-gap': '0.75rem',  // Gap between cards
+        'list-item-height': '3.5rem', // Min height for list items
       },
       borderRadius: {
         none: '0',
@@ -191,11 +199,18 @@ const config = {
         'ease-out': 'cubic-bezier(0.22, 0.61, 0.36, 1)'
       },
       fontSize: {
-        // Mobile typography scale
-        'mobile-h1': ['24px', { lineHeight: '1.3' }],
-        'mobile-h2': ['20px', { lineHeight: '1.3' }],
-        'mobile-h3': ['18px', { lineHeight: '1.3' }],
-      }
+        // Mobile typography scale - Headings
+        'mobile-h1': ['24px', { lineHeight: '1.3', fontWeight: '700' }],
+        'mobile-h2': ['20px', { lineHeight: '1.3', fontWeight: '700' }],
+        'mobile-h3': ['18px', { lineHeight: '1.3', fontWeight: '600' }],
+        'mobile-h4': ['16px', { lineHeight: '1.4', fontWeight: '600' }],
+        // Mobile typography scale - Body
+        'mobile-body-lg': ['16px', { lineHeight: '1.6' }],  // Default body text
+        'mobile-body': ['14px', { lineHeight: '1.6' }],     // Standard text
+        'mobile-body-sm': ['13px', { lineHeight: '1.5' }],  // Small text
+        'mobile-caption': ['12px', { lineHeight: '1.4' }],  // Extra small
+        // Desktop typography remains via default Tailwind
+      },
     }
   },
   plugins: []

@@ -80,6 +80,77 @@ body {
     padding-right: var(--safe-area-right);
   }
 
+  /* Mobile typography components */
+  .mobile-h1 {
+    @apply text-mobile-h1 font-bold;
+  }
+
+  .mobile-h2 {
+    @apply text-mobile-h2 font-bold;
+  }
+
+  .mobile-h3 {
+    @apply text-mobile-h3 font-semibold;
+  }
+
+  .mobile-h4 {
+    @apply text-mobile-h4 font-semibold;
+  }
+
+  .mobile-body {
+    @apply text-mobile-body;
+  }
+
+  .mobile-body-lg {
+    @apply text-mobile-body-lg;
+  }
+
+  .mobile-body-sm {
+    @apply text-mobile-body-sm;
+  }
+
+  .mobile-caption {
+    @apply text-mobile-caption;
+  }
+
+  /* Mobile spacing utilities for common patterns */
+  .mobile-container {
+    @apply px-mobile-sm py-mobile-md;
+  }
+
+  .mobile-section-gap {
+    @apply space-y-mobile-lg;
+  }
+
+  .mobile-form-gap {
+    @apply space-y-mobile-md;
+  }
+
+  .mobile-list {
+    @apply divide-y divide-neutral-100 dark:divide-accent-700/10;
+  }
+
+  .mobile-list-item {
+    @apply min-h-list-item py-mobile-md px-mobile-sm;
+  }
+
+  .mobile-card-spacing {
+    @apply gap-card-gap;
+  }
+
+  .mobile-padding-safe-bottom {
+    @apply pb-safe-bottom;
+  }
+
+  /* Mobile touch target utilities */
+  .touch-target-sm {
+    @apply min-h-touch-min min-w-touch-min;
+  }
+
+  .touch-target {
+    @apply min-h-12 min-w-12;
+  }
+
   /* Mobile layout adjustments */
   @media (max-width: 767px) {
     /* Ensure mobile viewport settings for optimal layout */
@@ -92,6 +163,50 @@ body {
     a,
     input {
       touch-action: manipulation;
+    }
+
+    /* Mobile-optimized form inputs */
+    input,
+    textarea,
+    select {
+      @apply text-base; /* Prevents zoom on iOS when focused */
+      @apply min-h-12; /* Touch target compliance */
+    }
+
+    /* Optimize button sizes for mobile */
+    button {
+      @apply min-h-10; /* At least 10px for small buttons */
+    }
+
+    /* Ensure links are tappable */
+    a {
+      @apply min-h-touch-min min-w-touch-min;
+    }
+
+    /* Mobile-optimized spacing for interactive elements */
+    .mobile-btn {
+      @apply min-h-12 px-mobile-md py-mobile-sm rounded-lg;
+    }
+
+    .mobile-input {
+      @apply min-h-12 px-mobile-sm text-base;
+    }
+
+    /* Mobile-optimized list items */
+    .mobile-list-item {
+      @apply py-mobile-md px-mobile-sm border-b border-neutral-100 dark:border-accent-700/10;
+    }
+
+    /* Mobile section dividers */
+    .mobile-divider {
+      @apply h-mobile-sm bg-neutral-100 dark:bg-neutral-800/50;
+    }
+  }
+
+  /* Desktop adaptations (hide mobile-only classes) */
+  @media (min-width: 768px) {
+    .md:hidden {
+      @apply hidden;
     }
   }
 }
