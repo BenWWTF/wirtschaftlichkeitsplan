@@ -6,3 +6,4 @@
 export * from './types'
 export * from './core'
 export * from './composite'
+export * from './payment-fees'
