@@ -41,6 +41,7 @@ export type PracticeSettings = {
   monthly_fixed_costs: number
   average_variable_cost_per_session: number
   expected_growth_rate: number // as percentage (e.g., 5 for 5%)
+  payment_processing_fee_percentage: number // SumUp payment fee percentage (default 1.39)
   created_at: string
   updated_at: string
 }

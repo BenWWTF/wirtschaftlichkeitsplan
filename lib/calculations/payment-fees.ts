@@ -65,9 +65,9 @@ export function calculateNetRevenuePerSession(pricePerSession: number): number {
  * @returns The number of sessions needed (rounded up to whole sessions)
  *
  * @example
- * calculateBreakEvenSessions(1000, 85) // returns 12
+ * calculateBreakEvenSessionsWithFees(1000, 85) // returns 12
  */
-export function calculateBreakEvenSessions(
+export function calculateBreakEvenSessionsWithFees(
   fixedCosts: number,
   pricePerSession: number
 ): number {

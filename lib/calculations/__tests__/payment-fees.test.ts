@@ -9,7 +9,7 @@ import {
   calculatePaymentFee,
   calculateNetRevenue,
   calculateNetRevenuePerSession,
-  calculateBreakEvenSessions,
+  calculateBreakEvenSessionsWithFees,
   calculateMonthlyProfit,
   projectMonthGrossRevenue,
   calculateCumulativeProfit,
@@ -112,14 +112,14 @@ describe('Payment Fee Calculator', () => {
   });
 
   // ========================================================================
-  // calculateBreakEvenSessions - sessions needed to break even
+  // calculateBreakEvenSessionsWithFees - sessions needed to break even
   // ========================================================================
-  describe('calculateBreakEvenSessions', () => {
+  describe('calculateBreakEvenSessionsWithFees', () => {
     it('should calculate sessions needed to cover fixed costs', () => {
       // Fixed costs: 1000 EUR
       // Net per session: 85 - 1.1815 = 83.8185 EUR
       // Sessions needed: 1000 / 83.8185 = 11.93 -> 12 sessions
-      const sessions = calculateBreakEvenSessions(1000, 85);
+      const sessions = calculateBreakEvenSessionsWithFees(1000, 85);
       expect(sessions).toBe(12);
     });
 
@@ -127,26 +127,26 @@ describe('Payment Fee Calculator', () => {
       // Fixed costs: 3000 EUR
       // Net per session at 100 EUR: 98.61 EUR
       // Sessions needed: 3000 / 98.61 = 30.42 -> 31 sessions
-      const sessions = calculateBreakEvenSessions(3000, 100);
+      const sessions = calculateBreakEvenSessionsWithFees(3000, 100);
       expect(sessions).toBe(31);
     });
 
     it('should return 0 for zero fixed costs', () => {
-      expect(calculateBreakEvenSessions(0, 85)).toBe(0);
+      expect(calculateBreakEvenSessionsWithFees(0, 85)).toBe(0);
     });
 
     it('should handle edge case of very low price per session', () => {
       // Very low price: 10 EUR
       // Net per session: 10 - 0.139 = 9.861 EUR
       // Sessions needed: 100 / 9.861 = 10.14 -> 11 sessions
-      const sessions = calculateBreakEvenSessions(100, 10);
+      const sessions = calculateBreakEvenSessionsWithFees(100, 10);
       expect(sessions).toBe(11);
     });
 
     it('should always round up to whole session', () => {
       // Exact calculation may yield fractional sessions
       // Should always round up since you cannot have partial sessions
-      const sessions = calculateBreakEvenSessions(100, 85);
+      const sessions = calculateBreakEvenSessionsWithFees(100, 85);
       expect(Number.isInteger(sessions)).toBe(true);
     });
   });
@@ -345,7 +345,7 @@ describe('Payment Fee Calculator', () => {
       expect(sessionsWithoutFees).toBe(100);
 
       // With fees: 8500 / 83.8185 = 101.41 -> 102 sessions
-      const sessionsWithFees = calculateBreakEvenSessions(fixedCosts, pricePerSession);
+      const sessionsWithFees = calculateBreakEvenSessionsWithFees(fixedCosts, pricePerSession);
 
       // Fees should require more sessions
       expect(sessionsWithFees).toBeGreaterThan(sessionsWithoutFees);
