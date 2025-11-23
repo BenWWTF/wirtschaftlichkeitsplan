@@ -8,6 +8,7 @@ import { Plus, AlertCircle } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { getMonthlyPlansWithTherapies } from '@/lib/actions/monthly-plans'
 import { formatEuro } from '@/lib/utils'
+import { calculatePaymentFee, calculateNetRevenue, SUMUP_FEE_RATE } from '@/lib/calculations/payment-fees'
 
 interface PlannerGridProps {
   therapies: TherapyType[]
@@ -58,24 +59,36 @@ export function PlannerGrid({
     setPlans(data || [])
   }
 
-  // Calculate total planned revenue
+  // Calculate total planned revenue with fee breakdown
   const totals = useMemo(() => {
-    return plans.reduce(
+    const result = plans.reduce(
       (acc, plan) => {
         // Safely handle cases where therapy_types might be null or undefined
         if (!plan.therapy_types) {
           return acc
         }
 
-        const plannedRevenue = plan.planned_sessions * plan.therapy_types.price_per_session
+        const grossRevenue = plan.planned_sessions * plan.therapy_types.price_per_session
 
         return {
           sessions: acc.sessions + plan.planned_sessions,
-          revenue: acc.revenue + plannedRevenue
+          grossRevenue: acc.grossRevenue + grossRevenue
         }
       },
-      { sessions: 0, revenue: 0 }
+      { sessions: 0, grossRevenue: 0 }
     )
+
+    // Calculate fees and net revenue from totals
+    const paymentFees = calculatePaymentFee(result.grossRevenue)
+    const netRevenue = calculateNetRevenue(result.grossRevenue)
+    const feePercentage = (SUMUP_FEE_RATE * 100).toFixed(2)
+
+    return {
+      ...result,
+      paymentFees,
+      netRevenue,
+      feePercentage
+    }
   }, [plans])
 
   if (therapies.length === 0) {
@@ -110,12 +123,12 @@ export function PlannerGrid({
         ))}
       </div>
 
-      {/* Summary */}
+      {/* Summary with Fee Breakdown */}
       <div className="bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 p-6">
         <h3 className="font-semibold text-neutral-900 dark:text-white mb-4">
-          Zusammenfassung für {month}
+          Zusammenfassung fuer {month}
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
             <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
               Therapiearten
@@ -129,15 +142,31 @@ export function PlannerGrid({
               Geplante Sitzungen
             </p>
             <p className="text-2xl font-bold text-neutral-900 dark:text-white">
-              {totals.sessions > 0 ? totals.sessions : '—'}
+              {totals.sessions > 0 ? totals.sessions : '---'}
             </p>
           </div>
           <div>
             <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
-              Geschätzter Umsatz
+              Bruttoumsatz
+            </p>
+            <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+              {totals.grossRevenue > 0 ? formatEuro(totals.grossRevenue) : '---'}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
+              Zahlungsgebuehren ({totals.feePercentage}%)
+            </p>
+            <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+              {totals.paymentFees > 0 ? `-${formatEuro(totals.paymentFees)}` : '---'}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
+              Nettoumsatz
             </p>
             <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-              {totals.revenue > 0 ? formatEuro(totals.revenue) : '—'}
+              {totals.netRevenue > 0 ? formatEuro(totals.netRevenue) : '---'}
             </p>
           </div>
         </div>
