@@ -71,6 +71,13 @@ export type BreakEvenAnalysis = {
   therapy_type_id: string
   therapy_type_name: string
   price_per_session: number
+  /** Payment processing fee per session (SumUp 1.39%) */
+  payment_fee_per_session: number
+  /** Net revenue per session after payment fees */
+  net_revenue_per_session: number
+  /** Variable cost per session (materials, consumables, etc.) */
+  variable_cost_per_session: number
+  /** Contribution margin = net_revenue - variable_cost */
   contribution_margin: number
   contribution_margin_percent: number
 }

@@ -218,8 +218,11 @@ export function BreakEvenCalculator({
         <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
           Therapiearten-Analyse
         </h3>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
+          Break-Even-Berechnung basiert auf Netto-Einnahmen nach Abzug der SumUp-Zahlungsgebuehr (1,39%)
+        </p>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           {therapies.map((therapy) => {
             const sessionsNeeded =
               therapy.contribution_margin > 0
@@ -229,31 +232,54 @@ export function BreakEvenCalculator({
             return (
               <div
                 key={therapy.therapy_type_id}
-                className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-700/30 rounded-lg"
+                className="p-4 bg-neutral-50 dark:bg-neutral-700/30 rounded-lg"
               >
-                <div>
+                <div className="flex items-start justify-between mb-3">
                   <p className="font-medium text-neutral-900 dark:text-white">
                     {therapy.therapy_type_name}
                   </p>
-                  <div className="flex gap-4 text-sm text-neutral-600 dark:text-neutral-400 mt-1">
-                    <span>
-                      Preis: {formatEuro(therapy.price_per_session)}
-                    </span>
-                    <span>
-                      Deckungsbeitrag: {formatEuro(
-                        therapy.contribution_margin
-                      )}{' '}
-                      ({therapy.contribution_margin_percent.toFixed(1)}%)
-                    </span>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold text-neutral-900 dark:text-white">
+                      {sessionsNeeded}
+                    </p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                      Sitzungen fuer Break-Even
+                    </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-lg font-semibold text-neutral-900 dark:text-white">
-                    {sessionsNeeded}
-                  </p>
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                    Sitzungen
-                  </p>
+
+                {/* Price breakdown with payment fees */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                  <div className="bg-white dark:bg-neutral-800 rounded p-2">
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">Brutto-Preis</p>
+                    <p className="font-medium text-neutral-900 dark:text-white">
+                      {formatEuro(therapy.price_per_session)}
+                    </p>
+                  </div>
+                  <div className="bg-white dark:bg-neutral-800 rounded p-2">
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">Zahlungsgebuehr (1,39%)</p>
+                    <p className="font-medium text-red-600 dark:text-red-400">
+                      -{formatEuro(therapy.payment_fee_per_session)}
+                    </p>
+                  </div>
+                  <div className="bg-white dark:bg-neutral-800 rounded p-2">
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">Variable Kosten</p>
+                    <p className="font-medium text-amber-600 dark:text-amber-400">
+                      -{formatEuro(therapy.variable_cost_per_session)}
+                    </p>
+                  </div>
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded p-2">
+                    <p className="text-xs text-blue-600 dark:text-blue-400">Deckungsbeitrag</p>
+                    <p className="font-semibold text-blue-700 dark:text-blue-300">
+                      {formatEuro(therapy.contribution_margin)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Net revenue highlight */}
+                <div className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+                  Netto-Einnahmen pro Sitzung: {formatEuro(therapy.net_revenue_per_session)} |
+                  DB-Quote: {therapy.contribution_margin_percent.toFixed(1)}%
                 </div>
               </div>
             )
