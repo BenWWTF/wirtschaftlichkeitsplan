@@ -7,6 +7,19 @@ export type TherapyType = {
   updated_at: string
 }
 
+/**
+ * Therapy type enriched with payment fee metrics
+ * Used to display net revenue per session after SumUp payment fees
+ */
+export type TherapyWithMetrics = TherapyType & {
+  /** Net revenue per session after payment processing fees (in EUR) */
+  netRevenuePerSession: number
+  /** Payment processing fee per session (in EUR) */
+  paymentFeePerSession: number
+  /** Fee percentage used for calculation (e.g., 1.39 for 1.39%) */
+  feePercentage: number
+}
+
 export type MonthlyPlan = {
   id: string
   user_id: string
