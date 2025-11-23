@@ -62,8 +62,11 @@ export interface UnifiedMetricsResponse {
   netIncome: number
 
   // Tier 2: Primary KPI Metrics
-  totalRevenue: number
-  totalExpenses: number
+  totalRevenue: number // Gross revenue before payment fees
+  totalPaymentFees: number // Total payment processing fees (SumUp)
+  totalNetRevenue: number // Net revenue after payment fees
+  paymentFeePercentage: number // Fee percentage used (e.g., 1.39)
+  totalExpenses: number // Fixed and variable costs
   totalSessions: number
   totalPlannedSessions: number
   averageSessionPrice: number
@@ -200,6 +203,9 @@ export async function getUnifiedMetrics(
       breakEvenStatus: calculatedMetrics.breakEvenStatus,
       netIncome: calculatedMetrics.netIncome,
       totalRevenue: calculatedMetrics.totalRevenue,
+      totalPaymentFees: calculatedMetrics.totalPaymentFees,
+      totalNetRevenue: calculatedMetrics.totalNetRevenue,
+      paymentFeePercentage: calculatedMetrics.paymentFeePercentage,
       totalExpenses: calculatedMetrics.totalExpenses,
       totalSessions: calculatedMetrics.totalSessions,
       totalPlannedSessions: calculatedMetrics.totalPlannedSessions,
@@ -343,14 +349,16 @@ async function fetchScopeData(
   period: { start: Date; end: Date },
   dataViewMode?: 'prognose' | 'resultate'
 ): Promise<MetricsData> {
-  // Fetch user settings (for practice type and tax calculations)
+  // Fetch user settings (for practice type, tax calculations, and payment fee percentage)
   const { data: userSettings } = await supabase
     .from('practice_settings')
-    .select('practice_type')
+    .select('practice_type, payment_processing_fee_percentage')
     .eq('user_id', userId)
     .single()
 
   const practiceType = (userSettings?.practice_type as 'kassenarzt' | 'wahlarzt' | 'mixed') || 'wahlarzt'
+  // Default to 1.39% (SumUp standard fee) if not set
+  const paymentFeePercentage = userSettings?.payment_processing_fee_percentage ?? 1.39
 
   // Fetch therapy types
   const { data: therapies } = await supabase
@@ -495,25 +503,33 @@ async function fetchScopeData(
     0
   )
 
-  const grossIncome = totalRevenue - totalExpenses
+  // Calculate payment fees
+  const totalPaymentFees = totalRevenue * (paymentFeePercentage / 100)
+  const totalNetRevenue = totalRevenue - totalPaymentFees
+
+  const grossIncome = totalNetRevenue - totalExpenses
 
   // Calculate number of months in the period for prorating annual tax contributions
   const monthsInPeriod = Math.max(1, Math.round((period.end.getTime() - period.start.getTime()) / (1000 * 60 * 60 * 24 * 30.44)))
 
   // Calculate net income after taxes (Austrian practice)
+  // Note: We use net revenue (after payment fees) as the gross revenue for tax calculation
   const taxResult = calculateAustrianTax({
-    grossRevenue: totalRevenue,
+    grossRevenue: totalNetRevenue,
     totalExpenses: totalExpenses,
     practiceType: practiceType,
-    applyingPauschalierung: totalRevenue < 220000, // Eligible if under €220k
+    applyingPauschalierung: totalNetRevenue < 220000, // Eligible if under €220k
     monthsInPeriod: monthsInPeriod
   })
 
   const netIncome = taxResult.netIncome
-  const marginPercent = grossIncome > 0 ? (grossIncome / totalRevenue) * 100 : 0
+  const marginPercent = totalRevenue > 0 ? (grossIncome / totalRevenue) * 100 : 0
 
   return {
     totalRevenue,
+    totalPaymentFees,
+    totalNetRevenue,
+    paymentFeePercentage,
     totalExpenses,
     totalSessions,
     totalPlannedSessions: totalPlanned,
@@ -602,6 +618,9 @@ interface CalculatedMetrics {
   breakEvenStatus: 'surplus' | 'breakeven' | 'deficit'
   netIncome: number
   totalRevenue: number
+  totalPaymentFees: number
+  totalNetRevenue: number
+  paymentFeePercentage: number
   totalExpenses: number
   totalSessions: number
   totalPlannedSessions: number
@@ -624,7 +643,8 @@ function calculateMetrics(data: MetricsData, dataViewMode: 'prognose' | 'resulta
     ).length
   })
 
-  const marginResult = calculateMargin(data.totalRevenue, data.totalExpenses)
+  // Use net revenue (after payment fees) for margin calculation
+  const marginResult = calculateMargin(data.totalNetRevenue, data.totalExpenses)
 
   const breakEvenStatus: 'surplus' | 'breakeven' | 'deficit' = marginResult.breakEven
     ? data.netIncome > 0
@@ -637,6 +657,9 @@ function calculateMetrics(data: MetricsData, dataViewMode: 'prognose' | 'resulta
     breakEvenStatus,
     netIncome: data.netIncome,
     totalRevenue: data.totalRevenue,
+    totalPaymentFees: data.totalPaymentFees,
+    totalNetRevenue: data.totalNetRevenue,
+    paymentFeePercentage: data.paymentFeePercentage,
     totalExpenses: data.totalExpenses,
     totalSessions: data.totalSessions,
     totalPlannedSessions: data.totalPlannedSessions,
