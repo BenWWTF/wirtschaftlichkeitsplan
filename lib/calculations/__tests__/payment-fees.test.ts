@@ -379,4 +379,291 @@ describe('Payment Fee Calculator', () => {
       expect(fee + net).toBeCloseTo(gross, 10);
     });
   });
+
+  // ========================================================================
+  // Edge Cases - Break-Even with Multiple Therapy Types
+  // ========================================================================
+  describe('Edge Cases - Break-Even with Multiple Therapy Types', () => {
+    /**
+     * Test aggregated break-even calculation for practices with multiple
+     * therapy types at different price points.
+     */
+    it('should calculate aggregated break-even for multiple therapy types', () => {
+      // Practice offers multiple therapy types:
+      // - Individual therapy: 85 EUR, 20 sessions/month
+      // - Couples therapy: 120 EUR, 10 sessions/month
+      // - Group therapy: 45 EUR, 15 sessions/month
+      const therapyTypes = [
+        { price: 85, sessions: 20 },
+        { price: 120, sessions: 10 },
+        { price: 45, sessions: 15 },
+      ];
+
+      // Calculate total gross revenue
+      const totalGross = therapyTypes.reduce(
+        (sum, t) => sum + t.price * t.sessions,
+        0
+      );
+      // 85*20 + 120*10 + 45*15 = 1700 + 1200 + 675 = 3575 EUR
+
+      expect(totalGross).toBe(3575);
+
+      // Calculate total net after fees
+      const totalNet = calculateNetRevenue(totalGross);
+      // 3575 - (3575 * 0.0139) = 3575 - 49.6925 = 3525.31
+      expect(totalNet).toBeCloseTo(3525.31, 2);
+
+      // Fixed costs: 2500 EUR
+      const fixedCosts = 2500;
+      const monthlyProfit = totalNet - fixedCosts;
+      expect(monthlyProfit).toBeCloseTo(1025.31, 2);
+
+      // For initial investment recovery
+      const initialInvestment = 5000;
+      const monthsToBreakEven = Math.ceil(initialInvestment / monthlyProfit);
+      expect(monthsToBreakEven).toBe(5); // ~4.88 months, rounds to 5
+    });
+
+    /**
+     * Test zero margin scenario where the practice never breaks even.
+     * This happens when fixed costs equal or exceed net revenue.
+     */
+    it('should handle zero margin per session (never breaks even)', () => {
+      // Price per session: 20 EUR
+      // Net per session: 20 - 0.278 = 19.722 EUR
+      // Fixed costs per session equivalent: 20 EUR
+      // This means each session has a loss after fees
+      const pricePerSession = 20;
+      const netPerSession = calculateNetRevenuePerSession(pricePerSession);
+      expect(netPerSession).toBeCloseTo(19.72, 2);
+
+      // If fixed costs equal gross revenue, there's already a loss
+      const fixedCosts = 2000;
+      const sessionsNeeded = 100; // 100 * 20 = 2000 EUR gross
+      const grossRevenue = pricePerSession * sessionsNeeded;
+      const netRevenue = calculateNetRevenue(grossRevenue);
+      const profit = netRevenue - fixedCosts;
+
+      // Net: 2000 - 27.80 = 1972.20 EUR
+      // Profit: 1972.20 - 2000 = -27.80 EUR (loss)
+      expect(profit).toBeCloseTo(-27.80, 2);
+      expect(profit).toBeLessThan(0);
+    });
+
+    /**
+     * Test finding break-even month with growth projection.
+     * Demonstrates that growth can eventually overcome initial losses.
+     */
+    it('should find break-even month in projection with growth', () => {
+      // Starting scenario: barely profitable
+      const startingGross = 3000; // 3000 EUR/month
+      const fixedCosts = 2900; // High fixed costs
+      const growthRate = 0.08; // 8% monthly growth
+      const initialInvestment = 2000;
+
+      // Month 1: Net = 3000 - 41.70 = 2958.30, Profit = 58.30
+      const month1Profit = calculateMonthlyProfit(startingGross, fixedCosts);
+      expect(month1Profit).toBeCloseTo(58.30, 2);
+
+      // Find when cumulative profit covers initial investment
+      const breakEvenMonth = findBreakEvenMonth(
+        initialInvestment,
+        startingGross,
+        growthRate,
+        fixedCosts
+      );
+
+      // With 8% growth and small monthly profit, should break even
+      expect(breakEvenMonth).not.toBeNull();
+      expect(breakEvenMonth).toBeGreaterThanOrEqual(5);
+      expect(breakEvenMonth).toBeLessThanOrEqual(20);
+    });
+
+    /**
+     * Test growth projection aggregated across multiple therapy types.
+     * Each therapy type may grow at different rates.
+     */
+    it('should project growth with multiple therapy types', () => {
+      // Different therapy types with different growth rates
+      const therapyTypes = [
+        { price: 85, startingSessions: 15, growthRate: 0.05 },
+        { price: 120, startingSessions: 8, growthRate: 0.10 },
+        { price: 45, startingSessions: 20, growthRate: 0.02 },
+      ];
+
+      // Calculate 6-month projection
+      const months = 6;
+      let totalNet = 0;
+
+      for (let month = 1; month <= months; month++) {
+        let monthGross = 0;
+        for (const therapy of therapyTypes) {
+          // Apply growth to sessions (compound growth)
+          const sessions = therapy.startingSessions * Math.pow(1 + therapy.growthRate, month - 1);
+          monthGross += therapy.price * sessions;
+        }
+        totalNet += calculateNetRevenue(monthGross);
+      }
+
+      // Month 1 gross: 85*15 + 120*8 + 45*20 = 1275 + 960 + 900 = 3135
+      // Should show significant growth over 6 months
+      expect(totalNet).toBeGreaterThan(18000); // Rough estimate
+      expect(totalNet).toBeLessThan(25000);
+    });
+
+    /**
+     * Test break-even with very high fixed costs.
+     * Ensures the function handles extreme values correctly.
+     */
+    it('should handle break-even with very high fixed costs', () => {
+      const veryHighFixedCosts = 50000; // 50,000 EUR fixed costs
+      const pricePerSession = 100;
+
+      // Net per session: 100 - 1.39 = 98.61 EUR
+      const netPerSession = calculateNetRevenuePerSession(pricePerSession);
+      expect(netPerSession).toBeCloseTo(98.61, 2);
+
+      // Sessions needed: 50000 / 98.61 = 507.04 -> 508 sessions
+      const sessionsNeeded = calculateBreakEvenSessionsWithFees(
+        veryHighFixedCosts,
+        pricePerSession
+      );
+      expect(sessionsNeeded).toBe(508);
+
+      // Verify: 508 * 98.61 = 50,093.88 EUR (covers 50,000)
+      const totalNet = netPerSession * sessionsNeeded;
+      expect(totalNet).toBeGreaterThanOrEqual(veryHighFixedCosts);
+    });
+
+    /**
+     * Test break-even with very low session price.
+     * The fee percentage has more impact on low-priced sessions.
+     */
+    it('should handle break-even with very low session price', () => {
+      const fixedCosts = 500;
+      const veryLowPrice = 15; // Very low session price
+
+      // Net per session: 15 - 0.2085 = 14.79 EUR
+      const netPerSession = calculateNetRevenuePerSession(veryLowPrice);
+      expect(netPerSession).toBeCloseTo(14.79, 2);
+
+      // Sessions needed: 500 / 14.79 = 33.81 -> 34 sessions
+      const sessionsNeeded = calculateBreakEvenSessionsWithFees(
+        fixedCosts,
+        veryLowPrice
+      );
+      expect(sessionsNeeded).toBe(34);
+
+      // Compare with no-fee calculation: 500 / 15 = 33.33 -> 34 sessions
+      // Fee impact is minimal at this scale but still present
+      const sessionsWithoutFees = Math.ceil(fixedCosts / veryLowPrice);
+      expect(sessionsNeeded).toBeGreaterThanOrEqual(sessionsWithoutFees);
+    });
+
+    /**
+     * Test negative margin scenario (loss per session).
+     * This can happen when variable costs exceed session price.
+     */
+    it('should handle negative margin (loss per session)', () => {
+      // Scenario: Each session costs more in variable costs than it earns
+      // Price: 50 EUR, Variable cost per session: 60 EUR
+      const pricePerSession = 50;
+      const variableCostPerSession = 60;
+
+      // Net revenue per session after payment fees
+      const netPerSession = calculateNetRevenuePerSession(pricePerSession);
+      // 50 - 0.695 = 49.305 EUR
+
+      // Margin per session (net - variable costs)
+      const marginPerSession = netPerSession - variableCostPerSession;
+      // 49.305 - 60 = -10.695 EUR (loss per session!)
+      expect(marginPerSession).toBeLessThan(0);
+      expect(marginPerSession).toBeCloseTo(-10.695, 2);
+
+      // With negative margin, more sessions = more losses
+      const sessions = 10;
+      const grossRevenue = pricePerSession * sessions;
+      const netRevenue = calculateNetRevenue(grossRevenue);
+      const totalVariableCosts = variableCostPerSession * sessions;
+      const profit = netRevenue - totalVariableCosts;
+
+      // Net: 500 - 6.95 = 493.05 EUR
+      // Variable costs: 600 EUR
+      // Loss: 493.05 - 600 = -106.95 EUR
+      expect(profit).toBeCloseTo(-106.95, 2);
+    });
+
+    /**
+     * Test that break-even returns Infinity for zero price.
+     */
+    it('should return Infinity for zero price per session', () => {
+      const sessionsNeeded = calculateBreakEvenSessionsWithFees(1000, 0);
+      expect(sessionsNeeded).toBe(Infinity);
+    });
+
+    /**
+     * Test cumulative profit with consistently negative monthly profit.
+     * Ensures the projection correctly accumulates losses.
+     */
+    it('should calculate cumulative loss when consistently unprofitable', () => {
+      // Scenario: Fixed costs always exceed net revenue
+      const startingGross = 1000; // Low revenue
+      const fixedCosts = 2000; // High fixed costs
+      const growthRate = 0.03; // 3% growth (not enough to catch up)
+      const months = 6;
+
+      const cumulativeProfit = calculateCumulativeProfit(
+        startingGross,
+        growthRate,
+        fixedCosts,
+        months
+      );
+
+      // Each month has significant loss
+      // Month 1: Net = 986.10, Profit = -1013.90
+      // Should accumulate losses over 6 months
+      expect(cumulativeProfit).toBeLessThan(0);
+      expect(cumulativeProfit).toBeLessThan(-5000); // Significant accumulated loss
+    });
+
+    /**
+     * Test break-even never reached with insufficient revenue.
+     */
+    it('should return null when break-even is never reached', () => {
+      // Very high initial investment, perpetually unprofitable
+      const breakEvenMonth = findBreakEvenMonth(
+        100000, // 100k investment
+        1000, // 1000 EUR/month gross
+        0.01, // 1% growth
+        2000, // 2000 EUR fixed costs (always losing money)
+        36 // Search up to 36 months
+      );
+
+      expect(breakEvenMonth).toBeNull();
+    });
+
+    /**
+     * Test weighted average break-even for blended session prices.
+     */
+    it('should calculate weighted average break-even for blended prices', () => {
+      // Practice mix:
+      // - 60% of sessions at 80 EUR
+      // - 30% of sessions at 100 EUR
+      // - 10% of sessions at 150 EUR
+      const weightedAveragePrice = 0.6 * 80 + 0.3 * 100 + 0.1 * 150;
+      // = 48 + 30 + 15 = 93 EUR average
+
+      expect(weightedAveragePrice).toBe(93);
+
+      const fixedCosts = 3000;
+      const sessionsNeeded = calculateBreakEvenSessionsWithFees(
+        fixedCosts,
+        weightedAveragePrice
+      );
+
+      // Net per session: 93 - 1.2927 = 91.71 EUR
+      // Sessions: 3000 / 91.71 = 32.71 -> 33 sessions
+      expect(sessionsNeeded).toBe(33);
+    });
+  });
 });
