@@ -18,7 +18,9 @@ export async function upsertPracticeSettingsAction(input: PracticeSettingsInput)
   }
 
   try {
+    console.log('[upsertPracticeSettingsAction] Input received:', JSON.stringify(input))
     const validated = PracticeSettingsSchema.parse(input)
+    console.log('[upsertPracticeSettingsAction] Validation passed:', JSON.stringify(validated))
 
     // Check if settings exist
     const { data: existing } = await supabase
@@ -65,9 +67,11 @@ export async function upsertPracticeSettingsAction(input: PracticeSettingsInput)
     }
 
     if (result.error) {
-      console.error('Database error:', JSON.stringify(result.error, null, 2))
+      console.error('[upsertPracticeSettingsAction] Database error:', JSON.stringify(result.error, null, 2))
       return { error: `Fehler: ${result.error.message || 'Speichern fehlgeschlagen'}` }
     }
+
+    console.log('[upsertPracticeSettingsAction] Save successful:', JSON.stringify(result.data))
 
     // Revalidate cache
     revalidatePath('/dashboard/einstellungen')
