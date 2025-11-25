@@ -50,7 +50,14 @@ export function SettingsForm({ settings }: SettingsFormProps) {
   // Update form when settings load
   useEffect(() => {
     if (settings) {
-      form.reset(settings)
+      form.reset({
+        practice_name: settings.practice_name,
+        practice_type: settings.practice_type,
+        monthly_fixed_costs: settings.monthly_fixed_costs,
+        average_variable_cost_per_session: settings.average_variable_cost_per_session,
+        expected_growth_rate: settings.expected_growth_rate,
+        payment_processing_fee_percentage: settings.payment_processing_fee_percentage,
+      })
     }
   }, [settings?.id, form])
 
