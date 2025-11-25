@@ -2,15 +2,9 @@
 
 import { getPracticeSettings } from '@/lib/actions/settings'
 import { SettingsForm } from '@/components/dashboard/settings-form'
-import { PaymentFeeSection } from '@/components/practice-settings/payment-fee-section'
 import { Settings } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { PracticeSettings } from '@/lib/types'
-
-export const metadata = {
-  title: 'Einstellungen - Wirtschaftlichkeitsplan',
-  description: 'Praxis-Einstellungen verwalten'
-}
 
 export default function EinstellungenPage() {
   const [settings, setSettings] = useState<PracticeSettings | null>(null)
@@ -44,14 +38,6 @@ export default function EinstellungenPage() {
 
           {/* Form */}
           <SettingsForm settings={settings} />
-
-          {/* Payment Fee Section */}
-          {!isLoading && settings && (
-            <PaymentFeeSection
-              settings={settings}
-              onUpdate={setSettings}
-            />
-          )}
         </div>
       </div>
     </main>
