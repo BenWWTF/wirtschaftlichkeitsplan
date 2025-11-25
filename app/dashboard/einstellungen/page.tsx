@@ -1,14 +1,29 @@
+'use client'
+
 import { getPracticeSettings } from '@/lib/actions/settings'
 import { SettingsForm } from '@/components/dashboard/settings-form'
+import { PaymentFeeSection } from '@/components/practice-settings/payment-fee-section'
 import { Settings } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import type { PracticeSettings } from '@/lib/types'
 
 export const metadata = {
   title: 'Einstellungen - Wirtschaftlichkeitsplan',
   description: 'Praxis-Einstellungen verwalten'
 }
 
-export default async function EinstellungenPage() {
-  const settings = await getPracticeSettings()
+export default function EinstellungenPage() {
+  const [settings, setSettings] = useState<PracticeSettings | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      const data = await getPracticeSettings()
+      setSettings(data)
+      setIsLoading(false)
+    }
+    loadSettings()
+  }, [])
 
   return (
     <main className="min-h-screen bg-white dark:bg-neutral-950">
@@ -29,6 +44,14 @@ export default async function EinstellungenPage() {
 
           {/* Form */}
           <SettingsForm settings={settings} />
+
+          {/* Payment Fee Section */}
+          {!isLoading && settings && (
+            <PaymentFeeSection
+              settings={settings}
+              onUpdate={setSettings}
+            />
+          )}
         </div>
       </div>
     </main>
