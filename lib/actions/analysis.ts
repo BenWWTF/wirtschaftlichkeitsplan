@@ -2,12 +2,12 @@
 
 import { createClient } from '@/utils/supabase/server'
 import type { TherapyType, BreakEvenAnalysis } from '@/lib/types'
+import { calculatePaymentFee, calculateNetRevenue, SUMUP_FEE_RATE } from '@/lib/calculations/payment-fees'
 
 interface BreakEvenResult {
   therapy_type_id: string
   therapy_name: string
   price_per_session: number
-  variable_cost_per_session: number
   contribution_margin: number
   contribution_margin_percent: number
   sessions_per_month_needed: number // break-even point
@@ -25,18 +25,34 @@ interface BreakEvenSummary {
 }
 
 /**
+ * Extended therapy type with variable_cost_per_session from database
+ */
+interface TherapyTypeWithVariableCost extends TherapyType {
+  variable_cost_per_session: number
+}
+
+/**
  * Get all therapy types with break-even calculations
+ *
+ * Break-even calculation now uses NET revenue (after SumUp payment fees):
+ * - Payment fee: 1.39% of gross price
+ * - Net revenue = gross price - payment fee
+ * - Contribution margin = net revenue - variable costs
  */
 export async function getBreakEvenAnalysis(): Promise<BreakEvenAnalysis[]> {
   const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    console.error('[getBreakEvenAnalysis] Authentication error:', authError)
+    return []
+  }
 
+  // Fetch therapy types with variable_cost_per_session
   const { data, error } = await supabase
     .from('therapy_types')
-    .select('*')
-    .eq('user_id', DEMO_USER_ID)
+    .select('id, user_id, name, price_per_session, variable_cost_per_session, created_at, updated_at')
+    .eq('user_id', user.id)
     .order('created_at', { ascending: true })
 
   if (error) {
@@ -44,19 +60,32 @@ export async function getBreakEvenAnalysis(): Promise<BreakEvenAnalysis[]> {
     return []
   }
 
-  // Calculate break-even metrics for each therapy
-  return (data || []).map((therapy: TherapyType) => ({
-    therapy_type_id: therapy.id,
-    therapy_type_name: therapy.name,
-    price_per_session: therapy.price_per_session,
-    variable_cost_per_session: therapy.variable_cost_per_session,
-    contribution_margin:
-      therapy.price_per_session - therapy.variable_cost_per_session,
-    contribution_margin_percent:
-      ((therapy.price_per_session - therapy.variable_cost_per_session) /
-        therapy.price_per_session) *
-      100
-  }))
+  // Calculate break-even metrics using NET revenue (after payment fees)
+  return (data || []).map((therapy: TherapyTypeWithVariableCost) => {
+    const grossPrice = therapy.price_per_session
+    const paymentFee = calculatePaymentFee(grossPrice)
+    const netRevenue = calculateNetRevenue(grossPrice)
+    const variableCost = therapy.variable_cost_per_session || 0
+
+    // Contribution margin = net revenue after fees - variable costs
+    const contributionMargin = netRevenue - variableCost
+
+    // Contribution margin percent based on gross price (for consistency)
+    const contributionMarginPercent = grossPrice > 0
+      ? (contributionMargin / grossPrice) * 100
+      : 0
+
+    return {
+      therapy_type_id: therapy.id,
+      therapy_type_name: therapy.name,
+      price_per_session: grossPrice,
+      payment_fee_per_session: paymentFee,
+      net_revenue_per_session: netRevenue,
+      variable_cost_per_session: variableCost,
+      contribution_margin: contributionMargin,
+      contribution_margin_percent: contributionMarginPercent
+    }
+  })
 }
 
 /**
@@ -65,14 +94,17 @@ export async function getBreakEvenAnalysis(): Promise<BreakEvenAnalysis[]> {
 export async function getMonthlyExpenses(month?: string): Promise<number> {
   const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    console.error('[getMonthlyExpenses] Authentication error:', authError)
+    return 0
+  }
 
   // Get all expenses
   const { data, error } = await supabase
     .from('expenses')
     .select('amount, is_recurring, recurrence_interval, expense_date')
-    .eq('user_id', DEMO_USER_ID)
+    .eq('user_id', user.id)
 
   if (error) {
     console.error('Error fetching expenses:', error)
@@ -139,14 +171,17 @@ export async function getAverageSessionsPerTherapy(month?: string): Promise<
 > {
   const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    console.error('[getAverageSessionsPerTherapy] Authentication error:', authError)
+    return {}
+  }
 
   // Get monthly plans
   const { data, error } = await supabase
     .from('monthly_plans')
     .select('therapy_type_id, planned_sessions, actual_sessions')
-    .eq('user_id', DEMO_USER_ID)
+    .eq('user_id', user.id)
 
   if (error) {
     console.error('Error fetching monthly plans:', error)
@@ -268,7 +303,6 @@ export async function getBreakEvenReport(month?: string) {
       therapy_type_id: therapy.therapy_type_id,
       therapy_name: therapy.therapy_type_name,
       price_per_session: therapy.price_per_session,
-      variable_cost_per_session: therapy.variable_cost_per_session,
       contribution_margin: therapy.contribution_margin,
       contribution_margin_percent: therapy.contribution_margin_percent,
       sessions_per_month_needed: Math.ceil(
@@ -309,7 +343,12 @@ export async function getBreakEvenHistory(
   fixedCosts: number = 2000
 ) {
   const supabase = await createClient()
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    console.error('[getBreakEvenHistory] Authentication error:', authError)
+    return []
+  }
 
   // Calculate month range
   const monthsToRetrieve = monthRange === 'last3' ? 3 : monthRange === 'last6' ? 6 : 12
@@ -335,7 +374,7 @@ export async function getBreakEvenHistory(
     const { data: plans, error: plansError } = await supabase
       .from('monthly_plans')
       .select('planned_sessions, actual_sessions')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
       .eq('month', monthDate)
 
     if (plansError) {

@@ -3,7 +3,8 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { TherapyTypeSchema, type TherapyTypeInput } from '@/lib/validations'
-import type { TherapyType } from '@/lib/types'
+import type { TherapyType, TherapyWithMetrics } from '@/lib/types'
+import { calculatePaymentFee, calculateNetRevenue, SUMUP_FEE_RATE } from '@/lib/calculations/payment-fees'
 
 /**
  * Create a new therapy type
@@ -11,8 +12,10 @@ import type { TherapyType } from '@/lib/types'
 export async function createTherapyAction(input: TherapyTypeInput) {
   const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { error: 'Authentifizierung fehlgeschlagen' }
+  }
 
   // Validate input
   try {
@@ -22,10 +25,9 @@ export async function createTherapyAction(input: TherapyTypeInput) {
     const { data, error } = await supabase
       .from('therapy_types')
       .insert({
-        user_id: DEMO_USER_ID,
+        user_id: user.id,
         name: validated.name,
-        price_per_session: validated.price_per_session,
-        variable_cost_per_session: validated.variable_cost_per_session
+        price_per_session: validated.price_per_session
       })
       .select()
 
@@ -55,8 +57,10 @@ export async function updateTherapyAction(
 ) {
   const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { error: 'Authentifizierung fehlgeschlagen' }
+  }
 
   try {
     const validated = TherapyTypeSchema.parse(input)
@@ -67,11 +71,10 @@ export async function updateTherapyAction(
       .update({
         name: validated.name,
         price_per_session: validated.price_per_session,
-        variable_cost_per_session: validated.variable_cost_per_session,
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
       .select()
 
     if (error) {
@@ -101,8 +104,10 @@ export async function updateTherapyAction(
 export async function deleteTherapyAction(id: string) {
   const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { error: 'Authentifizierung fehlgeschlagen' }
+  }
 
   try {
     // Delete from database
@@ -110,7 +115,7 @@ export async function deleteTherapyAction(id: string) {
       .from('therapy_types')
       .delete()
       .eq('id', id)
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
 
     if (error) {
       console.error('Database error:', JSON.stringify(error, null, 2))
@@ -136,13 +141,16 @@ export async function getTherapies(): Promise<TherapyType[]> {
   try {
     const supabase = await createClient()
 
-    // Use demo/default user ID for public access (no authentication required)
-    const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      console.error('[getTherapies] Authentication error:', authError)
+      return []
+    }
 
     const { data, error } = await supabase
       .from('therapy_types')
       .select('*')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -158,6 +166,78 @@ export async function getTherapies(): Promise<TherapyType[]> {
     return data || []
   } catch (err) {
     console.error('Exception fetching therapies:', err)
+    return []
+  }
+}
+
+/**
+ * Get all therapy types with calculated payment fee metrics
+ *
+ * This function fetches therapies and enriches each with:
+ * - netRevenuePerSession: Price after payment processing fee deduction
+ * - paymentFeePerSession: The fee amount per session
+ * - feePercentage: The fee percentage used (from practice settings or default)
+ *
+ * @returns Array of therapies with net revenue metrics
+ */
+export async function getTherapiesWithMetrics(): Promise<TherapyWithMetrics[]> {
+  try {
+    const supabase = await createClient()
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      console.error('[getTherapiesWithMetrics] Authentication error:', authError)
+      return []
+    }
+
+    // Fetch therapies and practice settings in parallel
+    const [therapiesResult, settingsResult] = await Promise.all([
+      supabase
+        .from('therapy_types')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('practice_settings')
+        .select('payment_processing_fee_percentage')
+        .eq('user_id', user.id)
+        .single()
+    ])
+
+    if (therapiesResult.error) {
+      console.error('Supabase error fetching therapies:', {
+        message: therapiesResult.error.message,
+        code: therapiesResult.error.code,
+        details: therapiesResult.error.details,
+        hint: therapiesResult.error.hint
+      })
+      return []
+    }
+
+    const therapies = therapiesResult.data || []
+
+    // Use practice settings fee percentage if available, otherwise use default SumUp rate
+    // Note: practice_settings stores percentage as decimal (e.g., 1.39), SUMUP_FEE_RATE is 0.0139
+    const feePercentage = settingsResult.data?.payment_processing_fee_percentage ?? (SUMUP_FEE_RATE * 100)
+    const feeRate = feePercentage / 100 // Convert percentage to decimal for calculations
+
+    // Enrich each therapy with payment fee metrics
+    const therapiesWithMetrics: TherapyWithMetrics[] = therapies.map((therapy) => {
+      const pricePerSession = therapy.price_per_session
+      const paymentFeePerSession = pricePerSession * feeRate
+      const netRevenuePerSession = pricePerSession - paymentFeePerSession
+
+      return {
+        ...therapy,
+        netRevenuePerSession,
+        paymentFeePerSession,
+        feePercentage
+      }
+    })
+
+    return therapiesWithMetrics
+  } catch (err) {
+    console.error('Exception fetching therapies with metrics:', err)
     return []
   }
 }

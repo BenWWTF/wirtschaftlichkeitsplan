@@ -15,6 +15,7 @@ export interface TaxCalculationInput {
   practiceType: 'kassenarzt' | 'wahlarzt' | 'mixed'
   applyingPauschalierung: boolean // 13% pauschale Betriebsausgaben
   privatePatientRevenue?: number // For VAT calculation
+  monthsInPeriod?: number // Number of months in the period (for prorating annual contributions)
 }
 
 export interface TaxCalculationResult {
@@ -89,8 +90,9 @@ export function calculateIncomeTax(taxableIncome: number): number {
  * Minimum monthly contribution: ~€500
  * Maximum assessment base: ~€90,000/year
  */
-export function calculateSVBeitraege(profit: number): number {
-  const MINIMUM_ANNUAL_SV = 500 * 12 // €6,000/year minimum
+export function calculateSVBeitraege(profit: number, monthsInPeriod: number = 12): number {
+  const MINIMUM_MONTHLY_SV = 500
+  const MINIMUM_ANNUAL_SV = MINIMUM_MONTHLY_SV * 12 // €6,000/year minimum
   const MAX_ASSESSMENT_BASE = 90000
   const SV_RATE = 0.2745 // ~27.45%
 
@@ -100,8 +102,9 @@ export function calculateSVBeitraege(profit: number): number {
   // Calculate actual contribution
   const calculatedSV = assessmentBase * SV_RATE
 
-  // Apply minimum
-  return Math.max(calculatedSV, MINIMUM_ANNUAL_SV)
+  // Apply minimum contribution, scaled by period
+  const minimumSVForPeriod = MINIMUM_MONTHLY_SV * monthsInPeriod
+  return Math.max(calculatedSV, minimumSVForPeriod)
 }
 
 /**
@@ -173,7 +176,8 @@ export function calculateAustrianTax(input: TaxCalculationInput): TaxCalculation
     totalExpenses,
     practiceType,
     applyingPauschalierung,
-    privatePatientRevenue = grossRevenue // Default: assume all private if not specified
+    privatePatientRevenue = grossRevenue, // Default: assume all private if not specified
+    monthsInPeriod = 12 // Default to 12 months for annual calculation
   } = input
 
   // Step 1: Calculate profit
@@ -181,7 +185,7 @@ export function calculateAustrianTax(input: TaxCalculationInput): TaxCalculation
 
   // Step 2: Calculate deductions
   const pauschalDeduction = calculatePauschalDeduction(profit, applyingPauschalierung)
-  const svBeitraege = calculateSVBeitraege(profit)
+  const svBeitraege = calculateSVBeitraege(profit, monthsInPeriod)
   const aerztekammerBeitrag = calculateAerztekammerBeitrag(profit)
 
   // Step 3: Calculate taxable income

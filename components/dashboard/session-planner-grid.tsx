@@ -137,10 +137,6 @@ export function SessionPlannerGrid({
     return therapies.find((t) => t.id === therapyId)?.price_per_session || 0
   }
 
-  const getTherapyCost = (therapyId: string): number => {
-    return therapies.find((t) => t.id === therapyId)?.variable_cost_per_session || 0
-  }
-
   const plansByTherapy: Record<string, any> = {}
   monthlyPlans.forEach((plan) => {
     plansByTherapy[plan.therapy_type_id] = plan
@@ -176,17 +172,13 @@ export function SessionPlannerGrid({
                           <TableHead className="text-center">Geplante Sitzungen</TableHead>
                           <TableHead className="text-center">Tatsächliche Sitzungen</TableHead>
                           <TableHead className="text-right">Geplante Einnahmen</TableHead>
-                          <TableHead className="text-right">Geplanter Gewinn</TableHead>
                           <TableHead className="text-center">Aktionen</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {Object.entries(plansByTherapy).map(([therapyId, plan]) => {
                           const price = getTherapyPrice(therapyId)
-                          const cost = getTherapyCost(therapyId)
                           const plannedRevenue = plan.planned_sessions * price
-                          const plannedCost = plan.planned_sessions * cost
-                          const plannedProfit = plannedRevenue - plannedCost
 
                           return (
                             <TableRow key={plan.id}>
@@ -224,9 +216,6 @@ export function SessionPlannerGrid({
                               </TableCell>
                               <TableCell className="text-right text-green-600 font-semibold">
                                 €{plannedRevenue.toFixed(2)}
-                              </TableCell>
-                              <TableCell className="text-right text-blue-600 font-semibold">
-                                €{plannedProfit.toFixed(2)}
                               </TableCell>
                               <TableCell className="text-center">
                                 <Button

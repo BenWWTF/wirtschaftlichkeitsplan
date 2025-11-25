@@ -12,8 +12,10 @@ import type { PracticeSettings } from '@/lib/types'
 export async function upsertPracticeSettingsAction(input: PracticeSettingsInput) {
   const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { error: 'Authentifizierung fehlgeschlagen' }
+  }
 
   try {
     const validated = PracticeSettingsSchema.parse(input)
@@ -22,7 +24,7 @@ export async function upsertPracticeSettingsAction(input: PracticeSettingsInput)
     const { data: existing } = await supabase
       .from('practice_settings')
       .select('*')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
       .single()
 
     let result
@@ -37,9 +39,10 @@ export async function upsertPracticeSettingsAction(input: PracticeSettingsInput)
           monthly_fixed_costs: validated.monthly_fixed_costs,
           average_variable_cost_per_session: validated.average_variable_cost_per_session,
           expected_growth_rate: validated.expected_growth_rate,
+          payment_processing_fee_percentage: validated.payment_processing_fee_percentage,
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', user.id)
         .select()
 
       result = { data, error }
@@ -48,12 +51,13 @@ export async function upsertPracticeSettingsAction(input: PracticeSettingsInput)
       const { data, error } = await supabase
         .from('practice_settings')
         .insert({
-          user_id: DEMO_USER_ID,
+          user_id: user.id,
           practice_name: validated.practice_name,
           practice_type: validated.practice_type,
           monthly_fixed_costs: validated.monthly_fixed_costs,
           average_variable_cost_per_session: validated.average_variable_cost_per_session,
-          expected_growth_rate: validated.expected_growth_rate
+          expected_growth_rate: validated.expected_growth_rate,
+          payment_processing_fee_percentage: validated.payment_processing_fee_percentage
         })
         .select()
 
@@ -87,13 +91,16 @@ export async function getPracticeSettings(): Promise<PracticeSettings | null> {
   try {
     const supabase = await createClient()
 
-    // Use demo/default user ID for public access (no authentication required)
-    const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      console.error('[getPracticeSettings] Authentication error:', authError)
+      return null
+    }
 
     const { data, error } = await supabase
       .from('practice_settings')
       .select('*')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
       .single()
 
     if (error) {
@@ -115,5 +122,70 @@ export async function getPracticeSettings(): Promise<PracticeSettings | null> {
   } catch (err) {
     console.error('Exception fetching practice settings:', err)
     return null
+  }
+}
+
+/**
+ * Update practice settings with partial updates
+ * Allows updating specific fields like payment_processing_fee_percentage
+ * without requiring all fields to be present
+ */
+export async function updatePracticeSettings(
+  updates: Partial<Omit<PracticeSettings, 'id' | 'user_id' | 'created_at' | 'updated_at'>>
+): Promise<{ success: boolean; data?: PracticeSettings; error?: string }> {
+  try {
+    const supabase = await createClient()
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return { success: false, error: 'Authentifizierung fehlgeschlagen' }
+    }
+
+    // Filter out undefined values and add updated_at
+    const filteredUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([, value]) => value !== undefined)
+    )
+
+    if (Object.keys(filteredUpdates).length === 0) {
+      return { success: false, error: 'Keine Änderungen angegeben' }
+    }
+
+    const { data, error } = await supabase
+      .from('practice_settings')
+      .update({
+        ...filteredUpdates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', user.id)
+      .select()
+      .single()
+
+    if (error) {
+      // If no settings exist yet, create them with defaults
+      if (error.code === 'PGRST116') {
+        return { success: false, error: 'Praxiseinstellungen nicht gefunden. Bitte erstellen Sie zuerst Ihre Praxiseinstellungen.' }
+      }
+      console.error('Database error updating practice settings:', {
+        message: error.message,
+        code: error.code,
+        details: error.details
+      })
+      return { success: false, error: `Fehler: ${error.message || 'Aktualisierung fehlgeschlagen'}` }
+    }
+
+    // Revalidate relevant paths
+    revalidatePath('/dashboard/einstellungen')
+    revalidatePath('/dashboard')
+    revalidatePath('/dashboard/analyse')
+    revalidatePath('/dashboard/berichte')
+    revalidatePath('/dashboard/therapien')
+
+    return { success: true, data }
+  } catch (err) {
+    console.error('Exception updating practice settings:', err)
+    if (err instanceof Error) {
+      return { success: false, error: err.message }
+    }
+    return { success: false, error: 'Unbekannter Fehler bei der Aktualisierung' }
   }
 }

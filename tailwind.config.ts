@@ -68,7 +68,18 @@ const config = {
           700: '#101010',
           800: '#0E0E0E',
           900: '#000000'
-        }
+        },
+        popover: 'hsl(var(--popover))',
+        'popover-foreground': 'hsl(var(--popover-foreground))',
+        background: 'hsl(var(--background, 0 0% 100%))',
+        foreground: 'hsl(var(--foreground, 0 0% 3.6%))',
+        card: 'hsl(var(--card, 0 0% 100%))',
+        'card-foreground': 'hsl(var(--card-foreground, 0 0% 3.6%))',
+        muted: 'hsl(var(--muted, 0 0% 96%))',
+        'muted-foreground': 'hsl(var(--muted-foreground, 0 0% 45%))',
+        ring: 'hsl(var(--ring, 0 0% 3.6%))',
+        border: 'hsl(var(--border, 0 0% 89%))',
+        input: 'hsl(var(--input, 0 0% 89%))',
       },
       spacing: {
         '4.5': '1.125rem',
@@ -76,7 +87,18 @@ const config = {
         '13': '3.25rem',
         '14': '3.5rem',
         '18': '4.5rem',
-        '22': '5.5rem'
+        '22': '5.5rem',
+        // Mobile bottom nav safe area spacing
+        'safe-bottom': 'calc(64px + env(safe-area-inset-bottom))',
+        'touch-min': '44px',
+        // Mobile-specific spacing
+        'mobile-xs': '0.5rem',  // 8px - small gaps
+        'mobile-sm': '0.75rem', // 12px - standard mobile gap
+        'mobile-md': '1rem',    // 16px - default spacing
+        'mobile-lg': '1.5rem',  // 24px - large spacing
+        'mobile-xl': '2rem',    // 32px - extra large
+        'card-gap': '0.75rem',  // Gap between cards
+        'list-item-height': '3.5rem', // Min height for list items
       },
       borderRadius: {
         none: '0',
@@ -175,7 +197,20 @@ const config = {
         'smooth': 'cubic-bezier(0.11, 0.82, 0.39, 0.92)',
         'ease-in': 'cubic-bezier(0.55, 0.06, 0.68, 0.19)',
         'ease-out': 'cubic-bezier(0.22, 0.61, 0.36, 1)'
-      }
+      },
+      fontSize: {
+        // Mobile typography scale - Headings
+        'mobile-h1': ['24px', { lineHeight: '1.3', fontWeight: '700' }],
+        'mobile-h2': ['20px', { lineHeight: '1.3', fontWeight: '700' }],
+        'mobile-h3': ['18px', { lineHeight: '1.3', fontWeight: '600' }],
+        'mobile-h4': ['16px', { lineHeight: '1.4', fontWeight: '600' }],
+        // Mobile typography scale - Body
+        'mobile-body-lg': ['16px', { lineHeight: '1.6' }],  // Default body text
+        'mobile-body': ['14px', { lineHeight: '1.6' }],     // Standard text
+        'mobile-body-sm': ['13px', { lineHeight: '1.5' }],  // Small text
+        'mobile-caption': ['12px', { lineHeight: '1.4' }],  // Extra small
+        // Desktop typography remains via default Tailwind
+      },
     }
   },
   plugins: []

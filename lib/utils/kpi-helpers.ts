@@ -101,6 +101,13 @@ export function calculateAverageTherapyPrice(therapyPrices: number[]): number {
 
 /**
  * Forecast next month revenue based on trend
+ *
+ * NOTE: Returns GROSS revenue forecast. To get net revenue after
+ * payment fees, use calculateNetRevenue from payment-fees.ts.
+ *
+ * @param monthlyRevenues Array of historical gross monthly revenues
+ * @param growthFactor Optional multiplier for growth adjustment
+ * @returns Forecasted gross revenue for next month
  */
 export function forecastRevenue(
   monthlyRevenues: number[],

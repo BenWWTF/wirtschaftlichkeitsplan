@@ -7,6 +7,7 @@ import type { TherapyType } from '@/lib/types'
 import { MonthlyPlanSchema, type MonthlyPlanInput } from '@/lib/validations'
 import { upsertMonthlyPlanAction, getMonthlyPlans, deleteMonthlyPlanAction } from '@/lib/actions/monthly-plans'
 import { formatEuro } from '@/lib/utils'
+import { calculatePaymentFee, calculateNetRevenue, SUMUP_FEE_RATE } from '@/lib/calculations/payment-fees'
 import { toast } from 'sonner'
 import { ChevronDown, Check, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -147,10 +148,10 @@ export function PlannerCard({
 
   // Calculate values for display
   const plannedSessions = form.watch('planned_sessions')
-  const plannedRevenue = plannedSessions * therapy.price_per_session
-  const plannedMargin =
-    plannedSessions *
-    (therapy.price_per_session - therapy.variable_cost_per_session)
+  const grossRevenue = plannedSessions * therapy.price_per_session
+  const paymentFees = calculatePaymentFee(grossRevenue)
+  const netRevenue = calculateNetRevenue(grossRevenue)
+  const feePercentage = (SUMUP_FEE_RATE * 100).toFixed(2)
 
   return (
     <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden hover:shadow-lg transition-shadow">
@@ -258,22 +259,30 @@ export function PlannerCard({
                 )}
               />
 
-              {/* Summary */}
+              {/* Summary with Fee Breakdown */}
               <div className="bg-neutral-50 dark:bg-neutral-900 rounded p-3 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-neutral-600 dark:text-neutral-400">
-                    Umsatz:
+                    Bruttoumsatz:
                   </span>
                   <span className="font-semibold text-neutral-900 dark:text-white">
-                    {formatEuro(plannedRevenue)}
+                    {formatEuro(grossRevenue)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-neutral-600 dark:text-neutral-400">
-                    Deckungsbeitrag:
+                    Zahlungsgebuehren ({feePercentage}%):
                   </span>
-                  <span className="font-semibold text-green-600 dark:text-green-400">
-                    {formatEuro(plannedMargin)}
+                  <span className="font-medium text-red-600 dark:text-red-400">
+                    -{formatEuro(paymentFees)}
+                  </span>
+                </div>
+                <div className="border-t border-neutral-200 dark:border-neutral-700 pt-2 flex justify-between text-sm">
+                  <span className="text-neutral-600 dark:text-neutral-400 font-medium">
+                    Nettoumsatz:
+                  </span>
+                  <span className="font-bold text-green-600 dark:text-green-400">
+                    {formatEuro(netRevenue)}
                   </span>
                 </div>
               </div>
@@ -302,23 +311,6 @@ export function PlannerCard({
               </div>
             </form>
           </Form>
-        </div>
-      )}
-
-      {/* Collapsed Summary */}
-      {!isExpanded && planData && (
-        <div className="px-4 py-3 bg-neutral-50 dark:bg-neutral-700/30 border-t border-neutral-200 dark:border-neutral-700 flex justify-between items-center text-sm">
-          <span className="text-neutral-600 dark:text-neutral-400">
-            {planData.planned_sessions} Sitzung
-            {planData.planned_sessions !== 1 ? 'en' : ''} geplant
-          </span>
-          <span className="font-semibold text-green-600 dark:text-green-400">
-            {formatEuro(
-              planData.planned_sessions *
-                (therapy.price_per_session -
-                  therapy.variable_cost_per_session)
-            )}
-          </span>
         </div>
       )}
 

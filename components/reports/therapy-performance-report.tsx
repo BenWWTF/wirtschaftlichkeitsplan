@@ -128,11 +128,11 @@ export function TherapyPerformanceReport() {
             </div>
           </div>
 
-          {/* Occupancy Rate */}
+          {/* Sessions */}
           <div className="bg-neutral-50 dark:bg-neutral-900/50 rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-neutral-900 dark:text-white">
-                📈 Auslastungsquote
+                📈 Sitzungen
               </h3>
               <p className="text-2xl font-bold text-neutral-900 dark:text-white">
                 {analytics.occupancyRate.toFixed(1)}%

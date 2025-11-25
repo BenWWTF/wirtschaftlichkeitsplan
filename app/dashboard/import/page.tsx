@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { DataImportDialog } from '@/components/dashboard/data-import-dialog'
-import { Upload, FileText, Database, CheckCircle2, Info } from 'lucide-react'
+import { Upload, FileText, Database, CheckCircle2, Info, Lightbulb } from 'lucide-react'
 
 export default function ImportPage() {
   const [importDialogOpen, setImportDialogOpen] = useState(false)
@@ -174,9 +174,12 @@ export default function ImportPage() {
             </div>
 
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                💡 Tipp: LATIDO Integration
-              </h4>
+              <div className="flex items-center gap-2 mb-2">
+                <Lightbulb className="h-5 w-5 text-blue-900 dark:text-blue-100" />
+                <h4 className="font-semibold text-blue-900 dark:text-blue-100">
+                  Tipp: LATIDO Integration
+                </h4>
+              </div>
               <p className="text-sm text-blue-800 dark:text-blue-200 mb-3">
                 Wenn Sie LATIDO verwenden, können Sie Ihre Daten direkt aus dem Normdatensatz-Export importieren.
               </p>

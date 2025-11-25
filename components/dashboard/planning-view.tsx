@@ -1,18 +1,24 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import type { TherapyType } from '@/lib/types'
 import { MonthSelector } from './month-selector'
 import { PlannerGrid } from './planner-grid'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Plus, Copy } from 'lucide-react'
 import Link from 'next/link'
+import { toast } from 'sonner'
+import { copyMonthlyPlansAction } from '@/lib/actions/monthly-plans'
 
 interface PlanningViewProps {
   therapies: TherapyType[]
 }
 
 export function PlanningView({ therapies }: PlanningViewProps) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
   // Get current month in YYYY-MM format
   const currentMonth = useMemo(() => {
     const now = new Date()
@@ -21,7 +27,40 @@ export function PlanningView({ therapies }: PlanningViewProps) {
     return `${year}-${month}`
   }, [])
 
-  const [selectedMonth, setSelectedMonth] = useState(currentMonth)
+  // Get month from URL params, or use current month as default
+  const initialMonth = searchParams.get('month') || currentMonth
+  const [selectedMonth, setSelectedMonth] = useState(initialMonth)
+  const [isCopying, setIsCopying] = useState(false)
+
+  // Update URL params when month changes
+  const handleMonthChange = (newMonth: string) => {
+    setSelectedMonth(newMonth)
+    // Update URL without triggering a page reload
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('month', newMonth)
+    router.push(`/dashboard/planung?${params.toString()}`)
+  }
+
+  const handleCopyToNextMonths = async () => {
+    try {
+      setIsCopying(true)
+      const result = await copyMonthlyPlansAction({
+        fromMonth: selectedMonth,
+        toMonths: 11 // Copy to next 11 months
+      })
+
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Plan wurde auf die nächsten Monate kopiert!')
+      }
+    } catch (error) {
+      toast.error('Ein Fehler ist aufgetreten')
+      console.error(error)
+    } finally {
+      setIsCopying(false)
+    }
+  }
 
   return (
     <div className="space-y-8">
@@ -35,12 +74,21 @@ export function PlanningView({ therapies }: PlanningViewProps) {
             Planen Sie Ihre Therapiesitzungen für jeden Monat
           </p>
         </div>
+        <Button
+          onClick={handleCopyToNextMonths}
+          disabled={isCopying}
+          className="gap-2"
+          variant="outline"
+        >
+          <Copy className="h-4 w-4" />
+          {isCopying ? 'Kopiere...' : 'Auf alle Monate anwenden'}
+        </Button>
       </div>
 
       {/* Month Selector */}
       <MonthSelector
         selectedMonth={selectedMonth}
-        onMonthChange={setSelectedMonth}
+        onMonthChange={handleMonthChange}
       />
 
       {/* Info Box */}

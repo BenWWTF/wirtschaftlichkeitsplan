@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -32,9 +32,10 @@ interface TherapyDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   therapy: TherapyType | null
+  onSuccess?: () => void
 }
 
-export function TherapyDialog({ open, onOpenChange, therapy }: TherapyDialogProps) {
+export function TherapyDialog({ open, onOpenChange, therapy, onSuccess }: TherapyDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<TherapyTypeInput>({
@@ -43,14 +44,27 @@ export function TherapyDialog({ open, onOpenChange, therapy }: TherapyDialogProp
       ? {
           name: therapy.name,
           price_per_session: therapy.price_per_session,
-          variable_cost_per_session: therapy.variable_cost_per_session,
         }
       : {
           name: '',
           price_per_session: 0,
-          variable_cost_per_session: 0,
         },
   })
+
+  // Update form when therapy prop changes
+  useEffect(() => {
+    if (therapy) {
+      form.reset({
+        name: therapy.name,
+        price_per_session: therapy.price_per_session,
+      })
+    } else {
+      form.reset({
+        name: '',
+        price_per_session: 0,
+      })
+    }
+  }, [therapy, form])
 
   const onSubmit = async (values: TherapyTypeInput) => {
     setIsLoading(true)
@@ -79,6 +93,7 @@ export function TherapyDialog({ open, onOpenChange, therapy }: TherapyDialogProp
         )
         onOpenChange(false)
         form.reset()
+        onSuccess?.()
       }
     } catch (error) {
       console.error('Catch error:', error)
@@ -102,7 +117,7 @@ export function TherapyDialog({ open, onOpenChange, therapy }: TherapyDialogProp
           <DialogDescription>
             {therapy
               ? 'Aktualisieren Sie die Details dieser Therapieart.'
-              : 'Fügen Sie eine neue Therapieart mit Preis und Kosten hinzu.'}
+              : 'Fügen Sie eine neue Therapieart mit Preis hinzu.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -147,51 +162,6 @@ export function TherapyDialog({ open, onOpenChange, therapy }: TherapyDialogProp
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="variable_cost_per_session"
-              render={({ field, fieldState }) => (
-                <NumberField
-                  {...field}
-                  label="Variable Kosten pro Sitzung"
-                  placeholder="15.00"
-                  suffix="€"
-                  helperText="Kosten pro Sitzung (Material, Verbrauchsmaterial, etc.)"
-                  error={fieldState.error?.message}
-                  disabled={isLoading}
-                  step={0.01}
-                  min={0}
-                  required
-                  onChange={(e) => {
-                    const value = e.target.value === '' ? 0 : parseFloat(e.target.value) || 0
-                    field.onChange(value)
-                  }}
-                />
-              )}
-            />
-
-            <div className="space-y-2">
-              <h4 className="text-sm font-semibold">Beitragsmarge</h4>
-              <div className="grid grid-cols-2 gap-4 p-3 bg-muted rounded-lg">
-                <div>
-                  <p className="text-xs text-muted-foreground">Absolut</p>
-                  <p className="text-sm font-semibold text-green-600">
-                    €{((form.watch('price_per_session') || 0) - (form.watch('variable_cost_per_session') || 0)).toFixed(2)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Prozent</p>
-                  <p className="text-sm font-semibold text-green-600">
-                    {((form.watch('price_per_session') || 0) > 0
-                      ? (((form.watch('price_per_session') || 0) - (form.watch('variable_cost_per_session') || 0)) /
-                          (form.watch('price_per_session') || 1) *
-                          100).toFixed(1)
-                      : 0)}
-                    %
-                  </p>
-                </div>
-              </div>
-            </div>
 
             <div className="flex gap-2 justify-end">
               <Button

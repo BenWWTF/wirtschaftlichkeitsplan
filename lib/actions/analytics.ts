@@ -14,8 +14,6 @@ import {
   calculateAverageTherapyPrice,
 } from '@/lib/utils/kpi-helpers'
 
-const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
-
 export interface AdvancedAnalytics {
   // Basic KPIs
   occupancyRate: number
@@ -59,6 +57,12 @@ export interface AdvancedAnalytics {
 export async function getAdvancedAnalytics(): Promise<AdvancedAnalytics | null> {
   const supabase = await createClient()
 
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    console.error('[getAdvancedAnalytics] Authentication error:', authError)
+    return null
+  }
+
   try {
     // Get last 3 months of data for trends
     const today = new Date()
@@ -69,20 +73,20 @@ export async function getAdvancedAnalytics(): Promise<AdvancedAnalytics | null> 
     const { data: therapies } = await supabase
       .from('therapy_types')
       .select('*')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
 
     // Fetch monthly plans for last 3 months
     const { data: monthlyPlans } = await supabase
       .from('monthly_plans')
       .select('*')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
       .gte('month', threeMonthsAgoStr)
 
     // Fetch expenses
     const { data: expenses } = await supabase
       .from('expenses')
       .select('*')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
       .gte('month', threeMonthsAgoStr)
 
     if (!therapies || !monthlyPlans || !expenses) {

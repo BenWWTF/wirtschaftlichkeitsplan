@@ -11,17 +11,21 @@ import type { Expense } from '@/lib/types'
 export async function createExpenseAction(input: ExpenseInput) {
   const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
-
   try {
+    // Get the authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return { error: 'Authentifizierung erforderlich' }
+    }
+
     const validated = ExpenseSchema.parse(input)
 
     // Insert into database
     const { data, error } = await supabase
       .from('expenses')
       .insert({
-        user_id: DEMO_USER_ID,
+        user_id: user.id,
         category: validated.category,
         subcategory: validated.subcategory || null,
         amount: validated.amount,
@@ -37,12 +41,17 @@ export async function createExpenseAction(input: ExpenseInput) {
       return { error: `Fehler: ${error.message || 'Speichern fehlgeschlagen'}` }
     }
 
-    // Revalidate cache
+    if (!data || data.length === 0) {
+      return { error: 'Ausgabe konnte nicht erstellt werden' }
+    }
+
+    // Revalidate cache - invalidate all related pages
+    revalidatePath('/dashboard')
     revalidatePath('/dashboard/ausgaben')
     revalidatePath('/dashboard/berichte')
     revalidatePath('/dashboard/analyse')
 
-    return { success: true, data }
+    return { success: true, data: data[0] }
   } catch (error) {
     if (error instanceof Error) {
       return { error: error.message }
@@ -60,10 +69,14 @@ export async function updateExpenseAction(
 ) {
   const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
-
   try {
+    // Get the authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return { error: 'Authentifizierung erforderlich' }
+    }
+
     const validated = ExpenseSchema.parse(input)
 
     // Update in database
@@ -80,7 +93,7 @@ export async function updateExpenseAction(
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
       .select()
 
     if (error) {
@@ -112,23 +125,28 @@ export async function updateExpenseAction(
 export async function deleteExpenseAction(id: string) {
   const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
-
   try {
+    // Get the authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return { error: 'Authentifizierung erforderlich' }
+    }
+
     // Delete from database
     const { error } = await supabase
       .from('expenses')
       .delete()
       .eq('id', id)
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
 
     if (error) {
       console.error('Database error:', JSON.stringify(error, null, 2))
       return { error: `Fehler: ${error.message || 'Löschen fehlgeschlagen'}` }
     }
 
-    // Revalidate cache
+    // Revalidate cache - invalidate all related pages
+    revalidatePath('/dashboard')
     revalidatePath('/dashboard/ausgaben')
     revalidatePath('/dashboard/berichte')
     revalidatePath('/dashboard/analyse')
@@ -149,13 +167,17 @@ export async function getExpenses(): Promise<Expense[]> {
   try {
     const supabase = await createClient()
 
-    // Use demo/default user ID for public access (no authentication required)
-    const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+    // Get the authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return []
+    }
 
     const { data, error } = await supabase
       .from('expenses')
       .select('*')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
       .order('expense_date', { ascending: false })
 
     if (error) {
@@ -184,12 +206,18 @@ export async function getExpensesByDateRange(
 ): Promise<Expense[]> {
   try {
     const supabase = await createClient()
-    const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+
+    // Get the authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return []
+    }
 
     const { data, error } = await supabase
       .from('expenses')
       .select('*')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
       .gte('expense_date', startDate)
       .lte('expense_date', endDate)
       .order('expense_date', { ascending: false })
@@ -212,12 +240,18 @@ export async function getExpensesByDateRange(
 export async function getExpensesByCategory(category: string): Promise<Expense[]> {
   try {
     const supabase = await createClient()
-    const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+
+    // Get the authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return []
+    }
 
     const { data, error } = await supabase
       .from('expenses')
       .select('*')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
       .eq('category', category)
       .order('expense_date', { ascending: false })
 
@@ -239,7 +273,13 @@ export async function getExpensesByCategory(category: string): Promise<Expense[]
 export async function getMonthlyExpenseTotal(month: string): Promise<number> {
   try {
     const supabase = await createClient()
-    const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+
+    // Get the authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return 0
+    }
 
     // Calculate month boundaries (month is in YYYY-MM format)
     const startDate = `${month}-01`
@@ -250,7 +290,7 @@ export async function getMonthlyExpenseTotal(month: string): Promise<number> {
     const { data, error } = await supabase
       .from('expenses')
       .select('amount')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
       .gte('expense_date', startDate)
       .lte('expense_date', endDate)
 

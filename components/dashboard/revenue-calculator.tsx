@@ -22,38 +22,20 @@ export function RevenueCalculator({
     return therapies.find((t) => t.id === therapyId)?.price_per_session || 0
   }
 
-  const getTherapyCost = (therapyId: string): number => {
-    return therapies.find((t) => t.id === therapyId)?.variable_cost_per_session || 0
-  }
-
   // Calculate totals
   let totalPlannedRevenue = 0
-  let totalPlannedCost = 0
-  let totalPlannedProfit = 0
   let totalActualRevenue = 0
-  let totalActualCost = 0
-  let totalActualProfit = 0
 
   const breakdownData = monthlyPlans.map((plan) => {
     const price = getTherapyPrice(plan.therapy_type_id)
-    const cost = getTherapyCost(plan.therapy_type_id)
 
     const plannedRevenue = plan.planned_sessions * price
-    const plannedCostAmount = plan.planned_sessions * cost
-    const plannedProfit = plannedRevenue - plannedCostAmount
 
     const actualSessions = plan.actual_sessions || 0
     const actualRevenue = actualSessions * price
-    const actualCostAmount = actualSessions * cost
-    const actualProfit = actualRevenue - actualCostAmount
 
     totalPlannedRevenue += plannedRevenue
-    totalPlannedCost += plannedCostAmount
-    totalPlannedProfit += plannedProfit
-
     totalActualRevenue += actualRevenue
-    totalActualCost += actualCostAmount
-    totalActualProfit += actualProfit
 
     return {
       therapyId: plan.therapy_type_id,
@@ -61,27 +43,10 @@ export function RevenueCalculator({
       plannedSessions: plan.planned_sessions,
       actualSessions,
       price,
-      cost,
       plannedRevenue,
-      plannedCost: plannedCostAmount,
-      plannedProfit,
       actualRevenue,
-      actualCost: actualCostAmount,
-      actualProfit,
-      marginPercentage:
-        price > 0
-          ? (((price - cost) / price) * 100).toFixed(1)
-          : '0',
     }
   })
-
-  const plannedMarginPercent = totalPlannedRevenue > 0
-    ? ((totalPlannedProfit / totalPlannedRevenue) * 100).toFixed(1)
-    : '0'
-
-  const actualMarginPercent = totalActualRevenue > 0
-    ? ((totalActualProfit / totalActualRevenue) * 100).toFixed(1)
-    : '0'
 
   const monthLabel = new Date(month + '-01').toLocaleDateString('de-AT', {
     month: 'long',
@@ -90,62 +55,28 @@ export function RevenueCalculator({
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Geplante Einnahmen
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              €{totalPlannedRevenue.toFixed(2)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {monthlyPlans.reduce((sum, p) => sum + p.planned_sessions, 0)} Sitzungen
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Geplante Kosten
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              €{totalPlannedCost.toFixed(2)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {((totalPlannedCost / totalPlannedRevenue) * 100).toFixed(1)}% der Einnahmen
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Geplanter Gewinn
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              €{totalPlannedProfit.toFixed(2)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {plannedMarginPercent}% Marge
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Summary Card */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            Geplante Einnahmen
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-green-600">
+            €{totalPlannedRevenue.toFixed(2)}
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            {monthlyPlans.reduce((sum, p) => sum + p.planned_sessions, 0)} Sitzungen
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Detailed Breakdown */}
       {breakdownData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Gewinnberechnung nach Therapieart</CardTitle>
+            <CardTitle>Einnahmen nach Therapieart</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -155,11 +86,7 @@ export function RevenueCalculator({
                     <th className="text-left py-2 px-3">Therapieart</th>
                     <th className="text-center py-2 px-3">Sitzungen</th>
                     <th className="text-right py-2 px-3">Preis</th>
-                    <th className="text-right py-2 px-3">Kosten</th>
-                    <th className="text-right py-2 px-3">Marge</th>
                     <th className="text-right py-2 px-3">Einnahmen</th>
-                    <th className="text-right py-2 px-3">Kosten (gesamt)</th>
-                    <th className="text-right py-2 px-3">Gewinn</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -168,20 +95,8 @@ export function RevenueCalculator({
                       <td className="py-2 px-3 font-medium">{row.therapyName}</td>
                       <td className="py-2 px-3 text-center">{row.plannedSessions}</td>
                       <td className="py-2 px-3 text-right">€{row.price.toFixed(2)}</td>
-                      <td className="py-2 px-3 text-right">€{row.cost.toFixed(2)}</td>
-                      <td className="py-2 px-3 text-right">
-                        <span className="font-semibold text-green-600">
-                          {row.marginPercentage}%
-                        </span>
-                      </td>
-                      <td className="py-2 px-3 text-right font-semibold">
+                      <td className="py-2 px-3 text-right font-semibold text-green-600">
                         €{row.plannedRevenue.toFixed(2)}
-                      </td>
-                      <td className="py-2 px-3 text-right text-orange-600">
-                        €{row.plannedCost.toFixed(2)}
-                      </td>
-                      <td className="py-2 px-3 text-right font-semibold text-blue-600">
-                        €{row.plannedProfit.toFixed(2)}
                       </td>
                     </tr>
                   ))}

@@ -69,9 +69,9 @@ export function AnalyticsDashboard() {
     <div className="space-y-6">
       {/* First Row - Primary KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Occupancy Rate */}
+        {/* Sessions */}
         <KPICard
-          title="Auslastungsquote"
+          title="Sitzungen"
           value={analytics.occupancyRate.toFixed(1)}
           unit="%"
           icon={Activity}

@@ -216,7 +216,7 @@ export function DataImportDialog({
     }}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Daten Import aus Praxissoftware</DialogTitle>
+          <DialogTitle>Daten Import aus Ordinationssoftware</DialogTitle>
           <DialogDescription>
             Importieren Sie Sitzungsdaten aus LATIDO, CGM, Medatixx oder anderen Systemen
           </DialogDescription>
