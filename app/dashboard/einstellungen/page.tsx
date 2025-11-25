@@ -10,12 +10,13 @@ export default function EinstellungenPage() {
   const [settings, setSettings] = useState<PracticeSettings | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
+  const loadSettings = async () => {
+    const data = await getPracticeSettings()
+    setSettings(data)
+    setIsLoading(false)
+  }
+
   useEffect(() => {
-    const loadSettings = async () => {
-      const data = await getPracticeSettings()
-      setSettings(data)
-      setIsLoading(false)
-    }
     loadSettings()
   }, [])
 
@@ -37,7 +38,7 @@ export default function EinstellungenPage() {
           </div>
 
           {/* Form */}
-          <SettingsForm settings={settings} />
+          <SettingsForm settings={settings} onSaveSuccess={loadSettings} />
         </div>
       </div>
     </main>

@@ -30,9 +30,10 @@ import { Save } from 'lucide-react'
 
 interface SettingsFormProps {
   settings: PracticeSettings | null
+  onSaveSuccess?: () => void
 }
 
-export function SettingsForm({ settings }: SettingsFormProps) {
+export function SettingsForm({ settings, onSaveSuccess }: SettingsFormProps) {
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<PracticeSettingsInput>({
@@ -63,6 +64,10 @@ export function SettingsForm({ settings }: SettingsFormProps) {
         toast.error(result.error)
       } else {
         toast.success('Einstellungen erfolgreich gespeichert')
+        // Reload settings from database
+        if (onSaveSuccess) {
+          onSaveSuccess()
+        }
       }
     } catch (error) {
       console.error('Error:', error)
