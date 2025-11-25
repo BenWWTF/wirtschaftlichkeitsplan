@@ -172,8 +172,11 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                         min="0"
                         max="100"
                         placeholder="1.39"
-                        {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        value={field.value ?? ''}
+                        onChange={(e) => {
+                          const value = e.target.value === '' ? 1.39 : parseFloat(e.target.value)
+                          field.onChange(value)
+                        }}
                         disabled={isLoading}
                         className="max-w-xs"
                       />
