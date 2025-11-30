@@ -73,9 +73,10 @@ export function MobileBottomNav({ onMoreClick }: MobileBottomNavProps) {
             key={tab.href}
             href={tab.href}
             className={cn(
-              'flex-1 flex flex-col items-center justify-center gap-1 relative transition-all duration-200',
-              'text-xs font-medium min-h-16',
-              'border-b-[3px] border-transparent',
+              'flex-1 flex flex-col items-center justify-center gap-0.5 relative transition-all duration-200',
+              'text-xs font-medium min-h-[44px] min-w-[44px]',
+              'border-b-2 border-transparent',
+              'active:scale-95',
               isActive(tab.href)
                 ? 'text-accent-700 dark:text-accent-300 border-accent-700 dark:border-accent-400'
                 : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-accent-300'
@@ -87,7 +88,7 @@ export function MobileBottomNav({ onMoreClick }: MobileBottomNavProps) {
             <span className="flex-shrink-0 flex items-center justify-center">
               {tab.icon}
             </span>
-            <span className="truncate">{tab.label}</span>
+            <span className="truncate text-[10px]">{tab.label}</span>
           </Link>
         ))}
 
@@ -97,9 +98,10 @@ export function MobileBottomNav({ onMoreClick }: MobileBottomNavProps) {
           variant="ghost"
           size="sm"
           className={cn(
-            'flex-1 h-16 flex flex-col items-center justify-center gap-1 rounded-none border-none',
+            'flex-1 h-16 flex flex-col items-center justify-center gap-0.5 rounded-none border-none',
             'text-xs font-medium text-neutral-600 dark:text-neutral-400',
-            'hover:text-neutral-900 dark:hover:text-accent-300 hover:bg-transparent'
+            'hover:text-neutral-900 dark:hover:text-accent-300 hover:bg-transparent',
+            'min-h-[44px] min-w-[44px] active:scale-95'
           )}
           aria-label="More options"
           title="Mehr Optionen"
@@ -107,7 +109,7 @@ export function MobileBottomNav({ onMoreClick }: MobileBottomNavProps) {
           <span className="flex-shrink-0 flex items-center justify-center">
             <Menu className="w-5 h-5" />
           </span>
-          <span className="truncate">Mehr</span>
+          <span className="truncate text-[10px]">Mehr</span>
         </Button>
       </div>
 

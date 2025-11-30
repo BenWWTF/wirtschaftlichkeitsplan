@@ -46,7 +46,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       <DashboardNav practiceName={practiceName} />
 
       {/* Main Content Area */}
-      <main className="flex-1 pb-20 md:pb-0 md:ml-64">
+      <main className="flex-1 pb-16 md:pb-0 md:ml-64">
         <div className="p-4 md:p-6">
           <Suspense fallback={null}>
             <BreadcrumbNav />
