@@ -7,6 +7,8 @@ import { getAdvancedAnalytics } from '@/lib/actions/analytics'
 import { ReportsView } from '@/components/dashboard/reports-view'
 import { RelatedPages } from '@/components/dashboard/related-pages'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'Geschäftsberichte - Wirtschaftlichkeitsplan',
   description: 'Detaillierte Geschäftsberichte und Analysen'
