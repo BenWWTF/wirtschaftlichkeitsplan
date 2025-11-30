@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { getTherapies } from '@/lib/actions/therapies'
 import { PlanningView } from '@/components/dashboard/planning-view'
+import { RelatedPages } from '@/components/dashboard/related-pages'
 
 export const metadata = {
   title: 'Monatliche Planung - Wirtschaftlichkeitsplan',
@@ -17,6 +18,7 @@ export default async function PlanungPage() {
         <Suspense fallback={<div className="text-center py-12">Lädt...</div>}>
           <PlanningView therapies={therapies} />
         </Suspense>
+        <RelatedPages currentPage="/dashboard/planung" />
       </div>
     </main>
   )

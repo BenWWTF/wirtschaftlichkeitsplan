@@ -2,6 +2,7 @@
 
 import { getPracticeSettings } from '@/lib/actions/settings'
 import { SettingsForm } from '@/components/dashboard/settings-form'
+import { RelatedPages } from '@/components/dashboard/related-pages'
 import { Settings } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { PracticeSettings } from '@/lib/types'
@@ -40,6 +41,7 @@ export default function EinstellungenPage() {
           {/* Form */}
           <SettingsForm settings={settings} onSaveSuccess={loadSettings} />
         </div>
+        <RelatedPages currentPage="/dashboard/einstellungen" />
       </div>
     </main>
   )

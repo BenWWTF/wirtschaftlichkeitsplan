@@ -5,6 +5,7 @@ import {
 } from '@/lib/actions/dashboard'
 import { getAdvancedAnalytics } from '@/lib/actions/analytics'
 import { ReportsView } from '@/components/dashboard/reports-view'
+import { RelatedPages } from '@/components/dashboard/related-pages'
 
 export const metadata = {
   title: 'Geschäftsberichte - Wirtschaftlichkeitsplan',
@@ -35,6 +36,7 @@ export default async function BerichtePage() {
           summary={summary}
           analytics={analytics}
         />
+        <RelatedPages currentPage="/dashboard/berichte" />
       </div>
     </main>
   )

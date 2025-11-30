@@ -1,6 +1,7 @@
 import { getUnifiedMetrics } from '@/lib/metrics/unified-metrics'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { ForecastTab } from '@/components/dashboard/analyse/forecast-tab'
+import { RelatedPages } from '@/components/dashboard/related-pages'
 
 export const metadata = {
   title: 'Prognose - Wirtschaftlichkeitsplan',
@@ -40,6 +41,7 @@ export default async function AnalysePage() {
 
         {/* Content */}
         <ForecastTab metrics={metrics} />
+        <RelatedPages currentPage="/dashboard/analyse" />
       </div>
     </main>
   )

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { RelatedPages } from '@/components/dashboard/related-pages'
 import { TaxInputForm } from '@/components/tax-forecast/tax-input-form'
 import { TaxCalculationSummary } from '@/components/tax-forecast/tax-calculation-summary'
 import { ScenarioComparison } from '@/components/tax-forecast/scenario-comparison'
@@ -219,6 +220,7 @@ export default function SteuerprognosePage() {
             />
           </TabsContent>
         </Tabs>
+        <RelatedPages currentPage="/dashboard/steuerprognose" />
       </div>
     </main>
   )
