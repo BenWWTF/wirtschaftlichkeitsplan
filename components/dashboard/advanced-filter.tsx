@@ -199,7 +199,7 @@ export function AdvancedFilter({
         <div className="space-y-3 mb-4">
           {filters.length === 0 ? (
             <p className="text-sm text-gray-500 dark:text-gray-400 py-4">
-              Keine Filter hinzugefügt. Klicken Sie auf "Filter hinzufügen", um zu beginnen.
+              Keine Filter hinzugefügt. Klicken Sie auf &quot;Filter hinzufügen&quot;, um zu beginnen.
             </p>
           ) : (
             filters.map((filter, index) => (

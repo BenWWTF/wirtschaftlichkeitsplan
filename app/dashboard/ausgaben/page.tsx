@@ -2,6 +2,8 @@ import { getExpenses } from '@/lib/actions/expenses'
 import { ExpenseList } from '@/components/dashboard/expense-list'
 import { RelatedPages } from '@/components/dashboard/related-pages'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'Ausgaben - Wirtschaftlichkeitsplan',
   description: 'Verwalten Sie Ihre Betriebsausgaben'
