@@ -83,6 +83,8 @@ export function MonthSelector({
               size="icon"
               onClick={handlePreviousYear}
               className="h-8 w-8"
+              aria-label="Vorheriges Jahr"
+              title="Vorheriges Jahr"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -94,6 +96,8 @@ export function MonthSelector({
               size="icon"
               onClick={handleNextYear}
               className="h-8 w-8"
+              aria-label="Nächstes Jahr"
+              title="Nächstes Jahr"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
