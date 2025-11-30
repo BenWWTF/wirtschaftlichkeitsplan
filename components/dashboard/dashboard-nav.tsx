@@ -151,7 +151,7 @@ export function DashboardNav({ practiceName = '' }: DashboardNavProps) {
                 'text-sm font-medium group',
                 isActive(item.href)
                   ? 'bg-accent-100 text-accent-900 dark:bg-accent-900/30 dark:text-accent-200 shadow-sm'
-                  : 'text-neutral-600 hover:bg-neutral-100/60 dark:text-neutral-400 dark:hover:bg-accent-900/10 hover:text-neutral-900 dark:hover:text-accent-300'
+                  : 'text-neutral-600 hover:bg-neutral-100/60 dark:text-neutral-200 dark:hover:bg-accent-900/10 hover:text-neutral-900 dark:hover:text-accent-300'
               )}
               onClick={() => setIsMobileMenuOpen(false)}
               aria-current={isActive(item.href) ? 'page' : undefined}
@@ -179,7 +179,7 @@ export function DashboardNav({ practiceName = '' }: DashboardNavProps) {
             </p>
             <div className="flex items-center gap-2 mt-2">
               <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-              <span className="text-xs text-neutral-500 dark:text-neutral-500">
+              <span className="text-xs text-neutral-500 dark:text-neutral-300">
                 Online
               </span>
             </div>
@@ -235,7 +235,7 @@ export function DashboardNav({ practiceName = '' }: DashboardNavProps) {
                     'text-sm font-medium',
                     isActive(item.href)
                       ? 'bg-accent-100 text-accent-900 dark:bg-accent-900/30 dark:text-accent-200'
-                      : 'text-neutral-700 hover:bg-white dark:text-neutral-300 dark:hover:bg-accent-900/10 dark:hover:text-accent-300'
+                      : 'text-neutral-700 hover:bg-white dark:text-neutral-100 dark:hover:bg-accent-900/10 dark:hover:text-accent-300'
                   )}
                   onClick={() => setIsMobileMenuOpen(false)}
                   aria-current={isActive(item.href) ? 'page' : undefined}
