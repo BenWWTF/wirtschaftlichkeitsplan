@@ -231,14 +231,14 @@ export function TaxCalculationSummary({
               <h4 className="text-sm font-semibold text-neutral-900 dark:text-white">
                 Angestellteneinkommen
               </h4>
-              <div className="flex justify-between items-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+              <div className="flex justify-between items-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-sm">
                 <span className="text-sm">Jahresbrutto</span>
                 <span className="text-sm font-semibold">
                   {formatEuro(result.employmentGross)}
                 </span>
               </div>
               {result.employeeSs > 0 && (
-                <div className="flex justify-between items-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+                <div className="flex justify-between items-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-sm">
                   <span className="text-sm">Sozialversicherung (Angestellte)</span>
                   <span className="text-sm font-semibold">
                     -{formatEuro(result.employeeSs)}
@@ -254,14 +254,14 @@ export function TaxCalculationSummary({
               <h4 className="text-sm font-semibold text-neutral-900 dark:text-white">
                 Selbständiges Einkommen
               </h4>
-              <div className="flex justify-between items-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+              <div className="flex justify-between items-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-sm">
                 <span className="text-sm">Gewinn</span>
                 <span className="text-sm font-semibold">
                   {formatEuro(result.selfEmploymentProfit)}
                 </span>
               </div>
               {result.gewinnfreibetrag > 0 && (
-                <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-sm border border-green-200 dark:border-green-800">
                   <span className="text-sm text-green-900 dark:text-green-100">
                     Gewinnfreibetrag (15%)
                   </span>
@@ -271,7 +271,7 @@ export function TaxCalculationSummary({
                 </div>
               )}
               {result.selfEmployedSs > 0 && (
-                <div className="flex justify-between items-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+                <div className="flex justify-between items-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-sm">
                   <span className="text-sm">Sozialversicherung (SVS)</span>
                   <span className="text-sm font-semibold">
                     -{formatEuro(result.selfEmployedSs)}
@@ -286,24 +286,24 @@ export function TaxCalculationSummary({
             <h4 className="text-sm font-semibold text-neutral-900 dark:text-white">
               Einkommensteuer
             </h4>
-            <div className="flex justify-between items-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+            <div className="flex justify-between items-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-sm">
               <span className="text-sm">Einkommensteuer (nach Gutschriften)</span>
               <span className="text-sm font-semibold">
                 {formatEuro(result.totalIncomeTax)}
               </span>
             </div>
             {result.appliedCredits > 0 && (
-              <div className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                <span className="text-sm text-blue-900 dark:text-blue-100">
+              <div className="flex justify-between items-center p-3 bg-primary-50 dark:bg-primary-900/20 rounded-sm border border-primary-200 dark:border-primary-800">
+                <span className="text-sm text-primary-900 dark:text-primary-100">
                   Absetzbeträge (Gutschriften)
                 </span>
-                <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                <span className="text-sm font-semibold text-primary-600 dark:text-primary-400">
                   -{formatEuro(result.appliedCredits)}
                 </span>
               </div>
             )}
             {result.taxLiability !== 0 && (
-              <div className="flex justify-between items-center p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+              <div className="flex justify-between items-center p-3 bg-amber-50 dark:bg-amber-900/20 rounded-sm border border-amber-200 dark:border-amber-800">
                 <span className="text-sm font-medium text-amber-900 dark:text-amber-100">
                   {result.taxLiability > 0 ? 'Steuernachzahlung' : 'Steuerrückerstattung'}
                 </span>
@@ -377,14 +377,14 @@ export function TaxCalculationSummary({
                   ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
                   : tip.type === 'success'
                     ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                    : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                    : 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800'
 
               const textColor =
                 tip.type === 'warning'
                   ? 'text-amber-800 dark:text-amber-200'
                   : tip.type === 'success'
                     ? 'text-green-800 dark:text-green-200'
-                    : 'text-blue-800 dark:text-blue-200'
+                    : 'text-primary-800 dark:text-primary-200'
 
               const IconComponent =
                 tip.type === 'warning'
@@ -422,7 +422,7 @@ export function TaxCalculationSummary({
       )}
 
       {/* Info Box */}
-      <div className="bg-neutral-100 dark:bg-neutral-800 rounded-lg p-4">
+      <div className="bg-neutral-100 dark:bg-neutral-800 rounded-sm p-4">
         <h4 className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
           ℹ️ Hinweis zur Berechnung
         </h4>

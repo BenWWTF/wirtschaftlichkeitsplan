@@ -2,11 +2,12 @@
 
 import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
-import { Plus, Filter, RotateCw } from 'lucide-react'
+import { Plus, Filter, RotateCw, Upload } from 'lucide-react'
 import type { Expense } from '@/lib/types'
 import { ExpenseTable } from './expense-table'
 import { ExpenseDialogEnhanced } from './expense-dialog-enhanced'
 import { ExportExpensesButton } from './export-expenses-button'
+import { BillScanner, type BillScannerSuggestion } from './bill-scanner'
 import { deleteExpenseAction } from '@/lib/actions/expenses'
 import { toast } from 'sonner'
 import { formatEuro } from '@/lib/utils'
@@ -18,6 +19,7 @@ interface ExpenseListProps {
 
 export function ExpenseList({ expenses: initialExpenses }: ExpenseListProps) {
   const [open, setOpen] = useState(false)
+  const [scannerOpen, setScannerOpen] = useState(false)
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [filterCategory, setFilterCategory] = useState<string>('all')
@@ -32,6 +34,24 @@ export function ExpenseList({ expenses: initialExpenses }: ExpenseListProps) {
 
   const handleCreate = () => {
     setSelectedExpense(null)
+    setOpen(true)
+  }
+
+  const handleScannerSuggestion = (suggestion: BillScannerSuggestion) => {
+    setSelectedExpense({
+      id: '',
+      user_id: '',
+      amount: suggestion.amount,
+      category: suggestion.category_hint || AUSTRIAN_EXPENSE_CATEGORIES[0].category,
+      subcategory: null,
+      description: `${suggestion.vendor_name}: ${suggestion.description}`,
+      expense_date: suggestion.invoice_date,
+      is_recurring: false,
+      recurrence_interval: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    setScannerOpen(false)
     setOpen(true)
   }
 
@@ -104,7 +124,17 @@ export function ExpenseList({ expenses: initialExpenses }: ExpenseListProps) {
         </div>
         <div className="flex gap-2">
           <ExportExpensesButton />
-          <Button onClick={handleCreate} size="lg">
+          {/* Mobile: Show only scanner button */}
+          <Button
+            onClick={() => setScannerOpen(true)}
+            size="lg"
+            className="md:hidden"
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            Rechnung scannen
+          </Button>
+          {/* Desktop: Show both buttons */}
+          <Button onClick={handleCreate} size="lg" className="hidden md:flex">
             <Plus className="h-4 w-4 mr-2" />
             Neue Ausgabe
           </Button>
@@ -228,6 +258,13 @@ export function ExpenseList({ expenses: initialExpenses }: ExpenseListProps) {
           setRefreshKey(k => k + 1)
           toast.success('Ausgabe erfolgreich gespeichert')
         }}
+      />
+
+      {/* Bill Scanner Dialog */}
+      <BillScanner
+        open={scannerOpen}
+        onOpenChange={setScannerOpen}
+        onSuggestion={handleScannerSuggestion}
       />
     </div>
   )

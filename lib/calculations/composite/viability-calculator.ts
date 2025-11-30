@@ -1,9 +1,11 @@
 /**
  * Viability Calculator
  * Calculates overall practice viability score based on multiple metrics
+ * Now supports payment fee deductions (e.g., SumUp 1.39%)
  */
 
 import type { ViabilityScore } from '../types'
+import { calculateNetRevenue } from '../payment-fees'
 
 export interface ViabilityInput {
   totalRevenue: number
@@ -188,4 +190,59 @@ export function calculateImprovementPath(
     additionalSessions,
     feasibility
   }
+}
+
+/**
+ * Calculate viability score with payment fee adjustment
+ * Applies payment fee to gross revenue to get net revenue for calculations
+ *
+ * @param input Viability metrics input (with gross revenue)
+ * @param paymentFeePercentage Payment processing fee percentage
+ * @returns ViabilityScore based on net revenue
+ */
+export function calculateViabilityScoreWithFees(
+  input: ViabilityInput,
+  paymentFeePercentage: number = 0
+): ViabilityScore {
+  // Apply payment fee to get net revenue
+  const netRevenue = calculateNetRevenue(input.totalRevenue, paymentFeePercentage)
+
+  // Use net revenue in viability calculation
+  const adjustedInput: ViabilityInput = {
+    ...input,
+    totalRevenue: netRevenue
+  }
+
+  return calculateViabilityScore(adjustedInput)
+}
+
+/**
+ * Get improvement path with payment fee adjustment
+ * @param currentInput Current metrics (with gross revenue)
+ * @param paymentFeePercentage Payment processing fee percentage
+ * @param targetScore Target viability score
+ * @returns Improvement path based on net revenue
+ */
+export function calculateImprovementPathWithFees(
+  currentInput: ViabilityInput,
+  paymentFeePercentage: number = 0,
+  targetScore: number = 75
+): {
+  currentScore: number
+  targetScore: number
+  revenueNeeded: number
+  expenseReductionNeeded: number
+  additionalSessions: number
+  feasibility: 'easy' | 'moderate' | 'difficult'
+} {
+  // Apply payment fee to get net revenue
+  const netRevenue = calculateNetRevenue(currentInput.totalRevenue, paymentFeePercentage)
+
+  // Use net revenue in improvement path calculation
+  const adjustedInput: ViabilityInput = {
+    ...currentInput,
+    totalRevenue: netRevenue
+  }
+
+  return calculateImprovementPath(adjustedInput, targetScore)
 }

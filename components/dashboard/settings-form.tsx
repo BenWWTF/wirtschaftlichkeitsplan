@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -54,6 +54,22 @@ export function SettingsForm({ settings, onSaveSuccess }: SettingsFormProps) {
       payment_processing_fee_percentage: 1.39,
     },
   })
+
+  // Reset form when settings data changes
+  useEffect(() => {
+    if (settings) {
+      form.reset({
+        practice_name: settings.practice_name,
+        practice_type: settings.practice_type,
+        monthly_fixed_costs: settings.monthly_fixed_costs,
+        average_variable_cost_per_session: settings.average_variable_cost_per_session,
+        expected_growth_rate: settings.expected_growth_rate,
+        payment_processing_fee_percentage: settings.payment_processing_fee_percentage,
+      })
+      // Explicitly update practice_type for Select component
+      form.setValue('practice_type', settings.practice_type)
+    }
+  }, [settings?.id, form])
 
   const onSubmit = async (values: PracticeSettingsInput) => {
     setIsLoading(true)
@@ -125,7 +141,7 @@ export function SettingsForm({ settings, onSaveSuccess }: SettingsFormProps) {
                   <FormLabel>Ordinationstyp</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value || ''}
                     disabled={isLoading}
                   >
                     <FormControl>

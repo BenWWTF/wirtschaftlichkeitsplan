@@ -3,6 +3,7 @@ import {
   getTherapyMetrics,
   getDashboardSummary
 } from '@/lib/actions/dashboard'
+import { getAdvancedAnalytics } from '@/lib/actions/analytics'
 import { ReportsView } from '@/components/dashboard/reports-view'
 
 export const metadata = {
@@ -23,6 +24,7 @@ export default async function BerichtePage() {
   const monthlyData = await getMonthlyMetricsRange(startMonth, endMonth)
   const therapyMetrics = await getTherapyMetrics()
   const summary = await getDashboardSummary()
+  const analytics = await getAdvancedAnalytics()
 
   return (
     <main className="min-h-screen bg-white dark:bg-neutral-950">
@@ -31,6 +33,7 @@ export default async function BerichtePage() {
           monthlyData={monthlyData}
           therapyMetrics={therapyMetrics}
           summary={summary}
+          analytics={analytics}
         />
       </div>
     </main>

@@ -23,18 +23,6 @@ const NAV_TABS: NavTab[] = [
     ariaLabel: 'Dashboard - Übersicht',
   },
   {
-    href: '/dashboard/therapien',
-    label: 'Therapien',
-    icon: <Pill className="w-5 h-5" />,
-    ariaLabel: 'Therapiearten verwalten',
-  },
-  {
-    href: '/dashboard/planung',
-    label: 'Planung',
-    icon: <Calendar className="w-5 h-5" />,
-    ariaLabel: 'Monatliche Planung',
-  },
-  {
     href: '/dashboard/ausgaben',
     label: 'Ausgaben',
     icon: <Receipt className="w-5 h-5" />,

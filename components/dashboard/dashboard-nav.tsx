@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, Calendar, FileText, Pill, Home, Receipt, Upload, Settings, Calculator } from 'lucide-react'
+import { Menu, X, Calendar, FileText, Pill, Home, Receipt, Settings, Calculator, BarChart3 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useIsMobile } from '@/components/ui/hooks/useMediaQuery'
 import { MobileBottomNav } from './mobile-bottom-nav'
+import { ThemeToggle } from './theme-toggle'
 
 interface NavItem {
   href: string
@@ -36,6 +37,11 @@ const NAV_ITEMS: NavItem[] = [
     shortcut: 'Alt+P',
   },
   {
+    href: '/dashboard/ergebnisse',
+    label: 'Monatliche Ergebnisse',
+    icon: <BarChart3 className="w-5 h-5" />,
+  },
+  {
     href: '/dashboard/ausgaben',
     label: 'Ausgaben',
     icon: <Receipt className="w-5 h-5" />,
@@ -45,11 +51,6 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Meine Steuerprognose',
     icon: <Calculator className="w-5 h-5" />,
     shortcut: 'Alt+S',
-  },
-  {
-    href: '/dashboard/import',
-    label: 'Daten Import',
-    icon: <Upload className="w-5 h-5" />,
   },
   {
     href: '/dashboard/berichte',
@@ -170,7 +171,8 @@ export function DashboardNav({ practiceName = '' }: DashboardNavProps) {
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-neutral-200 px-3 py-4 dark:border-accent-700/20">
+        <div className="border-t border-neutral-200 px-3 py-4 dark:border-accent-700/20 space-y-2">
+          <ThemeToggle />
           <div className="px-3">
             <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium">
               v1.0
@@ -243,6 +245,9 @@ export function DashboardNav({ practiceName = '' }: DashboardNavProps) {
                   <span className="flex-1">{item.label}</span>
                 </Link>
               ))}
+            </div>
+            <div className="border-t border-neutral-200 px-3 py-3 dark:border-accent-700/20">
+              <ThemeToggle />
             </div>
           </nav>
         )}

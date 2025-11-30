@@ -1,9 +1,11 @@
 /**
  * Margin Calculator
  * Pure functions for calculating profitability and margin metrics
+ * Now includes fee-aware calculations for payment processing fees (e.g., SumUp 1.39%)
  */
 
 import type { MarginResult, ContributionMargin } from '../types'
+import { calculateNetContributionMargin, calculateBreakEvenSessionsWithFees, calculateProfitWithFees, calculateProfitMarginWithFees } from '../payment-fees'
 
 /**
  * Calculate margin (profit/loss)
@@ -176,4 +178,136 @@ export function calculateMarginTrend(
     return currentMargin > 0 ? 100 : 0
   }
   return ((currentMargin - previousMargin) / Math.abs(previousMargin)) * 100
+}
+
+/**
+ * Calculate contribution margin per session AFTER payment fees
+ * Net contribution margin = (price per session - fee) - variable cost per session
+ *
+ * @param pricePerSession Gross price per individual session
+ * @param variableCostPerSession Variable cost per session
+ * @param paymentFeePercentage Payment processing fee percentage (e.g., 1.39)
+ * @returns ContributionMargin with net values after fees
+ */
+export function calculateContributionMarginAfterFees(
+  pricePerSession: number,
+  variableCostPerSession: number,
+  paymentFeePercentage: number = 0
+): ContributionMargin {
+  const netMargin = calculateNetContributionMargin(
+    pricePerSession,
+    variableCostPerSession,
+    paymentFeePercentage
+  )
+  const marginPercent =
+    pricePerSession > 0 ? (netMargin / pricePerSession) * 100 : 0
+
+  return {
+    pricePerSession: netMargin,
+    variableCostPerSession,
+    margin: netMargin,
+    marginPercent
+  }
+}
+
+/**
+ * Calculate break-even sessions AFTER payment fees
+ * Accounts for net revenue after fee deduction
+ *
+ * @param fixedCost Monthly fixed costs
+ * @param pricePerSession Gross session price
+ * @param variableCostPerSession Variable cost per session
+ * @param paymentFeePercentage Payment processing fee percentage
+ * @returns Number of sessions needed to break even (after fees)
+ */
+export function calculateBreakEvenSessionsAfterFees(
+  fixedCost: number,
+  pricePerSession: number,
+  variableCostPerSession: number,
+  paymentFeePercentage: number = 0
+): number {
+  return calculateBreakEvenSessionsWithFees(
+    fixedCost,
+    pricePerSession,
+    variableCostPerSession,
+    paymentFeePercentage
+  )
+}
+
+/**
+ * Calculate profit at different session volumes AFTER fees
+ * @param sessionsCompleted Sessions actually completed
+ * @param pricePerSession Gross session price
+ * @param variableCostPerSession Variable cost per session
+ * @param fixedCost Fixed costs
+ * @param paymentFeePercentage Payment processing fee percentage
+ * @returns Net profit/loss after fees
+ */
+export function calculateProfitAtVolumeAfterFees(
+  sessionsCompleted: number,
+  pricePerSession: number,
+  variableCostPerSession: number,
+  fixedCost: number,
+  paymentFeePercentage: number = 0
+): number {
+  return calculateProfitWithFees(
+    sessionsCompleted,
+    pricePerSession,
+    variableCostPerSession,
+    fixedCost,
+    paymentFeePercentage
+  )
+}
+
+/**
+ * Calculate sessions needed to reach a profit target AFTER fees
+ * @param profitTarget Target profit to achieve
+ * @param pricePerSession Gross session price
+ * @param variableCostPerSession Variable cost per session
+ * @param fixedCost Fixed costs
+ * @param paymentFeePercentage Payment processing fee percentage
+ * @returns Sessions needed to achieve target (after fees)
+ */
+export function calculateSessionsForProfitTargetAfterFees(
+  profitTarget: number,
+  pricePerSession: number,
+  variableCostPerSession: number,
+  fixedCost: number,
+  paymentFeePercentage: number = 0
+): number {
+  const netContributionMargin = calculateNetContributionMargin(
+    pricePerSession,
+    variableCostPerSession,
+    paymentFeePercentage
+  )
+
+  if (netContributionMargin <= 0) {
+    return Infinity
+  }
+  return (profitTarget + fixedCost) / netContributionMargin
+}
+
+/**
+ * Calculate profitability ratio AFTER fees
+ * @param sessions Number of sessions
+ * @param pricePerSession Gross session price
+ * @param variableCostPerSession Variable cost per session
+ * @param fixedCost Fixed costs
+ * @param paymentFeePercentage Payment processing fee percentage
+ * @returns Profitability ratio as percentage
+ */
+export function calculateProfitabilityRatioAfterFees(
+  sessions: number,
+  pricePerSession: number,
+  variableCostPerSession: number,
+  fixedCost: number,
+  paymentFeePercentage: number = 0
+): number {
+  return calculateProfitMarginWithFees(
+    sessions,
+    pricePerSession,
+    variableCostPerSession,
+    fixedCost,
+    paymentFeePercentage
+  )
 }

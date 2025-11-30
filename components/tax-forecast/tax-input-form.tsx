@@ -293,8 +293,8 @@ export function TaxInputForm({ onCalculate, isLoading = false }: TaxInputFormPro
                 </div>
 
                 {/* Quick Info */}
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                <div className="bg-primary-50 dark:bg-primary-900/20 p-3 rounded-sm border border-primary-200 dark:border-primary-800">
+                  <p className="text-sm text-primary-800 dark:text-primary-200">
                     <strong>Gewinn:</strong>{' '}
                     €
                     {((selfEmployment.totalRevenue || 0) - (selfEmployment.businessExpenses || 0)).toLocaleString(
@@ -387,7 +387,7 @@ export function TaxInputForm({ onCalculate, isLoading = false }: TaxInputFormPro
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Commuter Credit */}
-              <div className="flex items-center justify-between p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-neutral-50 dark:bg-neutral-800 rounded-sm">
                 <div>
                   <Label htmlFor="credit-commuter" className="text-sm font-medium cursor-pointer">
                     Verkehrsabsetzbetrag
@@ -447,7 +447,7 @@ export function TaxInputForm({ onCalculate, isLoading = false }: TaxInputFormPro
       </Button>
 
       {/* Info Box */}
-      <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
+      <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-sm border border-amber-200 dark:border-amber-800">
         <p className="text-sm text-amber-800 dark:text-amber-200">
           <strong>ℹ️ Hinweis:</strong> Diese Berechnung basiert auf vereinfachten
           Annahmen und österreichischen Steuersätzen {taxYear}. Für eine verbindliche

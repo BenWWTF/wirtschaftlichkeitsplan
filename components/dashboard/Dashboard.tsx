@@ -6,15 +6,22 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { DataViewToggle, VarianceAlerts, KPICards } from './primary-view'
+import { ChevronLeft, ChevronRight, X, TrendingUp, DollarSign, Target, AlertCircle } from 'lucide-react'
+import { DataViewToggle, KPICards } from './primary-view'
 import { TherapyPerformanceMatrix } from './detail-view'
+import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { MetricExplanation } from './metric-explanation'
 import { getUnifiedMetrics } from '@/lib/metrics/unified-metrics'
 import type {
   MetricsScope,
   ComparisonMode,
   UnifiedMetricsResponse
 } from '@/lib/metrics/unified-metrics'
+
+const MONTHS = [
+  'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+  'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'
+]
 
 interface DashboardProps {
   /**
@@ -38,6 +45,8 @@ export function Dashboard({
     const today = new Date()
     return new Date(today.getFullYear(), today.getMonth(), 1)
   })
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+  const [viewYear, setViewYear] = useState(selectedDate.getFullYear())
 
   // Map data view mode to comparison mode
   const comparisonMode: ComparisonMode = dataViewMode === 'prognose' ? 'none' : 'plan'
@@ -46,16 +55,15 @@ export function Dashboard({
   const [error, setError] = useState<string | null>(null)
 
   // Navigation functions
-  const goToPreviousMonth = () => {
-    setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1))
-  }
-
-  const goToNextMonth = () => {
-    setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1))
+  const handleSelectMonth = (month: number) => {
+    setSelectedDate(new Date(viewYear, month - 1, 1))
+    setIsCalendarOpen(false)
   }
 
   const goToToday = () => {
     setSelectedDate(new Date())
+    setViewYear(new Date().getFullYear())
+    setIsCalendarOpen(false)
   }
 
   // Fetch metrics when scope, comparison mode, or date changes
@@ -130,20 +138,89 @@ export function Dashboard({
     }
   }
 
+  const selectedMonth = selectedDate.getMonth() + 1
+  const selectedYear = selectedDate.getFullYear()
+
   return (
     <div className="space-y-8">
-      {/* Period Header with Navigation */}
+      {/* Breadcrumb Navigation */}
+      <section className="border-b border-neutral-200 dark:border-neutral-800 pb-4">
+        <Breadcrumb
+          items={[
+            { label: 'Wirtschaftlichkeitsplan', href: '/dashboard' }
+          ]}
+          className="text-xs sm:text-sm"
+        />
+      </section>
+
+      {/* Period Header with Calendar Navigation */}
       <section className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-lg border border-blue-200 dark:border-blue-800 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            {/* Previous Month Button */}
-            <button
-              onClick={goToPreviousMonth}
-              className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
-              aria-label="Previous month"
-            >
-              <ChevronLeft className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            </button>
+            {/* Calendar Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+                className="px-4 py-2 bg-white dark:bg-neutral-800 border border-blue-300 dark:border-blue-700 rounded-lg hover:bg-blue-50 dark:hover:bg-neutral-700 transition-colors font-medium text-neutral-900 dark:text-white flex items-center gap-2"
+              >
+                <span>{MONTHS[selectedMonth - 1]} {selectedYear}</span>
+                <span className={`transform transition-transform ${isCalendarOpen ? 'rotate-180' : ''}`}>▼</span>
+              </button>
+
+              {/* Calendar Popover */}
+              {isCalendarOpen && (
+                <div className="absolute top-full left-0 mt-2 z-50 bg-white dark:bg-neutral-800 border border-blue-200 dark:border-blue-700 rounded-lg shadow-lg p-4 w-72">
+                  {/* Year Navigation */}
+                  <div className="flex items-center justify-between mb-4">
+                    <button
+                      onClick={() => setViewYear(viewYear - 1)}
+                      className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <span className="text-lg font-semibold text-neutral-900 dark:text-white">
+                      {viewYear}
+                    </span>
+                    <button
+                      onClick={() => setViewYear(viewYear + 1)}
+                      className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  {/* Month Grid */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {Array.from({ length: 12 }, (_, i) => {
+                      const month = i + 1
+                      const isSelected = selectedYear === viewYear && selectedMonth === month
+
+                      return (
+                        <button
+                          key={month}
+                          onClick={() => handleSelectMonth(month)}
+                          className={`py-2 px-2 rounded text-sm font-medium transition-colors ${
+                            isSelected
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-blue-50 dark:bg-blue-950/30 text-neutral-900 dark:text-white hover:bg-blue-100 dark:hover:bg-blue-900/50'
+                          }`}
+                        >
+                          {MONTHS[month - 1].slice(0, 3)}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {/* Close Button */}
+                  <button
+                    onClick={() => setIsCalendarOpen(false)}
+                    className="absolute top-2 right-2 p-1 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Period Display */}
             <div>
@@ -157,15 +234,6 @@ export function Dashboard({
                 {metrics.period.start.toLocaleDateString('de-DE')} – {metrics.period.end.toLocaleDateString('de-DE')}
               </p>
             </div>
-
-            {/* Next Month Button */}
-            <button
-              onClick={goToNextMonth}
-              className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
-              aria-label="Next month"
-            >
-              <ChevronRight className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            </button>
           </div>
 
           {/* Current Month Button */}
@@ -186,21 +254,53 @@ export function Dashboard({
         />
       </section>
 
-      {/* Tier 2: Variance Alerts */}
-      {metrics.variances.length > 0 && (
-        <section>
-          <VarianceAlerts alerts={metrics.variances} />
-        </section>
-      )}
-
       {/* Tier 2: Primary KPI Cards */}
       <section>
-        <div className="mb-4">
-          <h2 className="text-lg font-bold text-neutral-900 dark:text-white">
-            Leistungskennzahlen
-          </h2>
-        </div>
         <KPICards metrics={metrics} dataViewMode={dataViewMode} />
+      </section>
+
+      {/* Tier 2.5: Metric Explanations - "Why This Matters" */}
+      <section>
+        <div className="mb-6">
+          <h2 className="text-lg font-bold text-neutral-900 dark:text-white mb-2">
+            Was bedeuten diese Zahlen?
+          </h2>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            Verstehen Sie, wie Ihre Kennzahlen zusammenhängen und welche Maßnahmen diese beeinflussen.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <MetricExplanation
+            icon={<DollarSign className="h-5 w-5" />}
+            title="Monatlicher Umsatz"
+            value={metrics.totalGrossRevenue.toLocaleString('de-DE', { maximumFractionDigits: 0 })}
+            unit="€"
+            description="Summe aller Einnahmen aus Therapiesitzungen in diesem Zeitraum. Berechnet als: Anzahl der Sitzungen × Preis pro Sitzung für jede Therapieart."
+            benchmark="Steigen Sie ab, wenn Sie mehr Patienten behandeln oder die Preise erhöhen."
+            actionLabel="Preise in der Planung anpassen"
+            actionHref="/dashboard/planung"
+          />
+          <MetricExplanation
+            icon={<Target className="h-5 w-5" />}
+            title="Kosten gesamt"
+            value={(metrics.totalExpenses + metrics.sumupCosts).toLocaleString('de-DE', { maximumFractionDigits: 0 })}
+            unit="€"
+            description="Die Summe aller Ihrer fixen und variablen Kosten für diesen Zeitraum, einschließlich Therapieraum, Material und Verwaltung."
+            benchmark="Versuchen Sie, Kosten unter 55% des Umsatzes zu halten."
+            actionLabel="Kosten überprüfen"
+            actionHref="/dashboard/ausgaben"
+          />
+          <MetricExplanation
+            icon={<TrendingUp className="h-5 w-5" />}
+            title="Gewinn (Netto)"
+            value={metrics.netIncome.toLocaleString('de-DE', { maximumFractionDigits: 0 })}
+            unit="€"
+            description="Das Geld, das nach Abzug aller Kosten (einschließlich SumUp-Gebühren) von Ihren Einnahmen übrig bleibt. Dies ist der tatsächliche Nettogewinn Ihrer Praxis."
+            benchmark="Ein positiver Gewinn bedeutet, dass Ihre Praxis profitabel ist."
+            actionLabel="Prognose erstellen"
+            actionHref="/dashboard/analyse"
+          />
+        </div>
       </section>
 
       {/* Tier 3: Therapy Performance */}

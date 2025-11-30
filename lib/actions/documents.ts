@@ -207,8 +207,12 @@ export async function parseBillImage(
       return { error: 'Authentifizierung erforderlich' }
     }
 
-    // Import OCR utilities for text parsing
-    const { parseInvoiceText, suggestCategory } = await import('@/lib/ocr-utils')
+    // Import invoice parser (server-side) and OCR utilities
+    const { parseInvoiceText, suggestCategory, debugExtractedText } = await import('@/lib/invoice-parser')
+
+    // Log raw extracted text for debugging - DETAILED
+    console.log('Raw extracted text length:', extractedText.length)
+    debugExtractedText(extractedText)
 
     // Parse the extracted text to find invoice details
     const parsed = parseInvoiceText(extractedText)

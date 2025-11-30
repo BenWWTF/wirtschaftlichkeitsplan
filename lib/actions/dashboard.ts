@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import type { TherapyType, MonthlyPlan } from '@/lib/types'
+import { calculateNetRevenue, calculateSumUpCosts, calculateTotalCostsWithSumUp } from '@/lib/calculations/payment-fees'
 
 export interface MonthlyMetrics {
   month: string
@@ -9,10 +10,19 @@ export interface MonthlyMetrics {
   actual_sessions: number
   planned_revenue: number
   actual_revenue: number
+  actual_revenue_after_fees: number
+  planned_revenue_after_fees: number
   total_expenses: number
   planned_margin: number
   actual_margin: number
+  planned_margin_after_fees: number
+  actual_margin_after_fees: number
   profitability: number
+  profitability_after_fees: number
+  // SumUp costs as separate line item
+  planned_sumup_costs: number
+  actual_sumup_costs: number
+  total_costs_with_sumup: number
 }
 
 export interface TherapyMetrics {
@@ -28,6 +38,8 @@ export interface TherapyMetrics {
 export interface DashboardSummary {
   total_revenue: number
   total_expenses: number
+  sumup_costs: number
+  total_costs_with_sumup: number
   net_income: number
   total_sessions: number
   average_session_price: number
@@ -46,6 +58,15 @@ export async function getMonthlyMetrics(month: string): Promise<MonthlyMetrics |
     console.error('[getMonthlyMetrics] Authentication error:', authError)
     return null
   }
+
+  // Fetch practice settings to get payment fee percentage
+  const { data: settings } = await supabase
+    .from('practice_settings')
+    .select('payment_processing_fee_percentage')
+    .eq('user_id', user.id)
+    .single()
+
+  const paymentFeePercentage = settings?.payment_processing_fee_percentage || 0
 
   // Convert YYYY-MM to YYYY-MM-01 for date column
   const monthDate = month.includes('-') && month.length === 7
@@ -125,7 +146,21 @@ export async function getMonthlyMetrics(month: string): Promise<MonthlyMetrics |
   // Calculate total expenses for this month
   const monthlyExpenses = expenses?.reduce((sum, e) => sum + e.amount, 0) || 0
 
+  // Apply payment fee to calculate net values
+  const totalPlannedRevenueAfterFees = calculateNetRevenue(totalPlannedRevenue, paymentFeePercentage)
+  const totalActualRevenueAfterFees = calculateNetRevenue(totalActualRevenue, paymentFeePercentage)
+
+  const feeDeductionFactor = 1 - (paymentFeePercentage / 100)
+  const totalPlannedMarginAfterFees = totalPlannedMargin * feeDeductionFactor
+  const totalActualMarginAfterFees = totalActualMargin * feeDeductionFactor
+
   const profitability = totalActualMargin - monthlyExpenses
+  const profitabilityAfterFees = totalActualMarginAfterFees - monthlyExpenses
+
+  // Calculate SumUp costs as separate line item
+  const plannedSumUpCosts = calculateSumUpCosts(totalPlannedRevenue, paymentFeePercentage)
+  const actualSumUpCosts = calculateSumUpCosts(totalActualRevenue, paymentFeePercentage)
+  const totalCostsWithSumUp = calculateTotalCostsWithSumUp(monthlyExpenses, totalActualRevenue, paymentFeePercentage)
 
   return {
     month,
@@ -133,10 +168,18 @@ export async function getMonthlyMetrics(month: string): Promise<MonthlyMetrics |
     actual_sessions: totalActualSessions,
     planned_revenue: totalPlannedRevenue,
     actual_revenue: totalActualRevenue,
+    actual_revenue_after_fees: totalActualRevenueAfterFees,
+    planned_revenue_after_fees: totalPlannedRevenueAfterFees,
     total_expenses: monthlyExpenses,
     planned_margin: totalPlannedMargin,
     actual_margin: totalActualMargin,
-    profitability
+    planned_margin_after_fees: totalPlannedMarginAfterFees,
+    actual_margin_after_fees: totalActualMarginAfterFees,
+    profitability,
+    profitability_after_fees: profitabilityAfterFees,
+    planned_sumup_costs: plannedSumUpCosts,
+    actual_sumup_costs: actualSumUpCosts,
+    total_costs_with_sumup: totalCostsWithSumUp
   }
 }
 
@@ -144,8 +187,8 @@ export async function getMonthlyMetrics(month: string): Promise<MonthlyMetrics |
  * Get metrics for multiple months
  */
 export async function getMonthlyMetricsRange(
-  startMonth: string,
-  endMonth: string
+  startMonthOrMonthsBack: string | number,
+  endMonth?: string
 ): Promise<MonthlyMetrics[]> {
   const supabase = await createClient()
 
@@ -155,13 +198,42 @@ export async function getMonthlyMetricsRange(
     return []
   }
 
-  // Convert YYYY-MM to YYYY-MM-01 for date column
-  const startDate = startMonth.includes('-') && startMonth.length === 7
-    ? `${startMonth}-01`
-    : startMonth
-  const endDate = endMonth.includes('-') && endMonth.length === 7
-    ? `${endMonth}-01`
-    : endMonth
+  // Handle both calling patterns:
+  // 1. getMonthlyMetricsRange(6) - last 6 months
+  // 2. getMonthlyMetricsRange('2024-01', '2024-06') - specific date range
+  let startDate: string
+  let endDateString: string
+
+  if (typeof startMonthOrMonthsBack === 'number') {
+    // Calculate date range for last N months
+    const today = new Date()
+    const endDateObj = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+    const startDateObj = new Date(today.getFullYear(), today.getMonth() - startMonthOrMonthsBack + 1, 1)
+
+    startDate = startDateObj.toISOString().split('T')[0]
+    endDateString = endDateObj.toISOString().split('T')[0]
+  } else {
+    // Use provided strings
+    const startMonth = startMonthOrMonthsBack
+    endDateString = endMonth || startMonth
+
+    startDate = startMonth.includes('-') && startMonth.length === 7
+      ? `${startMonth}-01`
+      : startMonth
+    endDateString = endDateString.includes('-') && endDateString.length === 7
+      ? `${endDateString}-01`
+      : endDateString
+  }
+
+  // Fetch practice settings to get payment fee percentage
+  const { data: settings } = await supabase
+    .from('practice_settings')
+    .select('payment_processing_fee_percentage')
+    .eq('user_id', user.id)
+    .single()
+
+  const paymentFeePercentage = settings?.payment_processing_fee_percentage || 0
+  const feeDeductionFactor = 1 - (paymentFeePercentage / 100)
 
   // Get all monthly plans in range
   const { data: plans, error: plansError } = await supabase
@@ -169,7 +241,7 @@ export async function getMonthlyMetricsRange(
     .select('month, planned_sessions, actual_sessions, therapy_type_id')
     .eq('user_id', user.id)
     .gte('month', startDate)
-    .lte('month', endDate)
+    .lte('month', endDateString)
     .order('month', { ascending: true })
 
   if (plansError || !plans) {
@@ -211,10 +283,18 @@ export async function getMonthlyMetricsRange(
         actual_sessions: 0,
         planned_revenue: 0,
         actual_revenue: 0,
+        actual_revenue_after_fees: 0,
+        planned_revenue_after_fees: 0,
         total_expenses: 0,
         planned_margin: 0,
         actual_margin: 0,
-        profitability: 0
+        planned_margin_after_fees: 0,
+        actual_margin_after_fees: 0,
+        profitability: 0,
+        profitability_after_fees: 0,
+        planned_sumup_costs: 0,
+        actual_sumup_costs: 0,
+        total_costs_with_sumup: 0
       }
     }
 
@@ -253,10 +333,24 @@ export async function getMonthlyMetricsRange(
     }
   }
 
-  // Calculate profitability
+  // Calculate profitability and apply payment fees
   for (const month in monthlyData) {
-    monthlyData[month].profitability =
-      monthlyData[month].actual_margin - monthlyData[month].total_expenses
+    const data = monthlyData[month]
+
+    // Apply payment fees
+    data.planned_revenue_after_fees = calculateNetRevenue(data.planned_revenue, paymentFeePercentage)
+    data.actual_revenue_after_fees = calculateNetRevenue(data.actual_revenue, paymentFeePercentage)
+    data.planned_margin_after_fees = data.planned_margin * feeDeductionFactor
+    data.actual_margin_after_fees = data.actual_margin * feeDeductionFactor
+
+    // Calculate SumUp costs as separate line item
+    data.planned_sumup_costs = calculateSumUpCosts(data.planned_revenue, paymentFeePercentage)
+    data.actual_sumup_costs = calculateSumUpCosts(data.actual_revenue, paymentFeePercentage)
+    data.total_costs_with_sumup = calculateTotalCostsWithSumUp(data.total_expenses, data.actual_revenue, paymentFeePercentage)
+
+    // Calculate profitability
+    data.profitability = data.actual_margin - data.total_expenses
+    data.profitability_after_fees = data.actual_margin_after_fees - data.total_expenses
   }
 
   return Object.values(monthlyData).sort((a, b) =>
@@ -344,6 +438,8 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
     return {
       total_revenue: 0,
       total_expenses: 0,
+      sumup_costs: 0,
+      total_costs_with_sumup: 0,
       net_income: 0,
       total_sessions: 0,
       average_session_price: 0,
@@ -351,6 +447,15 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
       break_even_status: 'deficit'
     }
   }
+
+  // Fetch practice settings to get payment fee percentage
+  const { data: settings } = await supabase
+    .from('practice_settings')
+    .select('payment_processing_fee_percentage')
+    .eq('user_id', user.id)
+    .single()
+
+  const paymentFeePercentage = settings?.payment_processing_fee_percentage || 0
 
   // Get therapy metrics
   const therapyMetrics = await getTherapyMetrics()
@@ -362,14 +467,20 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
     .eq('user_id', user.id)
 
   const totalRevenue = therapyMetrics.reduce((sum, t) => sum + t.total_revenue, 0)
+  const totalRevenueAfterFees = calculateNetRevenue(totalRevenue, paymentFeePercentage)
   const totalExpenses = expenses?.reduce((sum, e) => sum + e.amount, 0) || 0
   const totalSessions = therapyMetrics.reduce(
     (sum, t) => sum + t.total_actual_sessions,
     0
   )
+
+  // Calculate SumUp costs as separate line item
+  const sumUpCosts = calculateSumUpCosts(totalRevenue, paymentFeePercentage)
+  const totalCostsWithSumUp = calculateTotalCostsWithSumUp(totalExpenses, totalRevenue, paymentFeePercentage)
+
   const averageSessionPrice =
-    totalSessions > 0 ? totalRevenue / totalSessions : 0
-  const netIncome = totalRevenue - totalExpenses
+    totalSessions > 0 ? totalRevenueAfterFees / totalSessions : 0
+  const netIncome = totalRevenue - totalCostsWithSumUp
   const profitabilityRate =
     totalRevenue > 0 ? (netIncome / totalRevenue) * 100 : 0
 
@@ -379,6 +490,8 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
   return {
     total_revenue: totalRevenue,
     total_expenses: totalExpenses,
+    sumup_costs: sumUpCosts,
+    total_costs_with_sumup: totalCostsWithSumUp,
     net_income: netIncome,
     total_sessions: totalSessions,
     average_session_price: averageSessionPrice,

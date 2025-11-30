@@ -1,7 +1,10 @@
+'use client'
+
 /**
  * OCR Utilities for bill and receipt text extraction
  * Uses Tesseract.js for client-side OCR
  * Loads from CDN to avoid webpack chunking issues
+ * Supports PDF rendering via PDF.js
  */
 
 declare global {
@@ -12,6 +15,7 @@ declare global {
         terminate: () => Promise<void>
       }>
     }
+    pdfjsWorker?: any
   }
 }
 
@@ -46,16 +50,113 @@ function loadTesseractScript(): Promise<void> {
   return tesseractScriptLoading
 }
 
-export async function extractTextFromImage(imageBase64: string, fileType: string = 'image/jpeg'): Promise<string> {
+let pdfJsLoading: Promise<any> | null = null
+
+async function loadPdfJsScript(): Promise<any> {
+  // If already loading, wait for it
+  if (pdfJsLoading) {
+    return pdfJsLoading
+  }
+
+  // If already loaded, return immediately
+  if (typeof window !== 'undefined' && (window as any).pdfjsLib) {
+    return (window as any).pdfjsLib
+  }
+
+  pdfJsLoading = new Promise((resolve, reject) => {
+    const script = document.createElement('script')
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'
+    script.async = true
+    script.onload = () => {
+      // Set up worker
+      const pdfjsLib = (window as any).pdfjsLib
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+      pdfJsLoading = null
+      resolve(pdfjsLib)
+    }
+    script.onerror = () => {
+      pdfJsLoading = null
+      reject(new Error('Failed to load PDF.js from CDN'))
+    }
+    document.head.appendChild(script)
+  })
+
+  return pdfJsLoading
+}
+
+async function renderPdfToImages(pdfBase64: string): Promise<string[]> {
+  // Only run in browser environment
+  if (typeof window === 'undefined') {
+    throw new Error('PDF-Verarbeitung ist nur im Browser verfügbar')
+  }
+
   try {
-    // PDF files require manual conversion to images (not supported directly)
-    if (fileType === 'application/pdf') {
-      throw new Error('PDF-Dateien werden von der OCR nicht direkt unterstützt. Bitte konvertieren Sie die PDF zu einem Bild (JPG oder PNG) und versuchen Sie es erneut.')
+    console.log('Setting up PDF.js from CDN...')
+    const pdfjsLib = await loadPdfJsScript()
+
+    // Convert base64 to binary
+    const binaryString = atob(pdfBase64)
+    const bytes = new Uint8Array(binaryString.length)
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i)
     }
 
-    // Only image files are supported for direct OCR
+    console.log('Loading PDF document...')
+    const pdf = await pdfjsLib.getDocument({ data: bytes }).promise
+    const numPages = pdf.numPages
+    console.log(`PDF has ${numPages} pages`)
+
+    const images: string[] = []
+
+    // Process all pages
+    for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+      console.log(`Rendering PDF page ${pageNum}/${numPages} to canvas...`)
+      const page = await pdf.getPage(pageNum)
+      const viewport = page.getViewport({ scale: 2 }) // 2x scale for better OCR quality
+
+      const canvas = document.createElement('canvas')
+      const context = canvas.getContext('2d')
+      if (!context) {
+        throw new Error('Failed to get canvas context')
+      }
+
+      canvas.width = viewport.width
+      canvas.height = viewport.height
+
+      const renderTask = page.render({
+        canvasContext: context,
+        viewport: viewport
+      })
+
+      await renderTask.promise
+
+      // Convert canvas to base64 image
+      const imageBase64 = canvas.toDataURL('image/jpeg').split(',')[1]
+      images.push(imageBase64)
+    }
+
+    console.log(`PDF rendered to ${images.length} images successfully`)
+    return images
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    throw new Error(`PDF-Rendering fehlgeschlagen: ${errorMsg}`)
+  }
+}
+
+export async function extractTextFromImage(imageBase64: string, fileType: string = 'image/jpeg'): Promise<string> {
+  try {
+    let ocrBase64Array: string[] = [imageBase64]
+
+    // Handle PDF files by rendering them to images first
+    if (fileType === 'application/pdf') {
+      console.log('PDF file detected, rendering to images first...')
+      ocrBase64Array = await renderPdfToImages(imageBase64)
+      fileType = 'image/jpeg'
+    }
+
+    // Only image files are supported for OCR
     if (!fileType.startsWith('image/')) {
-      throw new Error('Nur Bilddateien (JPG, PNG, WebP) werden unterstützt')
+      throw new Error('Nur Bilddateien (JPG, PNG, WebP) und PDF-Dateien werden unterstützt')
     }
 
     console.log('Loading Tesseract.js from CDN...')
@@ -66,29 +167,40 @@ export async function extractTextFromImage(imageBase64: string, fileType: string
     }
 
     console.log('Creating Tesseract worker...')
-    const worker = await window.Tesseract.createWorker({
-      logger: (m: any) => console.log('[Tesseract]', m)
-    })
+    const worker = await window.Tesseract.createWorker()
 
     try {
-      // Ensure we have a proper data URL
-      let dataUrl = imageBase64
-      if (!dataUrl.startsWith('data:')) {
-        dataUrl = `data:${fileType};base64,${imageBase64}`
+      const allExtractedTexts: string[] = []
+
+      // Process all images (pages)
+      for (let i = 0; i < ocrBase64Array.length; i++) {
+        const ocrBase64 = ocrBase64Array[i]
+        console.log(`Starting OCR recognition for image ${i + 1}/${ocrBase64Array.length}...`)
+
+        // Ensure we have a proper data URL
+        let dataUrl = ocrBase64
+        if (!dataUrl.startsWith('data:')) {
+          dataUrl = `data:${fileType};base64,${ocrBase64}`
+        }
+
+        // Recognize German and English text (common for Austrian businesses)
+        const result = await worker.recognize(dataUrl, ['deu', 'eng'])
+        const extractedText = (result.data?.text || '').trim()
+        console.log(`OCR completed for image ${i + 1}. Text length: ${extractedText.length}`)
+
+        if (extractedText) {
+          allExtractedTexts.push(extractedText)
+        }
       }
 
-      console.log('Starting OCR recognition...')
-      // Recognize German and English text (common for Austrian businesses)
-      const result = await worker.recognize(dataUrl, ['deu', 'eng'])
+      const combinedText = allExtractedTexts.join('\n\n--- PAGE BREAK ---\n\n')
+      console.log('Combined OCR text from all pages. Total length:', combinedText.length)
 
-      const extractedText = (result.data?.text || '').trim()
-      console.log('OCR completed. Text length:', extractedText.length)
-
-      if (!extractedText) {
+      if (!combinedText) {
         throw new Error('Keine Textinhalte in der Bilddatei erkannt. Die Bilddatei könnte zu klein, zu unklar oder nicht lesbar sein.')
       }
 
-      return extractedText
+      return combinedText
     } finally {
       console.log('Terminating Tesseract worker...')
       await worker.terminate()
@@ -120,52 +232,131 @@ export function parseInvoiceText(text: string): {
     currency: 'EUR'
   }
 
-  // Extract currency and amount - look for EUR/€ patterns with numbers
+  // Extract amount - look for all currency patterns and amounts
   const amountPatterns = [
-    /(?:€|EUR)[\s]*([\d.]+(?:[,]\d{2})?)/gi,
-    /([\d.]+(?:[,]\d{2})?)\s*(?:€|EUR)/gi,
-    /(?:Summe|Total|Gesamt).*?(?:€|EUR)?\s*([\d.]+(?:[,]\d{2})?)/gi,
-    /(?:Betrag|Amount).*?([\d.]+(?:[,]\d{2})?)/gi,
+    // € or EUR before amount: € 123,45 or EUR 123.45
+    /(?:€|EUR)[\s]*([0-9]{1,}[.,][0-9]{2})/gi,
+    // Amount before € or EUR: 123,45 € or 123.45 EUR
+    /([0-9]{1,}[.,][0-9]{2})[\s]*(?:€|EUR)/gi,
+    // Keywords followed by amount: Summe: 123,45 or Total 123.45
+    /(?:Summe|Total|Gesamt|Endsumme|TOTAL|SUMME)[:\s]+([0-9]{1,}[.,][0-9]{2})/gi,
+    // Amount with thousands separator: 1.234,56
+    /([0-9]{1,3}(?:\.[0-9]{3})*[,][0-9]{2})/gi,
+    // Simple amount: 123,45 or 123.45
+    /([0-9]{2,}[.,][0-9]{2})/gi,
   ]
 
+  const amounts: number[] = []
   for (const pattern of amountPatterns) {
-    const match = text.match(pattern)
-    if (match) {
-      const amountStr = match[0]
+    let match
+    while ((match = pattern.exec(text)) !== null) {
+      let amountStr = match[1] || match[0]
+      // Clean up the amount string
+      amountStr = amountStr
         .replace(/[€EUR\s]/gi, '')
-        .replace(/\./, '') // Remove thousands separator
+        .replace(/\.(?=\d{3})/g, '') // Remove thousands separator (dots before 3 digits)
         .replace(/,/, '.') // Convert comma to period for decimal
 
-      result.amount = parseFloat(amountStr)
-      if (!isNaN(result.amount)) break
+      const amount = parseFloat(amountStr)
+      if (!isNaN(amount) && amount > 0 && amount < 1000000) {
+        amounts.push(amount)
+      }
     }
+  }
+
+  // Use the largest amount (usually the total)
+  if (amounts.length > 0) {
+    result.amount = Math.max(...amounts)
   }
 
   // Extract date patterns (DD.MM.YYYY or DD/MM/YYYY format common in Austria/Germany)
-  const datePatterns = [
-    /(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})/g, // DD.MM.YYYY
-    /(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})/g, // YYYY.MM.DD
-  ]
+  // Prioritize dates near date-related keywords
+  const dateKeywords = ['datum', 'ausstellungsdatum', 'rechnungsdatum', 'date', 'invoice date', 'issued', 'ausgestellt']
 
-  for (const pattern of datePatterns) {
-    const match = text.match(pattern)
-    if (match) {
-      const dateStr = match[0]
-      result.invoice_date = formatDateToISO(dateStr)
-      if (result.invoice_date) break
+  let foundDate: string | null = null
+
+  // First, try to find dates near keywords (more likely to be invoice date)
+  for (const keyword of dateKeywords) {
+    const keywordIndex = text.toLowerCase().indexOf(keyword)
+    if (keywordIndex !== -1) {
+      // Look for dates within 50 characters after keyword
+      const contextWindow = text.substring(keywordIndex, keywordIndex + 100)
+      const dateMatch = contextWindow.match(/(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})|(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})/)
+      if (dateMatch) {
+        foundDate = dateMatch[0]
+        break
+      }
     }
   }
 
-  // Extract vendor name - usually appears at the beginning
-  const lines = text.split('\n')
-  if (lines.length > 0) {
-    const firstNonEmptyLine = lines.find(line => line.trim().length > 3)
-    if (firstNonEmptyLine) {
-      result.vendor_name = firstNonEmptyLine.trim().substring(0, 100)
+  // Fallback: if no date found near keywords, get first date from text
+  if (!foundDate) {
+    const datePatterns = [
+      /(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})/g, // DD.MM.YYYY
+      /(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})/g, // YYYY.MM.DD
+    ]
+    for (const pattern of datePatterns) {
+      const match = text.match(pattern)
+      if (match) {
+        foundDate = match[0]
+        break
+      }
     }
   }
+
+  if (foundDate) {
+    result.invoice_date = formatDateToISO(foundDate)
+  }
+
+  // Extract vendor name - look for company indicators and take longest reasonable line
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0)
+
+  // Filter out lines that are clearly not company names
+  const potentialNames = lines.filter(line => {
+    const len = line.length
+    // Skip very short lines (< 3 chars) and very long lines (probably descriptions)
+    if (len < 3 || len > 150) return false
+    // Skip lines that are mostly numbers
+    if (/^\d+$/.test(line)) return false
+    // Skip common non-name keywords
+    if (/^(rechnung|invoice|datum|date|betrag|amount|summe|total|page|seite|tel|fax|www|http|@|€|eur|\d{2,}\.?\d*[,-]\d{2})/i.test(line)) return false
+    return true
+  })
+
+  // Prefer the first reasonable line as vendor name
+  if (potentialNames.length > 0) {
+    result.vendor_name = potentialNames[0].substring(0, 100)
+  }
+
+  console.log('Parsed invoice - Amounts found:', amounts.length, 'Selected amount:', result.amount, 'Vendor:', result.vendor_name, 'Date:', result.invoice_date)
 
   return result
+}
+
+/**
+ * Debug function to dump extracted text
+ */
+export function debugExtractedText(text: string): void {
+  const lines = text.split('\n')
+  console.log('=== DEBUG: EXTRACTED TEXT ANALYSIS ===')
+  console.log('Total characters:', text.length)
+  console.log('Total lines:', lines.length)
+  console.log('')
+  console.log('=== RAW TEXT (first 500 chars): ===')
+  console.log(text.substring(0, 500))
+  console.log('')
+  console.log('=== LINE BY LINE: ===')
+  lines.forEach((line, idx) => {
+    if (line.trim()) {
+      console.log(`Line ${idx}: "${line}"`)
+    }
+  })
+  console.log('')
+  console.log('=== LOOKING FOR PATTERNS: ===')
+  console.log('Amounts:', text.match(/([0-9]{1,}[.,][0-9]{2})/g) || 'NONE FOUND')
+  console.log('Dates:', text.match(/(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})/g) || 'NONE FOUND')
+  console.log('Currency symbols:', text.match(/[€$]/g) || 'NONE FOUND')
+  console.log('=====================================')
 }
 
 /**
@@ -209,21 +400,61 @@ function formatDateToISO(dateStr: string): string | null {
 
 /**
  * Suggest expense category based on vendor name and text
+ * Maps keywords to actual Austrian expense categories for medical practices
  */
 export function suggestCategory(vendorName: string, text: string): string {
   const lowerVendor = vendorName.toLowerCase()
   const lowerText = text.toLowerCase()
 
+  // Map keywords to actual Austrian expense categories
   const categoryKeywords: Record<string, string[]> = {
-    'Utilities': ['strom', 'wasser', 'gas', 'energie', 'electricity', 'water'],
-    'Office Supplies': ['büro', 'office', 'papier', 'drucker', 'tinte', 'printer', 'paper'],
-    'Professional Services': ['beratung', 'consulting', 'accounting', 'steuer', 'tax'],
-    'Medical Supplies': ['apotheke', 'pharma', 'medizin', 'medicine', 'pharmacy'],
-    'Rent': ['miete', 'rent', 'pacht', 'lease'],
-    'Insurance': ['versicherung', 'insurance', 'haftung'],
-    'Travel': ['hotel', 'lufthansa', 'taxi', 'uber', 'flug', 'bahn', 'travel'],
-    'Marketing': ['werbung', 'marketing', 'advertising', 'anzeige'],
-    'Maintenance': ['wartung', 'reparatur', 'maintenance', 'repair'],
+    'Räumlichkeiten': [
+      'miete', 'rent', 'pacht', 'lease',
+      'strom', 'wasser', 'gas', 'energie', 'electricity', 'water', 'heizung', 'heating', 'cooling',
+      'betriebskosten', 'nebenkosten', 'facility', 'ordinationsräume', 'praxis'
+    ],
+    'Personal': [
+      'gehalt', 'lohn', 'salary', 'wage', 'mitarbeiter', 'staff', 'personalkosten',
+      'sozialversicherung', 'lohnverrechnung', 'fortbildung', 'training'
+    ],
+    'Medizinischer Bedarf': [
+      'apotheke', 'pharma', 'medizin', 'medicine', 'pharmacy',
+      'arztbedarf', 'verbrauchsmaterial', 'desinfektionsmittel', 'desinfection',
+      'spritze', 'kanüle', 'verbandsmaterial', 'instrumentarium',
+      'laborbedarf', 'diagnostik', 'röntgen'
+    ],
+    'Ausstattung & Geräte': [
+      'wartung', 'reparatur', 'maintenance', 'repair', 'service', 'instandhaltung',
+      'geräte', 'equipment', 'einrichtung', 'furniture', 'möbel',
+      'computer', 'drucker', 'scanner', 'edv-ausrüstung', 'leasing',
+      'liegen', 'stuhl', 'behandlungseinheit', 'sterilisator'
+    ],
+    'Versicherungen': [
+      'versicherung', 'insurance', 'haftung', 'haftpflicht', 'liability',
+      'berufshaftpflicht', 'betriebsversicherung', 'praxisausfall', 'rechtsschutz',
+      'versicherungsbeitrag'
+    ],
+    'IT & Digital': [
+      'software', 'ordinationssoftware', 'arztsoftware', 'praxissoftware',
+      'ecard', 'e-card-system', 'it-support', 'cloud', 'telefon', 'telefax',
+      'internet', 'telekommunikation', 'domain', 'website', 'server'
+    ],
+    'Beratung & Verwaltung': [
+      'beratung', 'consulting', 'steuerberatung', 'steuer', 'tax', 'taxation',
+      'buchhaltung', 'buchhalter', 'accounting', 'rechtsanwalt', 'lawyer', 'anwalt',
+      'wirtschaftsprüfung', 'revision', 'prüfung', 'audit'
+    ],
+    'Pflichtbeiträge': [
+      'ärztekammer', 'kammer', 'beitrag', 'fee', 'membership',
+      'fortbildung', 'fortbildungsbeitrag',
+      'pflichtversicherung', 'pflichtbeitrag'
+    ],
+    'Sonstige Betriebsausgaben': [
+      'büro', 'office', 'papier', 'drucker', 'tinte', 'printer', 'paper', 'stationery',
+      'werbung', 'marketing', 'advertising', 'anzeige',
+      'hotel', 'lufthansa', 'taxi', 'uber', 'flug', 'bahn', 'travel', 'fahrt', 'reise',
+      'bankgebühren', 'gebühren', 'fees', 'porto', 'versand', 'shipping'
+    ]
   }
 
   for (const [category, keywords] of Object.entries(categoryKeywords)) {
@@ -234,5 +465,5 @@ export function suggestCategory(vendorName: string, text: string): string {
     }
   }
 
-  return 'Sonstiges' // Default to "Other"
+  return 'Sonstige Betriebsausgaben' // Default to "Other Operating Costs"
 }

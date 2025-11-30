@@ -8,7 +8,7 @@ import { formatEuro } from '@/lib/utils'
 import {
   TrendingUp,
   Users,
-  DollarSign,
+  Euro,
   BarChart3,
   Activity,
   Target,
@@ -83,7 +83,7 @@ export function AnalyticsDashboard() {
         <KPICard
           title="Umsatz pro Sitzung"
           value={formatEuro(analytics.revenuePerSession)}
-          icon={DollarSign}
+          icon={Euro}
           trend={analytics.revenueTrend}
           variant="success"
           description="Durchschnittlicher Preis"

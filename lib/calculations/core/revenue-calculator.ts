@@ -1,9 +1,11 @@
 /**
  * Revenue Calculator
  * Pure functions for calculating revenue-related metrics
+ * Now includes payment processing fee deductions (e.g., SumUp 1.39%)
  */
 
 import type { SessionRevenue } from '../types'
+import { calculateNetPrice } from '../payment-fees'
 
 /**
  * Calculate revenue from sessions and price per session
@@ -120,4 +122,81 @@ export function calculateRevenueVariance(
     variance,
     variancePercent
   }
+}
+
+/**
+ * Calculate NET revenue after payment processing fee deduction
+ * @param sessions Number of sessions completed
+ * @param pricePerSession Gross price per session (before fees)
+ * @param paymentFeePercentage Payment processing fee percentage (e.g., 1.39)
+ * @returns SessionRevenue with net values after fees
+ */
+export function calculateSessionRevenueAfterFees(
+  sessions: number,
+  pricePerSession: number,
+  paymentFeePercentage: number = 0
+): SessionRevenue {
+  const netPrice = calculateNetPrice(pricePerSession, paymentFeePercentage)
+  const revenue = sessions * netPrice
+
+  return {
+    revenue,
+    sessions,
+    pricePerSession: netPrice,
+    averagePrice: netPrice
+  }
+}
+
+/**
+ * Calculate total NET revenue from multiple therapy types after fees
+ * @param therapyData Array of {sessions, price} objects
+ * @param paymentFeePercentage Payment processing fee percentage
+ * @returns Total net revenue across all therapies (after fees)
+ */
+export function calculateTotalRevenueAfterFees(
+  therapyData: Array<{ sessions: number; price: number }>,
+  paymentFeePercentage: number = 0
+): number {
+  return therapyData.reduce((sum, therapy) => {
+    const netPrice = calculateNetPrice(therapy.price, paymentFeePercentage)
+    return sum + therapy.sessions * netPrice
+  }, 0)
+}
+
+/**
+ * Calculate average NET price per session after fees (weighted)
+ * @param therapyData Array of therapy revenue data
+ * @param paymentFeePercentage Payment processing fee percentage
+ * @returns Average net price per session
+ */
+export function calculateAveragePricePerSessionAfterFees(
+  therapyData: Array<{ sessions: number; price: number }>,
+  paymentFeePercentage: number = 0
+): number {
+  const totalSessions = therapyData.reduce((sum, t) => sum + t.sessions, 0)
+  const totalNetRevenue = calculateTotalRevenueAfterFees(therapyData, paymentFeePercentage)
+
+  if (totalSessions === 0) return 0
+  return totalNetRevenue / totalSessions
+}
+
+/**
+ * Calculate NET revenue per therapy type after fees
+ * @param therapyData Array of therapy objects with sessions and prices
+ * @param paymentFeePercentage Payment processing fee percentage
+ * @returns Array of net revenue per therapy (after fees)
+ */
+export function calculateRevenueByTherapyAfterFees(
+  therapyData: Array<{ id: string; sessions: number; price: number }>,
+  paymentFeePercentage: number = 0
+): Array<{ id: string; revenue: number; sessions: number; price: number }> {
+  return therapyData.map((therapy) => {
+    const netPrice = calculateNetPrice(therapy.price, paymentFeePercentage)
+    return {
+      id: therapy.id,
+      revenue: therapy.sessions * netPrice,
+      sessions: therapy.sessions,
+      price: netPrice
+    }
+  })
 }

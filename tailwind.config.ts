@@ -10,23 +10,22 @@ const config = {
   theme: {
     extend: {
       fontFamily: {
+        // Primary font: Source Sans 3 (headings, body, and mono)
+        heading: [
+          'var(--font-source-sans)',
+          'system-ui',
+          'sans-serif'
+        ],
+        // Body text: Source Sans 3
         sans: [
-          '-apple-system',
-          'BlinkMacSystemFont',
-          '"SF Pro Text"',
-          '"SF Pro Display"',
-          'Segoe UI',
-          'Roboto',
+          'var(--font-source-sans)',
+          'system-ui',
           'sans-serif'
         ],
         mono: [
-          '"Spline Sans Mono"',
-          '"SF Mono"',
-          'Monaco',
-          'Inconsolata',
-          'Fira Code',
-          'Courier New',
-          'monospace'
+          'var(--font-source-sans)',
+          'system-ui',
+          'sans-serif'
         ]
       },
       colors: {
@@ -45,17 +44,18 @@ const config = {
           DEFAULT: '#7A9BA8'
         },
         primary: {
-          50: '#EFF6FF',
-          100: '#E0EDFF',
-          200: '#BAE6FD',
-          300: '#7DD3FC',
-          400: '#38BDF8',
-          500: '#0EA5E9',
-          600: '#0284C7',
-          700: '#0369A1',
-          800: '#075985',
-          900: '#0C3A66',
-          DEFAULT: '#0284C7'
+          // Taubenblau palette for primary color
+          50: '#F0F3F6',
+          100: '#E1E8F0',
+          200: '#C3D1E0',
+          300: '#A8C5D1',
+          400: '#8AB5C4',
+          500: '#7A9BA8',
+          600: '#6A8B98',
+          700: '#5A7B88',
+          800: '#4A6B78',
+          900: '#3A5B68',
+          DEFAULT: '#7A9BA8'
         },
         neutral: {
           50: '#F7F7F7',
@@ -67,7 +67,77 @@ const config = {
           600: '#303030',
           700: '#101010',
           800: '#0E0E0E',
-          900: '#000000'
+          900: '#000000',
+          950: '#0A0A0A'
+        },
+        // Semantic financial colors
+        profit: {
+          50: '#F0FDF4',
+          100: '#DCFCE7',
+          200: '#BBF7D0',
+          300: '#86EFAC',
+          400: '#4ADE80',
+          500: '#22C55E',
+          600: '#16A34A',
+          700: '#15803D',
+          800: '#166534',
+          900: '#145231',
+          950: '#0B5314',
+          DEFAULT: '#22C55E'
+        },
+        loss: {
+          50: '#FEF2F2',
+          100: '#FEE2E2',
+          200: '#FECACA',
+          300: '#FCA5A5',
+          400: '#F87171',
+          500: '#EF4444',
+          600: '#DC2626',
+          700: '#B91C1C',
+          800: '#991B1B',
+          900: '#7F1D1D',
+          950: '#5F0F0F',
+          DEFAULT: '#EF4444'
+        },
+        warning: {
+          50: '#FFFBEB',
+          100: '#FEF3C7',
+          200: '#FDE68A',
+          300: '#FCD34D',
+          400: '#FBBF24',
+          500: '#F59E0B',
+          600: '#D97706',
+          700: '#B45309',
+          800: '#92400E',
+          900: '#78350F',
+          950: '#54270B',
+          DEFAULT: '#F59E0B'
+        },
+        success: {
+          50: '#F0FDF4',
+          100: '#DCFCE7',
+          200: '#BBF7D0',
+          300: '#86EFAC',
+          400: '#4ADE80',
+          500: '#22C55E',
+          600: '#16A34A',
+          700: '#15803D',
+          900: '#145231',
+          DEFAULT: '#22C55E'
+        },
+        info: {
+          50: '#EFF6FF',
+          100: '#E0F2FE',
+          200: '#BAE6FD',
+          300: '#7DD3FC',
+          400: '#38BDF8',
+          500: '#0EA5E9',
+          600: '#0284C7',
+          700: '#0369A1',
+          800: '#075985',
+          900: '#0C4A6E',
+          950: '#072E4E',
+          DEFAULT: '#0EA5E9'
         },
         popover: 'hsl(var(--popover))',
         'popover-foreground': 'hsl(var(--popover-foreground))',
@@ -124,7 +194,11 @@ const config = {
         'slide-in-left': 'slideInLeft 0.7s cubic-bezier(0.4, 0, 0.2, 1)',
         'slide-in-right': 'slideInRight 0.7s cubic-bezier(0.4, 0, 0.2, 1)',
         'scale-in': 'scaleIn 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-        'glow': 'glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+        'glow': 'glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'shimmer': 'shimmer 2s infinite',
+        'pulse-gentle': 'pulseGentle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'bounce-subtle': 'bounceSubtle 2s ease-in-out infinite',
+        'spin-slow': 'spin 3s linear infinite'
       },
       keyframes: {
         fadeIn: {
@@ -190,6 +264,30 @@ const config = {
           },
           '100%': {
             boxShadow: '0 0 5px rgba(0, 0, 0, 0.1)'
+          }
+        },
+        shimmer: {
+          '0%': {
+            transform: 'translateX(-100%)'
+          },
+          '100%': {
+            transform: 'translateX(100%)'
+          }
+        },
+        pulseGentle: {
+          '0%, 100%': {
+            opacity: '1'
+          },
+          '50%': {
+            opacity: '0.8'
+          }
+        },
+        bounceSubtle: {
+          '0%, 100%': {
+            transform: 'translateY(0)'
+          },
+          '50%': {
+            transform: 'translateY(-4px)'
           }
         }
       },

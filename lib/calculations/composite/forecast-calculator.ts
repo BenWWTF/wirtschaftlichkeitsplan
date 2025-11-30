@@ -1,9 +1,11 @@
 /**
  * Forecast Calculator
  * Projects future revenue and metrics based on historical trends
+ * Now supports payment fee deductions (e.g., SumUp 1.39%)
  */
 
 import type { ForecastDataPoint } from '../types'
+import { calculateNetRevenue } from '../payment-fees'
 
 export interface HistoricalMetrics {
   month: Date
@@ -276,4 +278,92 @@ export function assessForecastRisk(
     description,
     monthsAtRisk
   }
+}
+
+/**
+ * Calculate forecast with payment fee adjustment
+ * Applies payment fee to historical revenues before forecasting
+ *
+ * @param historicalData Array of historical metrics (with gross revenue)
+ * @param paymentFeePercentage Payment processing fee percentage
+ * @param monthsAhead Number of months to forecast
+ * @returns Array of forecast data points with net revenue
+ */
+export function calculateForecastWithFees(
+  historicalData: HistoricalMetrics[],
+  paymentFeePercentage: number = 0,
+  monthsAhead: number = 6
+): ForecastDataPoint[] {
+  // Apply payment fee to historical data
+  const adjustedHistoricalData = historicalData.map((data) => ({
+    ...data,
+    revenue: calculateNetRevenue(data.revenue, paymentFeePercentage)
+  }))
+
+  // Calculate forecast with adjusted net revenue
+  return calculateForecast(adjustedHistoricalData, monthsAhead)
+}
+
+/**
+ * Forecast break-even date with payment fee adjustment
+ * @param historicalData Historical revenue for trend (with gross revenue)
+ * @param paymentFeePercentage Payment processing fee percentage
+ * @param targetExpenses Monthly expenses
+ * @param monthsAhead How many months to forecast
+ * @returns Estimated month when break-even is reached, or null
+ */
+export function forecastBreakEvenDateWithFees(
+  historicalData: HistoricalMetrics[],
+  paymentFeePercentage: number = 0,
+  targetExpenses: number,
+  monthsAhead: number = 12
+): Date | null {
+  // Apply payment fee to historical data
+  const adjustedHistoricalData = historicalData.map((data) => ({
+    ...data,
+    revenue: calculateNetRevenue(data.revenue, paymentFeePercentage)
+  }))
+
+  return forecastBreakEvenDate(adjustedHistoricalData, targetExpenses, monthsAhead)
+}
+
+/**
+ * Calculate revenue trend with payment fee adjustment
+ * @param historicalData Array of historical metrics (with gross revenue)
+ * @param paymentFeePercentage Payment processing fee percentage
+ * @returns Trend as percentage month-over-month (net of fees)
+ */
+export function calculateRevenueTrendWithFees(
+  historicalData: HistoricalMetrics[],
+  paymentFeePercentage: number = 0
+): number {
+  // Apply payment fee to historical data
+  const adjustedHistoricalData = historicalData.map((data) => ({
+    ...data,
+    revenue: calculateNetRevenue(data.revenue, paymentFeePercentage)
+  }))
+
+  return calculateRevenueTrend(adjustedHistoricalData)
+}
+
+/**
+ * Assess forecast risk with payment fee adjustment
+ * @param historicalData Historical data (with gross revenue)
+ * @param paymentFeePercentage Payment processing fee percentage
+ * @param plannedRevenue Planned monthly net revenue (after fees)
+ * @param monthsAhead Months to forecast
+ * @returns Risk assessment
+ */
+export function assessForecastRiskWithFees(
+  historicalData: HistoricalMetrics[],
+  paymentFeePercentage: number = 0,
+  plannedRevenue: number,
+  monthsAhead: number = 6
+): {
+  riskLevel: 'low' | 'medium' | 'high'
+  description: string
+  monthsAtRisk: number
+} {
+  const forecast = calculateForecastWithFees(historicalData, paymentFeePercentage, monthsAhead)
+  return assessForecastRisk(forecast, plannedRevenue)
 }

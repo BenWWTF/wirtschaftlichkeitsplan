@@ -15,6 +15,7 @@ import { Plus, Receipt } from 'lucide-react'
 import type { Expense } from '@/lib/types'
 import { ExpenseFormEnhanced } from './expense-form-enhanced'
 import { BillScanner, type BillScannerSuggestion } from './bill-scanner'
+import { AUSTRIAN_EXPENSE_CATEGORIES } from '@/lib/constants'
 
 interface ExpenseDialogEnhancedProps {
   open: boolean
@@ -31,15 +32,18 @@ export function ExpenseDialogEnhanced({
 }: ExpenseDialogEnhancedProps) {
   const [scannerOpen, setScannerOpen] = useState(false)
   const [suggestedData, setSuggestedData] = useState<BillScannerSuggestion | null>(null)
+  const [activeTab, setActiveTab] = useState('manual')
 
   const handleBillScannerSuggestion = (data: BillScannerSuggestion) => {
     setSuggestedData(data)
     setScannerOpen(false)
     // Automatically switch to manual entry tab to fill in the data
+    setActiveTab('manual')
   }
 
   const handleSuccess = () => {
     setSuggestedData(null)
+    setActiveTab('manual')
     onSuccess?.()
     onOpenChange(false)
   }
@@ -59,7 +63,7 @@ export function ExpenseDialogEnhanced({
             </DialogDescription>
           </DialogHeader>
 
-          <Tabs defaultValue="manual" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="manual">
                 Manuell erfassen
@@ -72,7 +76,19 @@ export function ExpenseDialogEnhanced({
 
             <TabsContent value="manual" className="space-y-4">
               <ExpenseFormEnhanced
-                expense={expense || undefined}
+                expense={expense || (suggestedData ? ({
+                  id: '',
+                  user_id: '',
+                  amount: suggestedData.amount,
+                  category: suggestedData.category_hint || AUSTRIAN_EXPENSE_CATEGORIES[0].category,
+                  subcategory: null,
+                  description: `${suggestedData.vendor_name}: ${suggestedData.description}`,
+                  expense_date: suggestedData.invoice_date,
+                  is_recurring: false,
+                  recurrence_interval: null,
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                } as any) : undefined)}
                 onSuccess={handleSuccess}
               />
             </TabsContent>

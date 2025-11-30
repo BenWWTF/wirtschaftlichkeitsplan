@@ -33,7 +33,37 @@ html {
 
 body {
   @apply bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-50 transition-colors duration-300;
+  font-family: var(--font-source-sans, system-ui, sans-serif);
+  line-height: 1.7;
 }
+
+/* Heading typography: Source Sans 3 */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-source-sans, system-ui, sans-serif);
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+/* Heading size variants per style guide */
+h1 {
+  font-size: clamp(2rem, 8vw, 3rem); /* Display/H1 */
+}
+
+h2 {
+  font-size: clamp(1.625rem, 5vw, 2.25rem); /* H2 */
+}
+
+h3 {
+  font-size: clamp(1.375rem, 4vw, 1.75rem); /* H3 */
+}
+
+h4 {
+  font-size: clamp(1.25rem, 3vw, 1.375rem); /* H4 */
+}
+
+/* Body text inherits Spline Sans Mono from body rule above */
 
 ::-webkit-scrollbar {
   width: 8px;

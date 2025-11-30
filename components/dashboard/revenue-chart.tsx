@@ -43,7 +43,9 @@ export function RevenueChart({
           }),
           'Geplanter Umsatz': item.planned_revenue,
           'Tatsächlicher Umsatz': item.actual_revenue,
-          'Kosten': item.total_expenses,
+          'Fixkosten': item.total_expenses,
+          'SumUp-Gebühren': item.actual_sumup_costs,
+          'Gesamtkosten': item.total_costs_with_sumup,
           'Deckungsbeitrag': item.actual_margin,
           'Gewinn/Verlust': item.profitability
         }
@@ -93,7 +95,8 @@ export function RevenueChart({
               wrapperStyle={{ paddingTop: '1rem' }}
               iconType="line"
             />
-            <Bar dataKey="Kosten" fill="#ef4444" opacity={0.6} />
+            <Bar dataKey="Fixkosten" fill="#ef4444" opacity={0.6} />
+            <Bar dataKey="SumUp-Gebühren" fill="#f97316" opacity={0.6} />
             <Line
               type="monotone"
               dataKey="Geplanter Umsatz"

@@ -118,41 +118,6 @@ export function PlanningView({ therapies }: PlanningViewProps) {
           // Navigation handled via link in info box
         }}
       />
-
-      {/* Quick Help */}
-      <div className="bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 p-6">
-        <h3 className="font-semibold text-neutral-900 dark:text-white mb-3">
-          📋 Wie funktioniert die Planung?
-        </h3>
-        <ul className="space-y-2 text-sm text-neutral-600 dark:text-neutral-400">
-          <li className="flex gap-3">
-            <span className="text-blue-600 dark:text-blue-400 font-semibold">1.</span>
-            <span>
-              Wählen Sie einen Monat aus oder navigieren Sie mit den Pfeilen
-            </span>
-          </li>
-          <li className="flex gap-3">
-            <span className="text-blue-600 dark:text-blue-400 font-semibold">2.</span>
-            <span>Klicken Sie auf eine Therapieart um die Details zu öffnen</span>
-          </li>
-          <li className="flex gap-3">
-            <span className="text-blue-600 dark:text-blue-400 font-semibold">3.</span>
-            <span>Geben Sie die geplante Anzahl der Sitzungen ein</span>
-          </li>
-          <li className="flex gap-3">
-            <span className="text-blue-600 dark:text-blue-400 font-semibold">4.</span>
-            <span>
-              Speichern Sie Ihre Planung, um den Umsatz und Deckungsbeitrag zu sehen
-            </span>
-          </li>
-          <li className="flex gap-3">
-            <span className="text-blue-600 dark:text-blue-400 font-semibold">5.</span>
-            <span>
-              Am Monatsende können Sie die tatsächliche Anzahl der Sitzungen eintragen
-            </span>
-          </li>
-        </ul>
-      </div>
     </div>
   )
 }

@@ -5,7 +5,7 @@ import type { MonthlyMetrics, TherapyMetrics, DashboardSummary } from '@/lib/act
 import { formatEuro } from '@/lib/utils'
 import { RevenueChart } from './revenue-chart'
 import { TherapyComparison } from './therapy-comparison'
-import { TrendingUp, TrendingDown, DollarSign, BarChart3 } from 'lucide-react'
+import { TrendingUp, TrendingDown, Euro, BarChart3 } from 'lucide-react'
 
 interface BusinessDashboardProps {
   monthlyData: MonthlyMetrics[]
@@ -80,7 +80,7 @@ export function BusinessDashboard({
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
               Gesamtumsatz
             </p>
-            <DollarSign className="h-5 w-5 text-blue-500" />
+            <Euro className="h-5 w-5 text-blue-500" />
           </div>
           <p className="text-3xl font-bold text-neutral-900 dark:text-white">
             {formatEuro(summary.total_revenue)}
@@ -141,20 +141,27 @@ export function BusinessDashboard({
           </p>
         </div>
 
-        {/* Total Expenses */}
+        {/* Total Expenses with SumUp breakdown */}
         <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-6">
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              Gesamtausgaben
+              Gesamtkosten
             </p>
             <TrendingDown className="h-5 w-5 text-red-500" />
           </div>
-          <p className="text-3xl font-bold text-neutral-900 dark:text-white">
-            {formatEuro(summary.total_expenses)}
+          <p className="text-3xl font-bold text-neutral-900 dark:text-white mb-3">
+            {formatEuro(summary.total_costs_with_sumup)}
           </p>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">
-            {summary.total_sessions} Sitzungen durchgeführt
-          </p>
+          <div className="space-y-2 text-xs text-neutral-600 dark:text-neutral-400">
+            <div className="flex justify-between">
+              <span>Fixkosten:</span>
+              <span className="font-medium">{formatEuro(summary.total_expenses)}</span>
+            </div>
+            <div className="flex justify-between text-orange-600 dark:text-orange-400">
+              <span>SumUp-Gebühren:</span>
+              <span className="font-medium">{formatEuro(summary.sumup_costs)}</span>
+            </div>
+          </div>
         </div>
 
         {/* Average Session Price */}
@@ -163,7 +170,7 @@ export function BusinessDashboard({
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
               Ø Sitzungspreis
             </p>
-            <DollarSign className="h-5 w-5 text-purple-500" />
+            <Euro className="h-5 w-5 text-purple-500" />
           </div>
           <p className="text-3xl font-bold text-neutral-900 dark:text-white">
             {formatEuro(summary.average_session_price)}

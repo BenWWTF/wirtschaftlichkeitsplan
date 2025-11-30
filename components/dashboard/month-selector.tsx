@@ -2,14 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 
 interface MonthSelectorProps {
   selectedMonth: string
@@ -17,133 +10,127 @@ interface MonthSelectorProps {
   availableMonths?: string[]
 }
 
+const MONTHS = [
+  'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+  'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'
+]
+
 export function MonthSelector({
   selectedMonth,
   onMonthChange,
   availableMonths = [],
 }: MonthSelectorProps) {
   const [displayMonth, setDisplayMonth] = useState(selectedMonth)
+  const [isOpen, setIsOpen] = useState(false)
+  const [viewYear, setViewYear] = useState(new Date().getFullYear())
 
   useEffect(() => {
     setDisplayMonth(selectedMonth)
   }, [selectedMonth])
 
-  const getMonthLabel = (month: string): string => {
-    try {
-      const [year, monthNum] = month.split('-')
-      const date = new Date(parseInt(year), parseInt(monthNum) - 1, 1)
-      return date.toLocaleDateString('de-AT', {
-        month: 'long',
-        year: 'numeric',
-      })
-    } catch {
-      return month
-    }
+  const getMonthLabel = (year: number, month: number): string => {
+    return MONTHS[month - 1] || ''
   }
 
-  const getNextMonth = (month: string): string => {
-    const [year, monthNum] = month.split('-')
-    let nextMonth = parseInt(monthNum) + 1
-    let nextYear = parseInt(year)
-
-    if (nextMonth > 12) {
-      nextMonth = 1
-      nextYear++
-    }
-
-    return `${nextYear}-${String(nextMonth).padStart(2, '0')}`
+  const handleSelectMonth = (month: number) => {
+    const monthStr = `${viewYear}-${String(month).padStart(2, '0')}`
+    setDisplayMonth(monthStr)
+    onMonthChange(monthStr)
+    setIsOpen(false)
   }
 
-  const getPreviousMonth = (month: string): string => {
-    const [year, monthNum] = month.split('-')
-    let prevMonth = parseInt(monthNum) - 1
-    let prevYear = parseInt(year)
-
-    if (prevMonth < 1) {
-      prevMonth = 12
-      prevYear--
-    }
-
-    return `${prevYear}-${String(prevMonth).padStart(2, '0')}`
+  const handlePreviousYear = () => {
+    setViewYear(viewYear - 1)
   }
 
-  const handlePreviousMonth = () => {
-    const prevMonth = getPreviousMonth(displayMonth)
-    setDisplayMonth(prevMonth)
-    onMonthChange(prevMonth)
+  const handleNextYear = () => {
+    setViewYear(viewYear + 1)
   }
 
-  const handleNextMonth = () => {
-    const nextMonth = getNextMonth(displayMonth)
-    setDisplayMonth(nextMonth)
-    onMonthChange(nextMonth)
-  }
-
-  const handleSelectChange = (value: string) => {
-    setDisplayMonth(value)
-    onMonthChange(value)
-  }
-
-  // Generate list of months for the last 12 months and next 12 months
-  const generateMonthOptions = () => {
-    const months: string[] = []
-    const today = new Date()
-
-    // Start from 12 months ago
-    for (let i = -12; i <= 12; i++) {
-      const d = new Date(today.getFullYear(), today.getMonth() + i, 1)
-      const year = d.getFullYear()
-      const month = String(d.getMonth() + 1).padStart(2, '0')
-      months.push(`${year}-${month}`)
-    }
-
-    return months
-  }
-
-  const monthOptions = generateMonthOptions()
+  const [selectedYear, selectedMonthNum] = displayMonth.split('-')
+  const selectedMonthNumber = parseInt(selectedMonthNum)
 
   return (
-    <div className="flex items-center gap-2">
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={handlePreviousMonth}
-        className="h-10 w-10"
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </Button>
+    <div className="relative">
+      <div className="flex items-center gap-3">
+        {/* Display current selection */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="px-4 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors font-medium text-neutral-900 dark:text-white flex items-center gap-2"
+        >
+          <span>{getMonthLabel(parseInt(selectedYear), selectedMonthNumber)} {selectedYear}</span>
+          <span className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}>▼</span>
+        </button>
 
-      <div className="w-40">
-        <Select value={displayMonth} onValueChange={handleSelectChange}>
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {monthOptions.map((month) => (
-              <SelectItem key={month} value={month}>
-                {getMonthLabel(month)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {availableMonths.length > 0 && (
+          <div className="text-sm text-muted-foreground">
+            {availableMonths.includes(displayMonth) ? (
+              <span className="text-green-600 font-medium">● Daten vorhanden</span>
+            ) : (
+              <span className="text-amber-600 font-medium">○ Keine Daten</span>
+            )}
+          </div>
+        )}
       </div>
 
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={handleNextMonth}
-        className="h-10 w-10"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </Button>
+      {/* Calendar Popover */}
+      {isOpen && (
+        <div className="absolute top-full left-0 mt-2 z-50 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg p-4 w-72">
+          {/* Year Navigation */}
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handlePreviousYear}
+              className="h-8 w-8"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-lg font-semibold text-neutral-900 dark:text-white">
+              {viewYear}
+            </span>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleNextYear}
+              className="h-8 w-8"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
 
-      {availableMonths.length > 0 && (
-        <div className="ml-auto text-sm text-muted-foreground">
-          {availableMonths.includes(displayMonth) ? (
-            <span className="text-green-600">● Daten vorhanden</span>
-          ) : (
-            <span className="text-amber-600">○ Keine Daten</span>
-          )}
+          {/* Month Grid */}
+          <div className="grid grid-cols-3 gap-2">
+            {Array.from({ length: 12 }, (_, i) => {
+              const month = i + 1
+              const isSelected = parseInt(selectedYear) === viewYear && selectedMonthNumber === month
+              const monthStr = `${viewYear}-${String(month).padStart(2, '0')}`
+              const hasData = availableMonths.includes(monthStr)
+
+              return (
+                <button
+                  key={month}
+                  onClick={() => handleSelectMonth(month)}
+                  className={`py-2 px-2 rounded text-sm font-medium transition-colors ${
+                    isSelected
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-600'
+                  } ${hasData ? 'ring-2 ring-green-500 dark:ring-green-400' : ''}`}
+                  title={hasData ? 'Daten vorhanden' : 'Keine Daten'}
+                >
+                  {MONTHS[month - 1].slice(0, 3)}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Close Button */}
+          <button
+            onClick={() => setIsOpen(false)}
+            className="absolute top-2 right-2 p-1 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
       )}
     </div>

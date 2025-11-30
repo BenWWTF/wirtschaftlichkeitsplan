@@ -22,6 +22,7 @@ import {
   calculateForecast
 } from '@/lib/calculations'
 import { calculateAustrianTax } from '@/lib/utils/austrian-tax'
+import { calculateNetRevenue, calculateNetPrice, calculateSumUpCosts } from '@/lib/calculations/payment-fees'
 
 import type {
   ViabilityScore,
@@ -63,7 +64,9 @@ export interface UnifiedMetricsResponse {
 
   // Tier 2: Primary KPI Metrics
   totalRevenue: number
+  totalGrossRevenue: number
   totalExpenses: number
+  sumupCosts: number
   totalSessions: number
   totalPlannedSessions: number
   averageSessionPrice: number
@@ -72,6 +75,18 @@ export interface UnifiedMetricsResponse {
   // Tier 3: Detailed Breakdown
   therapyMetrics: TherapyMetric[]
   monthlyBreakdown?: MonthlyMetric[]
+
+  // Previous Period Data (for month-over-month comparisons)
+  previousPeriod?: {
+    totalRevenue: number
+    totalGrossRevenue: number
+    totalExpenses: number
+    sumupCosts: number
+    totalSessions: number
+    totalPlannedSessions: number
+    averageSessionPrice: number
+    netIncome: number
+  }
 
   // Actionable Intelligence
   variances: VarianceAlert[]
@@ -171,7 +186,18 @@ export async function getUnifiedMetrics(
       variances.push(...comparison)
     }
 
-    // 6. Generate forecast if applicable
+    // 6. Fetch previous period data for month-over-month comparisons
+    const previousPeriod = getComparisonPeriod(input.scope, input.date, 'lastPeriod')
+    const previousPeriodData = await fetchScopeData(
+      supabase,
+      userId,
+      input.scope,
+      previousPeriod,
+      input.dataViewMode
+    )
+    const previousCalculatedMetrics = calculateMetrics(previousPeriodData, input.dataViewMode)
+
+    // 7. Generate forecast if applicable
     let forecast: ForecastDataPoint[] | undefined
     if (input.scope === 'year' || input.scope === 'allTime') {
       const historicalData = await fetchHistoricalData(supabase, userId, 12)
@@ -186,10 +212,10 @@ export async function getUnifiedMetrics(
       )
     }
 
-    // 7. Determine data quality
+    // 8. Determine data quality
     const dataQuality = determineDataQuality(scopeData, input.scope)
 
-    // 8. Return unified response
+    // 9. Return unified response
     return {
       scope: input.scope,
       period,
@@ -200,7 +226,9 @@ export async function getUnifiedMetrics(
       breakEvenStatus: calculatedMetrics.breakEvenStatus,
       netIncome: calculatedMetrics.netIncome,
       totalRevenue: calculatedMetrics.totalRevenue,
+      totalGrossRevenue: scopeData.totalGrossRevenue,
       totalExpenses: calculatedMetrics.totalExpenses,
+      sumupCosts: scopeData.sumupCosts,
       totalSessions: calculatedMetrics.totalSessions,
       totalPlannedSessions: calculatedMetrics.totalPlannedSessions,
       averageSessionPrice: calculatedMetrics.averageSessionPrice,
@@ -210,6 +238,16 @@ export async function getUnifiedMetrics(
         input.scope === 'quarter' || input.scope === 'year'
           ? scopeData.monthlyBreakdown
           : undefined,
+      previousPeriod: {
+        totalRevenue: previousCalculatedMetrics.totalRevenue,
+        totalGrossRevenue: previousPeriodData.totalGrossRevenue,
+        totalExpenses: previousCalculatedMetrics.totalExpenses,
+        sumupCosts: previousPeriodData.sumupCosts,
+        totalSessions: previousCalculatedMetrics.totalSessions,
+        totalPlannedSessions: previousCalculatedMetrics.totalPlannedSessions,
+        averageSessionPrice: previousCalculatedMetrics.averageSessionPrice,
+        netIncome: previousCalculatedMetrics.netIncome
+      },
       variances,
       forecast,
       lastUpdated: new Date(),
@@ -343,14 +381,15 @@ async function fetchScopeData(
   period: { start: Date; end: Date },
   dataViewMode?: 'prognose' | 'resultate'
 ): Promise<MetricsData> {
-  // Fetch user settings (for practice type and tax calculations)
+  // Fetch user settings (for practice type, payment fees, and tax calculations)
   const { data: userSettings } = await supabase
     .from('practice_settings')
-    .select('practice_type')
+    .select('practice_type, payment_processing_fee_percentage')
     .eq('user_id', userId)
     .single()
 
   const practiceType = (userSettings?.practice_type as 'kassenarzt' | 'wahlarzt' | 'mixed') || 'wahlarzt'
+  const paymentFeePercentage = userSettings?.payment_processing_fee_percentage || 1.39
 
   // Fetch therapy types
   const { data: therapies } = await supabase
@@ -455,13 +494,17 @@ async function fetchScopeData(
       // Use appropriate session count based on data view mode
       const sessionsForRevenue = useActualSessions ? totalActual : totalPlanned
 
-      const totalRevenue = calculateSessionRevenue(
+      // Calculate revenue using gross price, then apply payment fee
+      const grossRevenue = calculateSessionRevenue(
         sessionsForRevenue,
         therapy.price_per_session
       ).revenue
+      const totalRevenue = calculateNetRevenue(grossRevenue, paymentFeePercentage)
 
+      // Calculate margin with net price (after payment fees)
+      const netPrice = calculateNetPrice(therapy.price_per_session, paymentFeePercentage)
       const margin = calculateContributionMargin(
-        therapy.price_per_session,
+        netPrice,
         therapy.variable_cost_per_session
       )
 
@@ -495,6 +538,13 @@ async function fetchScopeData(
     0
   )
 
+  // Calculate gross revenue (before payment fees) for SumUp cost calculation
+  // totalRevenue is NET (after fees), so we need to recalculate gross
+  const totalGrossRevenue = therapyMetrics.reduce((sum, t) => {
+    const sessions = useActualSessions ? t.actualSessions : t.plannedSessions
+    return sum + (sessions * t.pricePerSession)
+  }, 0)
+
   const grossIncome = totalRevenue - totalExpenses
 
   // Calculate number of months in the period for prorating annual tax contributions
@@ -512,9 +562,14 @@ async function fetchScopeData(
   const netIncome = taxResult.netIncome
   const marginPercent = grossIncome > 0 ? (grossIncome / totalRevenue) * 100 : 0
 
+  // Calculate SumUp costs based on GROSS revenue (before payment fees are deducted)
+  const sumupCosts = calculateSumUpCosts(totalGrossRevenue, paymentFeePercentage)
+
   return {
     totalRevenue,
+    totalGrossRevenue,
     totalExpenses,
+    sumupCosts,
     totalSessions,
     totalPlannedSessions: totalPlanned,
     netIncome,
@@ -532,6 +587,15 @@ async function fetchHistoricalData(
   userId: string,
   months: number
 ): Promise<MonthlyMetric[]> {
+  // Fetch payment fee percentage
+  const { data: settings } = await supabase
+    .from('practice_settings')
+    .select('payment_processing_fee_percentage')
+    .eq('user_id', userId)
+    .single()
+
+  const paymentFeePercentage = settings?.payment_processing_fee_percentage || 0
+
   const { data: plans } = await supabase
     .from('monthly_plans')
     .select('month, therapy_type_id, actual_sessions')
@@ -573,8 +637,9 @@ async function fetchHistoricalData(
     }
 
     const metric = monthlyData.get(month)!
-    const price = therapyPriceMap.get(plan.therapy_type_id) || 0
-    metric.totalRevenue += (plan.actual_sessions || 0) * price
+    const grossPrice = therapyPriceMap.get(plan.therapy_type_id) || 0
+    const netPrice = calculateNetPrice(grossPrice, paymentFeePercentage)
+    metric.totalRevenue += (plan.actual_sessions || 0) * netPrice
     metric.totalSessions += plan.actual_sessions || 0
   })
 

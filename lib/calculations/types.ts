@@ -124,7 +124,9 @@ export interface ForecastDataPoint {
  */
 export interface MetricsData {
   totalRevenue: number
+  totalGrossRevenue: number
   totalExpenses: number
+  sumupCosts: number
   totalSessions: number
   totalPlannedSessions: number
   netIncome: number

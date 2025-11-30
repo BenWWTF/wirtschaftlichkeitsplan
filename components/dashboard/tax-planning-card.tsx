@@ -44,10 +44,10 @@ export function TaxPlanningCard({
   }
 
   return (
-    <Card className="border-blue-200 dark:border-blue-800">
+    <Card className="border-primary-200 dark:border-primary-800">
       <CardHeader>
         <div className="flex items-center gap-2">
-          <TrendingDown className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <TrendingDown className="h-5 w-5 text-primary-600 dark:text-primary-400" />
           <CardTitle>Steuer & Abgaben (AT)</CardTitle>
         </div>
         <CardDescription>
@@ -102,7 +102,7 @@ export function TaxPlanningCard({
 
           <div className="space-y-2">
             {/* SV Contributions */}
-            <div className="flex justify-between items-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+            <div className="flex justify-between items-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-sm">
               <div>
                 <p className="text-sm font-medium text-neutral-900 dark:text-white">
                   Sozialversicherung (SVS)
@@ -117,7 +117,7 @@ export function TaxPlanningCard({
             </div>
 
             {/* Ärztekammer */}
-            <div className="flex justify-between items-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+            <div className="flex justify-between items-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-sm">
               <div>
                 <p className="text-sm font-medium text-neutral-900 dark:text-white">
                   Ärztekammer
@@ -132,7 +132,7 @@ export function TaxPlanningCard({
             </div>
 
             {/* Income Tax */}
-            <div className="flex justify-between items-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+            <div className="flex justify-between items-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-sm">
               <div>
                 <p className="text-sm font-medium text-neutral-900 dark:text-white">
                   Einkommensteuer
@@ -148,7 +148,7 @@ export function TaxPlanningCard({
 
             {/* VAT (if applicable) */}
             {taxResult.vat > 0 && (
-              <div className="flex justify-between items-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+              <div className="flex justify-between items-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-sm">
                 <div>
                   <p className="text-sm font-medium text-neutral-900 dark:text-white">
                     Umsatzsteuer (USt)
@@ -165,7 +165,7 @@ export function TaxPlanningCard({
 
             {/* Pauschale Deduction */}
             {taxResult.pauschalDeduction > 0 && (
-              <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-sm border border-green-200 dark:border-green-800">
                 <div>
                   <p className="text-sm font-medium text-green-900 dark:text-green-100">
                     Pauschale Betriebsausgaben
@@ -186,7 +186,7 @@ export function TaxPlanningCard({
         {tips.length > 0 && (
           <div className="space-y-3">
             <h4 className="text-sm font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <AlertCircle className="h-4 w-4 text-primary-600 dark:text-primary-400" />
               Steueroptimierungs-Tipps
             </h4>
 
@@ -200,13 +200,13 @@ export function TaxPlanningCard({
                   ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
                   : isSuccess
                     ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                    : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                    : 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800'
 
                 const textColor = isWarning
                   ? 'text-amber-800 dark:text-amber-200'
                   : isSuccess
                     ? 'text-green-800 dark:text-green-200'
-                    : 'text-blue-800 dark:text-blue-200'
+                    : 'text-primary-800 dark:text-primary-200'
 
                 const IconComponent = isWarning
                   ? AlertCircle
@@ -231,7 +231,7 @@ export function TaxPlanningCard({
         )}
 
         {/* Info Box */}
-        <div className="bg-neutral-100 dark:bg-neutral-800 rounded-lg p-4">
+        <div className="bg-neutral-100 dark:bg-neutral-800 rounded-sm p-4">
           <h4 className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
             ℹ️ Hinweis zur Berechnung
           </h4>

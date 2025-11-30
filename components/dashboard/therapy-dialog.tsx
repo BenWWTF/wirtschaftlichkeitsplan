@@ -40,6 +40,7 @@ export function TherapyDialog({ open, onOpenChange, therapy, onSuccess }: Therap
 
   const form = useForm<TherapyTypeInput>({
     resolver: zodResolver(TherapyTypeSchema),
+    mode: 'onChange', // Enable real-time validation
     defaultValues: therapy
       ? {
           name: therapy.name,
@@ -135,6 +136,8 @@ export function TherapyDialog({ open, onOpenChange, therapy, onSuccess }: Therap
                   error={fieldState.error?.message}
                   disabled={isLoading}
                   required
+                  isDirty={form.formState.dirtyFields.name || false}
+                  isTouched={fieldState.isTouched}
                 />
               )}
             />
@@ -154,6 +157,8 @@ export function TherapyDialog({ open, onOpenChange, therapy, onSuccess }: Therap
                   step={0.01}
                   min={0}
                   required
+                  isDirty={form.formState.dirtyFields.price_per_session || false}
+                  isTouched={fieldState.isTouched}
                   onChange={(e) => {
                     const value = e.target.value === '' ? 0 : parseFloat(e.target.value) || 0
                     field.onChange(value)

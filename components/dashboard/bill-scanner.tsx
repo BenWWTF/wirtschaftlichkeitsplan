@@ -40,12 +40,13 @@ export function BillScanner({ open, onOpenChange, onSuggestion }: BillScannerPro
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Validate file type - OCR works best with images
+    // Validate file type - OCR supports images and PDFs
     const imageTypes = ['image/jpeg', 'image/png', 'image/webp']
-    const allowedTypes = [...imageTypes]
+    const pdfTypes = ['application/pdf']
+    const allowedTypes = [...imageTypes, ...pdfTypes]
 
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Dateityp nicht unterstützt. Erlaubt: JPG, PNG, WebP')
+      toast.error('Dateityp nicht unterstützt. Erlaubt: JPG, PNG, WebP, PDF')
       return
     }
 
@@ -57,7 +58,7 @@ export function BillScanner({ open, onOpenChange, onSuggestion }: BillScannerPro
 
     setSelectedFile(file)
 
-    // Create preview for images
+    // Create preview for images only (PDFs don't need preview)
     if (file.type.startsWith('image/')) {
       const reader = new FileReader()
       reader.onload = (e) => {
@@ -143,7 +144,7 @@ export function BillScanner({ open, onOpenChange, onSuggestion }: BillScannerPro
         <DialogHeader>
           <DialogTitle>Rechnung scannen</DialogTitle>
           <DialogDescription>
-            Laden Sie ein Foto einer Rechnung hoch (JPG, PNG). OCR wird automatisch die Ausgabedaten extrahieren.
+            Laden Sie ein Foto einer Rechnung oder ein PDF hoch (JPG, PNG, PDF). OCR wird automatisch die Ausgabedaten extrahieren.
           </DialogDescription>
         </DialogHeader>
 
@@ -372,17 +373,17 @@ export function BillScanner({ open, onOpenChange, onSuggestion }: BillScannerPro
 
                 {/* Extracted Text */}
                 {suggestion.raw_text && (
-                  <div>
-                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                      Erkannter Text
-                    </label>
+                  <details className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-3">
+                    <summary className="cursor-pointer font-medium text-sm text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-neutral-100">
+                      Erkannter Text anzeigen
+                    </summary>
                     <Textarea
                       value={suggestion.raw_text}
                       readOnly
-                      className="mt-1 text-xs"
-                      rows={4}
+                      className="mt-3 text-xs"
+                      rows={6}
                     />
-                  </div>
+                  </details>
                 )}
 
                 {/* Info */}
