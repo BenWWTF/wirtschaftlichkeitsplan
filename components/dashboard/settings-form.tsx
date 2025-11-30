@@ -123,6 +123,8 @@ export function SettingsForm({ settings, onSaveSuccess }: SettingsFormProps) {
                       placeholder="z.B. Ordination Dr. Müller"
                       {...field}
                       disabled={isLoading}
+                      className="h-12 md:h-10"
+                      autoComplete="organization"
                     />
                   </FormControl>
                   <FormDescription>
@@ -145,13 +147,17 @@ export function SettingsForm({ settings, onSaveSuccess }: SettingsFormProps) {
                     disabled={isLoading}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-12 md:h-10">
                         <SelectValue placeholder="Typ wählen" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {PRACTICE_TYPES.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
+                        <SelectItem
+                          key={type.value}
+                          value={type.value}
+                          className="min-h-[44px] flex items-center"
+                        >
                           {type.label}
                         </SelectItem>
                       ))}
@@ -197,7 +203,9 @@ export function SettingsForm({ settings, onSaveSuccess }: SettingsFormProps) {
                           field.onChange(value)
                         }}
                         disabled={isLoading}
-                        className="max-w-xs"
+                        className="h-12 md:h-10 w-full md:max-w-xs"
+                        inputMode="decimal"
+                        autoComplete="off"
                       />
                       <span className="text-neutral-600 dark:text-neutral-400">%</span>
                     </div>
@@ -212,7 +220,12 @@ export function SettingsForm({ settings, onSaveSuccess }: SettingsFormProps) {
           </div>
 
           <div className="flex justify-end gap-4">
-            <Button type="submit" disabled={isLoading} size="lg">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              size="lg"
+              className="w-full md:w-auto min-h-[48px] md:min-h-[44px]"
+            >
               <Save className="h-4 w-4 mr-2" />
               {isLoading ? 'Speichern...' : 'Einstellungen speichern'}
             </Button>
