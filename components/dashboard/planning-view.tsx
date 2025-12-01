@@ -64,16 +64,8 @@ export function PlanningView({ therapies }: PlanningViewProps) {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
+      {/* Action Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
-            Monatliche Planung
-          </h1>
-          <p className="text-neutral-600 dark:text-neutral-400 mt-1">
-            Planen Sie Ihre Therapiesitzungen für jeden Monat
-          </p>
-        </div>
         <Button
           onClick={handleCopyToNextMonths}
           disabled={isCopying}

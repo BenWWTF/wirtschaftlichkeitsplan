@@ -12,16 +12,6 @@ interface AnalysisViewProps {
 export function AnalysisView({ therapies }: AnalysisViewProps) {
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
-          Break-Even Analyse
-        </h1>
-        <p className="text-neutral-600 dark:text-neutral-400 mt-1">
-          Finden Sie heraus, wie viele Sitzungen Sie pro Monat benötigen, um kostendeckend zu arbeiten
-        </p>
-      </div>
-
       {/* Info Box */}
       {therapies.length === 0 && (
         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 p-6">

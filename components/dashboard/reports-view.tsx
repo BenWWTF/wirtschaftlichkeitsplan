@@ -70,18 +70,9 @@ export function ReportsView({
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
-          Geschäftsberichte
-        </h1>
-        <p className="text-neutral-600 dark:text-neutral-400 mt-1">
-          Übersicht der durchgeführten Sitzungen und erzielten Ergebnisse
-        </p>
-
-        {/* Filters */}
-        {monthlyData.length > 0 && (
-          <div className="flex flex-wrap items-center gap-4 mt-6">
+      {/* Filters */}
+      {monthlyData.length > 0 && (
+        <div className="flex flex-wrap items-center gap-4">
             <DateRangeSelector
               onDateRangeChange={(startDate, endDate) => {
                 setDateRangeStart(startDate)
@@ -94,7 +85,6 @@ export function ReportsView({
             />
           </div>
         )}
-      </div>
 
       {/* Empty State */}
       {monthlyData.length === 0 && (
