@@ -104,9 +104,15 @@ export function MonthSelector({
             }
           }}
           className="px-4 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors font-medium text-neutral-900 dark:text-white flex items-center gap-2"
+<<<<<<< HEAD
           aria-label={`Monat wählen. ${getMonthLabel(parseInt(selectedYear), selectedMonthNumber)} ${selectedYear} ausgewählt`}
           aria-haspopup="dialog"
           aria-expanded={isOpen}
+=======
+          aria-label={`Monat wählen, aktuell ${getMonthLabel(parseInt(selectedYear), selectedMonthNumber)} ${selectedYear}`}
+          aria-expanded={isOpen}
+          aria-haspopup="dialog"
+>>>>>>> feature/phase3-export
         >
           <span>{getMonthLabel(parseInt(selectedYear), selectedMonthNumber)} {selectedYear}</span>
           <span className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true">▼</span>
@@ -136,7 +142,7 @@ export function MonthSelector({
               aria-label="Vorheriges Jahr"
               title="Vorheriges Jahr"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
             </Button>
             <span className="text-lg font-semibold text-neutral-900 dark:text-white">
               {viewYear}
@@ -149,7 +155,7 @@ export function MonthSelector({
               aria-label="Nächstes Jahr"
               title="Nächstes Jahr"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
 
@@ -177,7 +183,11 @@ export function MonthSelector({
                       : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-600'
                   } ${hasData ? 'ring-2 ring-green-500 dark:ring-green-400' : ''}`}
                   title={hasData ? 'Daten vorhanden' : 'Keine Daten'}
+<<<<<<< HEAD
                   aria-label={`${MONTHS[month - 1]} ${viewYear} ${isSelected ? '(ausgewählt)' : ''} ${hasData ? '(Daten vorhanden)' : '(Keine Daten)'}`}
+=======
+                  aria-label={`${MONTHS[month - 1]} ${viewYear}${hasData ? ' (Daten vorhanden)' : ''}`}
+>>>>>>> feature/phase3-export
                   aria-pressed={isSelected}
                 >
                   {MONTHS[month - 1].slice(0, 3)}
@@ -190,8 +200,10 @@ export function MonthSelector({
           <button
             onClick={() => setIsOpen(false)}
             className="absolute top-2 right-2 p-1 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+            aria-label="Kalender schließen"
+            title="Kalender schließen"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
       )}
