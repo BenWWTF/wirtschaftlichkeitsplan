@@ -1,0 +1,72 @@
+/**
+ * Accessibility Focus Styles
+ * Implements visible focus indicators for keyboard navigation
+ * Meets WCAG 2.1 Level AA requirements for focus visibility
+ */
+
+/* Universal focus styles for all interactive elements */
+*:focus-visible {
+  outline: 3px solid #0066cc;
+  outline-offset: 2px;
+}
+
+/* Button focus styles */
+button:focus-visible {
+  outline: 3px solid #0066cc;
+  outline-offset: 2px;
+}
+
+/* Link focus styles */
+a:focus-visible {
+  outline: 3px solid #0066cc;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Input and textarea focus styles */
+input:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #0066cc;
+  outline-offset: 2px;
+}
+
+/* Select/dropdown focus styles */
+select:focus-visible {
+  outline: 3px solid #0066cc;
+  outline-offset: 2px;
+}
+
+/* Checkbox and radio button focus styles */
+input[type='checkbox']:focus-visible,
+input[type='radio']:focus-visible {
+  outline: 3px solid #0066cc;
+  outline-offset: 2px;
+}
+
+/* Dark mode focus styles */
+:root.dark *:focus-visible,
+.dark *:focus-visible {
+  outline-color: #60a5fa;
+}
+
+:root.dark button:focus-visible,
+.dark button:focus-visible {
+  outline-color: #60a5fa;
+}
+
+:root.dark a:focus-visible,
+.dark a:focus-visible {
+  outline-color: #60a5fa;
+}
+
+:root.dark input:focus-visible,
+.dark input:focus-visible,
+:root.dark textarea:focus-visible,
+.dark textarea:focus-visible {
+  outline-color: #60a5fa;
+}
+
+:root.dark select:focus-visible,
+.dark select:focus-visible {
+  outline-color: #60a5fa;
+}
