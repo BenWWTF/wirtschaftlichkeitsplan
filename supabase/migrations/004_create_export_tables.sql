@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS export_schedules (
   description TEXT,
   schedule_type TEXT NOT NULL CHECK (schedule_type IN ('daily', 'weekly', 'monthly')),
   schedule_time TIME NOT NULL DEFAULT '08:00:00',
-  schedule_day INT CHECK (schedule_day >= 0 AND schedule_day <= 6),
-  schedule_date INT CHECK (schedule_date >= 1 AND schedule_date <= 31),
+  schedule_day INT CHECK (schedule_day >= 0 AND schedule_day <= 6), -- For weekly: 0=Sunday, 6=Saturday
+  schedule_date INT CHECK (schedule_date >= 1 AND schedule_date <= 31), -- For monthly: 1-31
 
   -- Report selection (stored as JSON array)
   selected_reports JSONB NOT NULL DEFAULT '["break_even","monthly_planning","expense_summary"]'::jsonb,
@@ -45,13 +45,13 @@ CREATE TABLE IF NOT EXISTS export_history (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
 
   -- Export information
-  export_type TEXT NOT NULL,
+  export_type TEXT NOT NULL, -- 'break_even', 'monthly_planning', 'therapy_performance', 'expense_summary', 'monthly_results', 'batch'
   export_format TEXT NOT NULL CHECK (export_format IN ('pdf', 'xlsx', 'csv', 'zip')),
 
   -- File information
   file_name TEXT NOT NULL,
   file_size INT,
-  file_path TEXT,
+  file_path TEXT, -- Path in storage (cloud or local)
   storage_type TEXT DEFAULT 'local' CHECK (storage_type IN ('local', 'cloud')),
 
   -- Export metadata
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS export_history (
   status TEXT NOT NULL DEFAULT 'completed' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
   error_message TEXT,
 
-  -- Associated schedule
+  -- Associated schedule (if exported via schedule)
   schedule_id UUID REFERENCES export_schedules(id) ON DELETE SET NULL,
 
   -- Delivery
@@ -76,41 +76,68 @@ CREATE TABLE IF NOT EXISTS export_history (
   archived BOOLEAN DEFAULT false
 );
 
--- Create indexes
+-- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_export_schedules_user_id ON export_schedules(user_id);
 CREATE INDEX IF NOT EXISTS idx_export_schedules_next_export ON export_schedules(next_export_at) WHERE is_active = true;
 CREATE INDEX IF NOT EXISTS idx_export_schedules_active ON export_schedules(is_active);
+
 CREATE INDEX IF NOT EXISTS idx_export_history_user_id ON export_history(user_id);
 CREATE INDEX IF NOT EXISTS idx_export_history_created_at ON export_history(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_export_history_status ON export_history(status);
 CREATE INDEX IF NOT EXISTS idx_export_history_schedule_id ON export_history(schedule_id);
 CREATE INDEX IF NOT EXISTS idx_export_history_expires_at ON export_history(expires_at);
 
--- Enable RLS
+-- Enable RLS for export_schedules
 ALTER TABLE export_schedules ENABLE ROW LEVEL SECURITY;
-ALTER TABLE export_history ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for export_schedules
 CREATE POLICY "Users can view their own export schedules"
-  ON export_schedules FOR SELECT USING (auth.uid() = user_id);
+  ON export_schedules
+  FOR SELECT
+  USING (auth.uid() = user_id);
+
 CREATE POLICY "Users can create export schedules"
-  ON export_schedules FOR INSERT WITH CHECK (auth.uid() = user_id);
+  ON export_schedules
+  FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
 CREATE POLICY "Users can update their own export schedules"
-  ON export_schedules FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+  ON export_schedules
+  FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
 CREATE POLICY "Users can delete their own export schedules"
-  ON export_schedules FOR DELETE USING (auth.uid() = user_id);
+  ON export_schedules
+  FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- Enable RLS for export_history
+ALTER TABLE export_history ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for export_history
 CREATE POLICY "Users can view their own export history"
-  ON export_history FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can create export history entries"
-  ON export_history FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update their own export history"
-  ON export_history FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can delete their own export history"
-  ON export_history FOR DELETE USING (auth.uid() = user_id);
+  ON export_history
+  FOR SELECT
+  USING (auth.uid() = user_id);
 
--- Trigger function
+CREATE POLICY "Users can create export history entries"
+  ON export_history
+  FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own export history"
+  ON export_history
+  FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own export history"
+  ON export_history
+  FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- Create function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_export_schedules_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -119,20 +146,26 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Create trigger for updated_at
 CREATE TRIGGER export_schedules_updated_at_trigger
-BEFORE UPDATE ON export_schedules FOR EACH ROW
+BEFORE UPDATE ON export_schedules
+FOR EACH ROW
 EXECUTE FUNCTION update_export_schedules_updated_at();
 
--- Archive function
+-- Create function to automatically archive old exports
 CREATE OR REPLACE FUNCTION archive_old_exports()
 RETURNS void AS $$
 BEGIN
-  UPDATE export_history SET archived = true WHERE expires_at < now() AND archived = false;
-  DELETE FROM export_history WHERE expires_at < (now() - INTERVAL '60 days') AND archived = true;
+  UPDATE export_history
+  SET archived = true
+  WHERE expires_at < now() AND archived = false;
+
+  DELETE FROM export_history
+  WHERE expires_at < (now() - INTERVAL '60 days') AND archived = true;
 END;
 $$ LANGUAGE plpgsql;
 
--- Grant permissions
+-- Grant permissions to authenticated users
 GRANT SELECT, INSERT, UPDATE, DELETE ON export_schedules TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON export_history TO authenticated;
 GRANT EXECUTE ON FUNCTION archive_old_exports TO authenticated;

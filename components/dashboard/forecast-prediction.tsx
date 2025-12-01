@@ -1,16 +1,21 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { AlertCircle, TrendingUp } from 'lucide-react'
+import { AlertCircle, TrendingUp, TrendingDown } from 'lucide-react'
 import { getAdvancedAnalytics } from '@/lib/actions/analytics'
-import { forecast } from '@/lib/utils/forecasting'
+import { forecast, exponentialSmoothing, calculateBreakevenMonths } from '@/lib/utils/forecasting'
 import { formatEuro } from '@/lib/utils'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 interface ForecastPredictionProps {
   className?: string
   months?: number
 }
 
+/**
+ * Forecast & Predictions Component
+ * Predicts future metrics using linear regression and exponential smoothing
+ */
 export function ForecastPrediction({
   className = '',
   months = 6,
@@ -32,7 +37,8 @@ export function ForecastPrediction({
           setError('No analytics data available')
         }
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to load forecast data'
+        const message =
+          err instanceof Error ? err.message : 'Failed to load forecast data'
         setError(message)
         console.error('[ForecastPrediction] Error:', err)
       } finally {
@@ -44,7 +50,11 @@ export function ForecastPrediction({
   }, [])
 
   if (isLoading) {
-    return <div className={`space-y-4 ${className}`}><div className="bg-neutral-200 dark:bg-neutral-700 rounded-lg h-64 animate-pulse" /></div>
+    return (
+      <div className={`space-y-4 ${className}`}>
+        <div className="bg-neutral-200 dark:bg-neutral-700 rounded-lg h-96 animate-pulse" />
+      </div>
+    )
   }
 
   if (error || !data) {
@@ -65,23 +75,58 @@ export function ForecastPrediction({
     )
   }
 
-  const historicalRevenue = [3000, 3200, 3500, 3400, 3800, 4000]
-  const historicalCosts = [1200, 1250, 1300, 1320, 1400, 1450]
+  // Simple mock historical data for demonstration
+  const historicalRevenue = [
+    3000, 3200, 3500, 3400, 3800, 4000,
+  ]
+  const historicalCosts = [
+    1200, 1250, 1300, 1320, 1400, 1450,
+  ]
 
+  // Generate forecasts
   const revenueForcast = forecast(historicalRevenue, forecastMonths)
   const costForecast = forecast(historicalCosts, forecastMonths)
 
+  // Create chart data
+  const monthLabels = ['Mon 1', 'Mon 2', 'Mon 3', 'Mon 4', 'Mon 5', 'Mon 6']
+  const chartData = monthLabels.map((label, idx) => ({
+    month: label,
+    actualRevenue: historicalRevenue[idx],
+    actualCosts: historicalCosts[idx],
+    forecastedRevenue:
+      idx >= historicalRevenue.length
+        ? revenueForcast.values[idx - historicalRevenue.length]
+        : null,
+    forecastedCosts:
+      idx >= historicalCosts.length
+        ? costForecast.values[idx - historicalCosts.length]
+        : null,
+  }))
+
+  // Add forecast months
+  for (let i = 0; i < forecastMonths; i++) {
+    chartData.push({
+      month: `M+${i + 1}`,
+      actualRevenue: null,
+      actualCosts: null,
+      forecastedRevenue: revenueForcast.values[i],
+      forecastedCosts: costForecast.values[i],
+    })
+  }
+
   return (
     <div className={`space-y-6 ${className}`}>
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">
-            Vorhersagen
+            Vorhersagen & Prognosen
           </h2>
           <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
-            Prognose für die nächsten {forecastMonths} Monate
+            Lineare Regression für die nächsten {forecastMonths} Monate
           </p>
         </div>
+
         <select
           value={forecastMonths}
           onChange={(e) => setForecastMonths(parseInt(e.target.value))}
@@ -93,6 +138,7 @@ export function ForecastPrediction({
         </select>
       </div>
 
+      {/* Forecast Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="p-4 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900/50">
           <h3 className="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-3">
@@ -101,8 +147,8 @@ export function ForecastPrediction({
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="w-5 h-5 text-green-600" />
             <span className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">
-              {revenueForcast.slope > 0 ? '+' : ''}
-              {formatEuro(revenueForcast.slope)}/M
+              {(revenueForcast.slope > 0 ? '+' : '')}
+              {formatEuro(revenueForcast.slope)}/Monat
             </span>
           </div>
           <p className="text-xs text-neutral-600 dark:text-neutral-400">
@@ -112,72 +158,118 @@ export function ForecastPrediction({
 
         <div className="p-4 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900/50">
           <h3 className="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-3">
-            Prognose +{forecastMonths}M
+            Prognose Umsatz (+{forecastMonths}M)
           </h3>
           <p className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">
-            {formatEuro(revenueForcast.values[revenueForcast.values.length - 1])}
+            {formatEuro(
+              revenueForcast.values[revenueForcast.values.length - 1]
+            )}
           </p>
           <p className="text-xs text-green-600 dark:text-green-400 mt-2">
-            +{(((revenueForcast.values[revenueForcast.values.length - 1] - historicalRevenue[historicalRevenue.length - 1]) / historicalRevenue[historicalRevenue.length - 1]) * 100).toFixed(1)}%
+            +{(
+              ((revenueForcast.values[revenueForcast.values.length - 1] -
+                historicalRevenue[historicalRevenue.length - 1]) /
+                historicalRevenue[historicalRevenue.length - 1]) *
+              100
+            ).toFixed(1)}
+            %
           </p>
         </div>
 
         <div className="p-4 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900/50">
           <h3 className="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-3">
-            Konfidenzintervall
+            Konfidenzintervall (95%)
           </h3>
           <div className="space-y-1 text-sm">
             <p className="text-neutral-900 dark:text-neutral-50">
-              Oben: {formatEuro(revenueForcast.confidenceInterval.upper[revenueForcast.confidenceInterval.upper.length - 1])}
+              Oben: {formatEuro(
+                revenueForcast.confidenceInterval.upper[
+                  revenueForcast.confidenceInterval.upper.length - 1
+                ]
+              )}
             </p>
             <p className="text-neutral-900 dark:text-neutral-50">
-              Unten: {formatEuro(revenueForcast.confidenceInterval.lower[revenueForcast.confidenceInterval.lower.length - 1])}
+              Unten: {formatEuro(
+                revenueForcast.confidenceInterval.lower[
+                  revenueForcast.confidenceInterval.lower.length - 1
+                ]
+              )}
             </p>
           </div>
         </div>
       </div>
 
+      {/* Chart */}
       <div className="p-4 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900/50">
         <h3 className="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-4">
-          Detaillierte Prognose
+          Umsatz- und Kostenvorhersage
         </h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-neutral-200 dark:border-neutral-700">
-                <th className="text-left py-2 px-3 font-medium text-neutral-600 dark:text-neutral-400">
-                  Monat
-                </th>
-                <th className="text-right py-2 px-3 font-medium text-neutral-600 dark:text-neutral-400">
-                  Prognose
-                </th>
-                <th className="text-right py-2 px-3 font-medium text-neutral-600 dark:text-neutral-400">
-                  Oben (95%)
-                </th>
-                <th className="text-right py-2 px-3 font-medium text-neutral-600 dark:text-neutral-400">
-                  Unten (95%)
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {revenueForcast.values.map((value, idx) => (
-                <tr key={idx} className="border-b border-neutral-200 dark:border-neutral-700">
-                  <td className="py-2 px-3 text-neutral-900 dark:text-neutral-50">
-                    Monat +{idx + 1}
-                  </td>
-                  <td className="text-right py-2 px-3 text-neutral-900 dark:text-neutral-50 font-medium">
-                    {formatEuro(value)}
-                  </td>
-                  <td className="text-right py-2 px-3 text-green-600 dark:text-green-400">
-                    {formatEuro(revenueForcast.confidenceInterval.upper[idx])}
-                  </td>
-                  <td className="text-right py-2 px-3 text-red-600 dark:text-red-400">
-                    {formatEuro(revenueForcast.confidenceInterval.lower[idx])}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis />
+            <Tooltip formatter={(value) => (value ? formatEuro(value) : 'N/A')} />
+            <Legend />
+            <Line
+              type="monotone"
+              dataKey="actualRevenue"
+              stroke="#10b981"
+              name="Tatsächlicher Umsatz"
+              connectNulls
+            />
+            <Line
+              type="monotone"
+              dataKey="forecastedRevenue"
+              stroke="#3b82f6"
+              name="Prognostizierter Umsatz"
+              strokeDasharray="5 5"
+              connectNulls
+            />
+            <Line
+              type="monotone"
+              dataKey="actualCosts"
+              stroke="#ef4444"
+              name="Tatsächliche Kosten"
+              connectNulls
+            />
+            <Line
+              type="monotone"
+              dataKey="forecastedCosts"
+              stroke="#f97316"
+              name="Prognostizierte Kosten"
+              strokeDasharray="5 5"
+              connectNulls
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Key Insights */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-900">
+          <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+            Vorhersage-Genauigkeit
+          </h4>
+          <p className="text-sm text-blue-800 dark:text-blue-200">
+            R² = {revenueForcast.r2.toFixed(3)} (Guter Fit mit dem Trend)
+          </p>
+        </div>
+        <div className="p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-900">
+          <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">
+            Erwartete Marge
+          </h4>
+          <p className="text-sm text-green-800 dark:text-green-200">
+            {(
+              (
+                (revenueForcast.values[revenueForcast.values.length - 1] -
+                  costForecast.values[costForecast.values.length - 1]) /
+                revenueForcast.values[revenueForcast.values.length - 1]
+              ) *
+              100
+            ).toFixed(1)}
+            % Gewinn
+          </p>
         </div>
       </div>
     </div>

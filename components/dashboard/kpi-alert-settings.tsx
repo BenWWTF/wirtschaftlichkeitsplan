@@ -184,15 +184,12 @@ export function KPIAlertSettings({
             </label>
             <select
               value={newAlert.alert_type}
-              onChange={(e) => {
-                const value = e.target.value
-                if (value === 'below' || value === 'above') {
-                  setNewAlert({
-                    ...newAlert,
-                    alert_type: value,
-                  })
-                }
-              }}
+              onChange={(e) =>
+                setNewAlert({
+                  ...newAlert,
+                  alert_type: e.target.value as 'below' | 'above',
+                })
+              }
               className="w-full px-3 py-2 text-sm border border-neutral-200 dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800"
             >
               <option value="below">Unterschreitet</option>
