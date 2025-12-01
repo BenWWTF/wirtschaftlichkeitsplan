@@ -1,6 +1,4 @@
 import { ReactNode } from 'react'
-import { DashboardNav } from '@/components/dashboard/dashboard-nav'
-import { LandscapeNav } from '@/components/dashboard/landscape-nav'
 import { createClient } from '@/utils/supabase/server'
 
 /**
@@ -42,15 +40,9 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   }
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-neutral-50 dark:bg-neutral-950">
-      {/* Desktop Navigation */}
-      <DashboardNav practiceName={practiceName} />
-
-      {/* Landscape Navigation (mobile landscape only) */}
-      <LandscapeNav />
-
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
       {/* Main Content Area */}
-      <main className="flex-1 pb-16 md:pb-0 md:ml-64 landscape:max-md:pt-16">
+      <main className="w-full">
         <div className="p-4 md:p-6">
           {children}
         </div>
