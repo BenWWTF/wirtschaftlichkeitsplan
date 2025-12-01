@@ -49,18 +49,34 @@ export function TherapyFilter({ therapies, onFilterChange }: TherapyFilterProps)
     <div className="flex items-center gap-2">
       <Filter className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 relative">
         <Button
           variant={selectedTherapies.length > 0 ? 'default' : 'outline'}
           size="sm"
           onClick={() => setShowFilter(!showFilter)}
           className="text-xs"
+          aria-label={`Therapien filtern. ${getFilterLabel()} ausgewählt`}
+          aria-haspopup="dialog"
+          aria-expanded={showFilter}
         >
           {getFilterLabel()}
           {selectedTherapies.length > 0 && (
             <X className="h-3 w-3 ml-1 opacity-70" />
           )}
         </Button>
+
+        {/* Live region for filter status announcements */}
+        <div
+          aria-live="polite"
+          aria-atomic="true"
+          className="sr-only"
+          role="status"
+        >
+          {selectedTherapies.length === 0
+            ? 'Alle Therapien angezeigt'
+            : `${selectedTherapies.length} von ${uniqueTherapies.length} Therapien ausgewählt`
+          }
+        </div>
       </div>
 
       {showFilter && (
@@ -96,6 +112,7 @@ export function TherapyFilter({ therapies, onFilterChange }: TherapyFilterProps)
                     checked={selectedTherapies.includes(therapy.id)}
                     onChange={() => handleTherapyToggle(therapy.id)}
                     id={therapy.id}
+                    aria-label={`${therapy.name} ${selectedTherapies.includes(therapy.id) ? 'ausgewählt' : 'nicht ausgewählt'}`}
                   />
                   <span className="text-sm text-neutral-700 dark:text-neutral-300">
                     {therapy.name}
