@@ -1,6 +1,5 @@
-import { ReactNode, Suspense } from 'react'
+import { ReactNode } from 'react'
 import { DashboardNav } from '@/components/dashboard/dashboard-nav'
-import { BreadcrumbNav } from '@/components/dashboard/breadcrumb-nav'
 import { LandscapeNav } from '@/components/dashboard/landscape-nav'
 import { createClient } from '@/utils/supabase/server'
 
@@ -16,6 +15,7 @@ import { createClient } from '@/utils/supabase/server'
  * - Active page indicator
  * - Keyboard shortcuts (Alt+H, Alt+T, Alt+P, Alt+A, Alt+R)
  * - Mobile bottom navigation with safe area handling (notches)
+ * - Mobile landscape navigation bar at top
  * - Dark mode support
  */
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
@@ -52,9 +52,6 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       {/* Main Content Area */}
       <main className="flex-1 pb-16 md:pb-0 md:ml-64 landscape:max-md:pt-16">
         <div className="p-4 md:p-6">
-          <Suspense fallback={null}>
-            <BreadcrumbNav />
-          </Suspense>
           {children}
         </div>
       </main>
