@@ -154,8 +154,8 @@ export async function updateExportSchedule(
       updates.schedule_day ||
       updates.schedule_date
         ? calculateNextExportTime(
-            updates.schedule_type,
-            updates.schedule_time,
+            (updates.schedule_type || 'monthly') as 'daily' | 'weekly' | 'monthly',
+            updates.schedule_time || '09:00',
             updates.schedule_day,
             updates.schedule_date
           )

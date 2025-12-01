@@ -89,7 +89,13 @@ export function ForecastPrediction({
 
   // Create chart data
   const monthLabels = ['Mon 1', 'Mon 2', 'Mon 3', 'Mon 4', 'Mon 5', 'Mon 6']
-  const chartData = monthLabels.map((label, idx) => ({
+  const chartData: Array<{
+    month: string
+    actualRevenue: number | null
+    actualCosts: number | null
+    forecastedRevenue: number | null
+    forecastedCosts: number | null
+  }> = monthLabels.map((label, idx) => ({
     month: label,
     actualRevenue: historicalRevenue[idx],
     actualCosts: historicalCosts[idx],
@@ -209,7 +215,7 @@ export function ForecastPrediction({
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />
-            <Tooltip formatter={(value) => (value ? formatEuro(value) : 'N/A')} />
+            <Tooltip formatter={(value) => (typeof value === 'number' && value ? formatEuro(value) : 'N/A')} />
             <Legend />
             <Line
               type="monotone"

@@ -97,9 +97,9 @@ export function CohortAnalysis({
   }
 
   // Calculate global min/max for heat map
-  const allValues = Object.values(data.data)
-    .flat()
-    .filter((v: number) => v > 0)
+  const allValues = (Object.values(data.data)
+    .flat() as unknown[])
+    .filter((v): v is number => typeof v === 'number' && v > 0)
   const globalMin = allValues.length > 0 ? Math.min(...allValues) : 0
   const globalMax = allValues.length > 0 ? Math.max(...allValues) : 100
 

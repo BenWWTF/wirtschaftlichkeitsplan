@@ -5,7 +5,7 @@ import { SupabaseClient } from '@supabase/supabase-js'
  * Build a Supabase query from filter rules
  */
 export function buildFilterQuery(
-  query: ReturnType<SupabaseClient['from']>,
+  query: any,
   filters: FilterRule[],
   userId: string
 ) {
@@ -44,7 +44,7 @@ export function buildFilterQuery(
  * Apply a single filter rule to a query
  */
 function applyFilterRule(
-  query: ReturnType<SupabaseClient['from']>,
+  query: any,
   filter: FilterRule
 ) {
   const { field, operator, value, valueEnd } = filter

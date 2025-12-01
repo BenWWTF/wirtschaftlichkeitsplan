@@ -72,31 +72,48 @@ export async function getYoYComparison(
     const prevDate = new Date(year - 1, month - 1, 1)
     const prevMonthStr = prevDate.toISOString().split('T')[0].substring(0, 7)
 
+    // Helper to get next month for range queries
+    const getNextMonth = (monthStr: string) => {
+      const y = parseInt(monthStr.substring(0, 4))
+      const m = parseInt(monthStr.substring(5, 7))
+      if (m === 12) {
+        return (y + 1).toString() + '-01'
+      }
+      return y.toString() + '-' + (m + 1).toString().padStart(2, '0')
+    }
+
+    const currentNextMonth = getNextMonth(currentMonthStr)
+    const prevNextMonth = getNextMonth(prevMonthStr)
+
     // Fetch current month plans and expenses
     const { data: currentPlans } = await supabase
       .from('monthly_plans')
       .select('*')
       .eq('user_id', user.id)
-      .startsWith('month', currentMonthStr)
+      .gte('month', currentMonthStr)
+      .lt('month', currentNextMonth)
 
     const { data: currentExpenses } = await supabase
       .from('expenses')
       .select('*')
       .eq('user_id', user.id)
-      .startsWith('month', currentMonthStr)
+      .gte('month', currentMonthStr)
+      .lt('month', currentNextMonth)
 
     // Fetch previous year same month plans and expenses
     const { data: prevPlans } = await supabase
       .from('monthly_plans')
       .select('*')
       .eq('user_id', user.id)
-      .startsWith('month', prevMonthStr)
+      .gte('month', prevMonthStr)
+      .lt('month', prevNextMonth)
 
     const { data: prevExpenses } = await supabase
       .from('expenses')
       .select('*')
       .eq('user_id', user.id)
-      .startsWith('month', prevMonthStr)
+      .gte('month', prevMonthStr)
+      .lt('month', prevNextMonth)
 
     if (!currentPlans || !currentExpenses || !prevPlans || !prevExpenses) {
       return null

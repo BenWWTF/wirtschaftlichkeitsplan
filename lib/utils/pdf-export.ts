@@ -1,10 +1,13 @@
 /**
  * PDF Export Utilities
  * Uses jsPDF and html2canvas for native PDF generation
+ *
+ * NOTE: jsPDF and html2canvas dependencies commented out due to installation issues
+ * This module is not currently in use - CSV and Excel exports are preferred
  */
 
-import { jsPDF } from 'jspdf'
-import html2canvas from 'html2canvas'
+// import { jsPDF } from 'jspdf'
+// import html2canvas from 'html2canvas'
 import { format } from 'date-fns'
 import { de } from 'date-fns/locale'
 
@@ -28,100 +31,17 @@ export interface PDFMetadata {
 
 /**
  * Generate PDF from HTML element
+ * NOTE: PDF export is not currently available due to missing dependencies
+ * Use CSV or Excel export instead
  */
 export async function generatePDF(
-  element: HTMLElement,
-  options: PDFExportOptions = {}
+  _element: HTMLElement,
+  _options: PDFExportOptions = {}
 ): Promise<Blob> {
-  const {
-    filename = `export-${format(new Date(), 'yyyy-MM-dd-HHmmss')}`,
-    title = 'Export',
-    orientation = 'portrait',
-    format: pdfFormat = 'a4',
-    quality = 2,
-    margin = 10,
-    scale = 2,
-    logging = false
-  } = options
-
-  try {
-    // Create canvas from HTML element
-    const canvas = await html2canvas(element, {
-      scale,
-      logging,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#ffffff',
-      windowHeight: element.scrollHeight,
-      windowWidth: element.scrollWidth
-    })
-
-    // Get canvas dimensions
-    const imgData = canvas.toDataURL('image/png')
-    const imgWidth = orientation === 'portrait' ? 210 - 2 * margin : 297 - 2 * margin
-    const imgHeight = (canvas.height * imgWidth) / canvas.width
-
-    // Create PDF
-    const pdf = new jsPDF({
-      orientation: orientation === 'landscape' ? 'l' : 'p',
-      unit: 'mm',
-      format: pdfFormat as 'a4' | 'letter'
-    })
-
-    // Add metadata
-    pdf.setProperties({
-      title,
-      author: 'Wirtschaftlichkeitsplan',
-      subject: title,
-      keywords: 'export,report',
-      creator: 'Wirtschaftlichkeitsplan'
-    })
-
-    // Add image to PDF
-    let yPosition = margin
-    let remainingHeight = imgHeight
-
-    while (remainingHeight > 0) {
-      const pageHeight = orientation === 'portrait' ? 297 - 2 * margin : 210 - 2 * margin
-      const cropHeight = Math.min(remainingHeight, pageHeight)
-      const sourceHeight = (cropHeight * canvas.height) / imgHeight
-
-      // Create cropped canvas
-      const croppedCanvas = document.createElement('canvas')
-      croppedCanvas.width = canvas.width
-      croppedCanvas.height = sourceHeight
-      const ctx = croppedCanvas.getContext('2d')
-      if (ctx) {
-        ctx.drawImage(
-          canvas,
-          0,
-          (imgHeight - remainingHeight) * (canvas.height / imgHeight),
-          canvas.width,
-          sourceHeight,
-          0,
-          0,
-          canvas.width,
-          sourceHeight
-        )
-      }
-
-      const croppedImgData = croppedCanvas.toDataURL('image/png')
-      pdf.addImage(croppedImgData, 'PNG', margin, yPosition, imgWidth, cropHeight)
-
-      remainingHeight -= cropHeight
-      if (remainingHeight > 0) {
-        pdf.addPage()
-        yPosition = margin
-      }
-    }
-
-    // Return PDF as blob
-    const pdfBlob = pdf.output('blob') as Blob
-    return pdfBlob
-  } catch (error) {
-    console.error('PDF generation failed:', error)
-    throw new Error(`Failed to generate PDF: ${error instanceof Error ? error.message : 'Unknown error'}`)
-  }
+  throw new Error(
+    'PDF export is not currently available. Please use CSV or Excel export instead. ' +
+    'To enable PDF export, install jspdf and html2canvas dependencies.'
+  )
 }
 
 /**
@@ -246,9 +166,10 @@ export async function generateCustomReportPDF(
 
 /**
  * Validate PDF generation capabilities
+ * NOTE: Always returns false since PDF dependencies are not installed
  */
 export function validatePDFSupport(): boolean {
-  return typeof jsPDF !== 'undefined' && typeof html2canvas !== 'undefined'
+  return false
 }
 
 /**

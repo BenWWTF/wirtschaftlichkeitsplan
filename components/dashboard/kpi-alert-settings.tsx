@@ -38,10 +38,18 @@ export function KPIAlertSettings({
   const [error, setError] = useState<string | null>(null)
 
   // Form state for new alert
-  const [newAlert, setNewAlert] = useState({
+  const [newAlert, setNewAlert] = useState<{
+    metric_name: string
+    threshold_value: number
+    alert_type: 'below' | 'above'
+    notification_channels: {
+      inApp: boolean
+      email: boolean
+    }
+  }>({
     metric_name: 'occupancyRate',
     threshold_value: 60,
-    alert_type: 'below' as const,
+    alert_type: 'below',
     notification_channels: {
       inApp: true,
       email: false,
@@ -187,7 +195,7 @@ export function KPIAlertSettings({
               onChange={(e) =>
                 setNewAlert({
                   ...newAlert,
-                  alert_type: e.target.value as 'below' | 'above',
+                  alert_type: (e.target.value === 'below' ? 'below' : 'above'),
                 })
               }
               className="w-full px-3 py-2 text-sm border border-neutral-200 dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800"

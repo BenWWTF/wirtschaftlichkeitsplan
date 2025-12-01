@@ -10,7 +10,7 @@ interface FilterSuggestionsProps {
   field: string
   value: string
   onChange: (value: string) => void
-  pageType: 'expenses' | 'therapies' | 'results'
+  pageType: 'expenses' | 'therapies'
   onSelect?: (value: string) => void
   placeholder?: string
 }

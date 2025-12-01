@@ -59,9 +59,7 @@ export async function exportToExcel(
 
     // Process each sheet
     for (const sheet of sheets) {
-      const worksheet = XLSX.utils.json_to_sheet(sheet.data, {
-        header: 1
-      })
+      const worksheet = XLSX.utils.json_to_sheet(sheet.data)
 
       // Apply column widths
       if (autoWidth && sheet.columns) {
@@ -226,7 +224,7 @@ export async function exportBreakEvenAnalysisToExcel(
 ): Promise<Blob> {
   const filename = options.filename || `break-even-${format(new Date(), 'yyyy-MM-dd')}`
 
-  const therapyData = (analysis.therapies || []).map(therapy => ({
+  const therapyData = (analysis.therapies || []).map((therapy: any) => ({
     'Therapieart': therapy.therapy_type_name || '',
     'Sitzungspreis (€)': therapy.price_per_session || 0,
     'Deckungsbeitrag (€)': therapy.contribution_margin || 0,

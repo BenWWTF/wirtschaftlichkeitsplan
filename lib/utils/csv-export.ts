@@ -156,7 +156,7 @@ export function exportBreakEvenAnalysisToCSV(
   ]
 
   // Add therapy breakdown
-  const therapyData = (analysis.therapies || []).map(therapy => ({
+  const therapyData = (analysis.therapies || []).map((therapy: any) => ({
     'Therapieart': therapy.therapy_type_name || '',
     'Sitzungspreis': therapy.price_per_session || 0,
     'Deckungsbeitrag': therapy.contribution_margin || 0,
@@ -213,7 +213,9 @@ export function downloadCSV(
   try {
     const csv = exportToCSV(data, options)
     const encodedCSV = encodeCSV(csv, options.encoding)
-    const blob = new Blob([encodedCSV], { type: 'text/csv;charset=utf-8;' })
+    // Ensure we have a proper ArrayBuffer for Blob compatibility
+    const blobPart = typeof encodedCSV === 'string' ? encodedCSV : new Uint8Array(encodedCSV)
+    const blob = new Blob([blobPart], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
