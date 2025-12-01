@@ -1,19 +1,18 @@
 import { ReactNode } from 'react'
+import { DashboardNav } from '@/components/dashboard/dashboard-nav'
 import { createClient } from '@/utils/supabase/server'
 
 /**
  * Layout for dashboard routes
- * Wraps all dashboard pages with persistent navigation sidebar
+ * Wraps all dashboard pages with persistent navigation
  *
  * Desktop: Fixed sidebar on left (264px), content takes remaining space
- * Mobile: Bottom navigation bar (64px + safe area), full-width content
+ * Mobile: Bottom navigation bar (64px + safe area)
  *
  * Features:
  * - Persistent navigation across all dashboard pages
  * - Active page indicator
- * - Keyboard shortcuts (Alt+H, Alt+T, Alt+P, Alt+A, Alt+R)
  * - Mobile bottom navigation with safe area handling (notches)
- * - Mobile landscape navigation bar at top
  * - Dark mode support
  */
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
@@ -40,9 +39,12 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
+    <div className="flex flex-col md:flex-row min-h-screen bg-neutral-50 dark:bg-neutral-950">
+      {/* Desktop Sidebar Navigation + Mobile Bottom Navigation */}
+      <DashboardNav practiceName={practiceName} />
+
       {/* Main Content Area */}
-      <main className="w-full">
+      <main className="flex-1 pb-16 md:pb-0 md:ml-64">
         <div className="p-4 md:p-6">
           {children}
         </div>
