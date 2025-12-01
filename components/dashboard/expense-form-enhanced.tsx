@@ -213,9 +213,17 @@ export function ExpenseFormEnhanced({ expense, onSuccess }: ExpenseFormEnhancedP
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6"
+        noValidate
+        aria-label={expense ? 'Ausgabe aktualisieren' : 'Neue Ausgabe erstellen'}
+      >
         {/* Basic Fields */}
-        <div className="space-y-4">
+        <fieldset className="space-y-4 border-0">
+          <legend className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
+            Ausgabendaten
+          </legend>
           <FormField
             control={form.control}
             name="expense_date"
@@ -338,6 +346,14 @@ export function ExpenseFormEnhanced({ expense, onSuccess }: ExpenseFormEnhancedP
             )}
           />
 
+        </fieldset>
+
+        {/* Recurring Fields */}
+        <fieldset className="space-y-4 border-0">
+          <legend className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
+            Wiederholung
+          </legend>
+
           <FormField
             control={form.control}
             name="is_recurring"
@@ -348,6 +364,7 @@ export function ExpenseFormEnhanced({ expense, onSuccess }: ExpenseFormEnhancedP
                     checked={field.value}
                     onCheckedChange={field.onChange}
                     disabled={isLoading}
+                    aria-label="Wiederkehrende Ausgabe"
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
@@ -375,7 +392,7 @@ export function ExpenseFormEnhanced({ expense, onSuccess }: ExpenseFormEnhancedP
                     disabled={isLoading}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger aria-label="Wiederholungsintervall wählen">
                         <SelectValue placeholder="Intervall wählen" />
                       </SelectTrigger>
                     </FormControl>
@@ -392,7 +409,7 @@ export function ExpenseFormEnhanced({ expense, onSuccess }: ExpenseFormEnhancedP
               )}
             />
           )}
-        </div>
+        </fieldset>
 
         {/* Document Management */}
         {expense && (
