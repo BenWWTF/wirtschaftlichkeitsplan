@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 
@@ -23,10 +23,50 @@ export function MonthSelector({
   const [displayMonth, setDisplayMonth] = useState(selectedMonth)
   const [isOpen, setIsOpen] = useState(false)
   const [viewYear, setViewYear] = useState(new Date().getFullYear())
+  const popoverRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     setDisplayMonth(selectedMonth)
   }, [selectedMonth])
+
+  // Keyboard event handler for popover
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (!isOpen) return
+
+    switch (e.key) {
+      case 'Escape':
+        e.preventDefault()
+        setIsOpen(false)
+        buttonRef.current?.focus()
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setViewYear((prev) => prev + 1)
+        break
+      case 'ArrowDown':
+        e.preventDefault()
+        setViewYear((prev) => prev - 1)
+        break
+      case 'ArrowLeft':
+        e.preventDefault()
+        setViewYear((prev) => prev - 1)
+        break
+      case 'ArrowRight':
+        e.preventDefault()
+        setViewYear((prev) => prev + 1)
+        break
+      default:
+        break
+    }
+  }, [isOpen])
+
+  useEffect(() => {
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown)
+      return () => window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isOpen, handleKeyDown])
 
   const getMonthLabel = (year: number, month: number): string => {
     return MONTHS[month - 1] || ''
@@ -55,11 +95,21 @@ export function MonthSelector({
       <div className="flex items-center gap-3">
         {/* Display current selection */}
         <button
+          ref={buttonRef}
           onClick={() => setIsOpen(!isOpen)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              setIsOpen(!isOpen)
+            }
+          }}
           className="px-4 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors font-medium text-neutral-900 dark:text-white flex items-center gap-2"
+          aria-label={`Monat wählen. ${getMonthLabel(parseInt(selectedYear), selectedMonthNumber)} ${selectedYear} ausgewählt`}
+          aria-haspopup="dialog"
+          aria-expanded={isOpen}
         >
           <span>{getMonthLabel(parseInt(selectedYear), selectedMonthNumber)} {selectedYear}</span>
-          <span className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}>▼</span>
+          <span className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true">▼</span>
         </button>
 
         {availableMonths.length > 0 && (
@@ -115,12 +165,20 @@ export function MonthSelector({
                 <button
                   key={month}
                   onClick={() => handleSelectMonth(month)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      handleSelectMonth(month)
+                    }
+                  }}
                   className={`py-2 px-2 rounded text-sm font-medium transition-colors ${
                     isSelected
                       ? 'bg-blue-600 text-white'
                       : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-600'
                   } ${hasData ? 'ring-2 ring-green-500 dark:ring-green-400' : ''}`}
                   title={hasData ? 'Daten vorhanden' : 'Keine Daten'}
+                  aria-label={`${MONTHS[month - 1]} ${viewYear} ${isSelected ? '(ausgewählt)' : ''} ${hasData ? '(Daten vorhanden)' : '(Keine Daten)'}`}
+                  aria-pressed={isSelected}
                 >
                   {MONTHS[month - 1].slice(0, 3)}
                 </button>
