@@ -3,6 +3,8 @@ import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { ForecastTab } from '@/components/dashboard/analyse/forecast-tab'
 import { RelatedPages } from '@/components/dashboard/related-pages'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'Prognose - Wirtschaftlichkeitsplan',
   description: '6-Monats-Prognose mit angepassbaren Parametern für Ihre Praxis'

@@ -3,6 +3,8 @@ import { getTherapies } from '@/lib/actions/therapies'
 import { ResultsView } from '@/components/dashboard/results-view'
 import { RelatedPages } from '@/components/dashboard/related-pages'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'Monatliche Ergebnisse - Wirtschaftlichkeitsplan',
   description: 'Vergleichen Sie geplante und tatsächliche Therapiesitzungen'

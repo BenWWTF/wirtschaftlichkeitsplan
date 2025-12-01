@@ -3,6 +3,8 @@ import { getTherapies } from '@/lib/actions/therapies'
 import { PlanningView } from '@/components/dashboard/planning-view'
 import { RelatedPages } from '@/components/dashboard/related-pages'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'Monatliche Planung - Wirtschaftlichkeitsplan',
   description: 'Planen Sie Ihre monatlichen Therapiesitzungen'
