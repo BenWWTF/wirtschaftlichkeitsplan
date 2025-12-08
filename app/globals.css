@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import '@/styles/mobile-spacing.css';
+
 @layer base {
   :root {
     --popover: 0 0% 100%;
