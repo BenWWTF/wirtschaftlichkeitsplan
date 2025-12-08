@@ -87,7 +87,11 @@ const config = {
         '13': '3.25rem',
         '14': '3.5rem',
         '18': '4.5rem',
-        '22': '5.5rem'
+        '22': '5.5rem',
+        // Mobile bottom navigation safe area
+        'safe-bottom': 'calc(64px + env(safe-area-inset-bottom))',
+        'bottom-nav': '64px',
+        'touch-min': '44px',
       },
       borderRadius: {
         none: '0',
