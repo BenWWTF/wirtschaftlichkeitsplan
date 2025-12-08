@@ -7,6 +7,7 @@ import { Menu, X, Calendar, FileText, Pill, Home, Receipt, Upload, Settings, Cal
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { MobileBottomNav } from '@/components/dashboard/mobile-bottom-nav'
+import { MoreMenuDrawer } from '@/components/dashboard/more-menu-drawer'
 import { useMediaQuery } from '@/components/ui/hooks/useMediaQuery'
 
 interface NavItem {
@@ -256,7 +257,17 @@ export function DashboardNav({ practiceName = '' }: DashboardNavProps) {
 
       {/* Mobile Bottom Navigation */}
       {isMobile && (
-        <MobileBottomNav onMoreClick={() => setIsMoreMenuOpen(true)} />
+        <>
+          <MobileBottomNav onMoreClick={() => setIsMoreMenuOpen(true)} />
+          <MoreMenuDrawer
+            isOpen={isMoreMenuOpen}
+            onClose={() => setIsMoreMenuOpen(false)}
+            onLogout={() => {
+              // Handle logout - redirect to login page
+              window.location.href = '/login'
+            }}
+          />
+        </>
       )}
     </>
   )
