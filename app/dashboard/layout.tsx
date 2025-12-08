@@ -7,13 +7,14 @@ import { createClient } from '@/utils/supabase/server'
  * Wraps all dashboard pages with persistent navigation sidebar
  *
  * Desktop: Fixed sidebar on left (264px), content takes remaining space
- * Mobile: Top navigation bar with collapsible menu, full-width content
+ * Mobile: Bottom navigation bar (64px), full-width content with bottom padding
  *
  * Features:
  * - Persistent navigation across all dashboard pages
  * - Active page indicator
  * - Keyboard shortcuts (Alt+H, Alt+T, Alt+P, Alt+A, Alt+R)
- * - Responsive mobile menu
+ * - Responsive mobile bottom navigation
+ * - Safe area insets for notched devices
  * - Dark mode support
  */
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
@@ -45,7 +46,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       <DashboardNav practiceName={practiceName} />
 
       {/* Main Content Area */}
-      <main className="flex-1 mt-14 md:mt-0 md:ml-64">
+      <main className="flex-1 pb-20 md:pb-0 md:ml-64" style={{ paddingBottom: 'max(1.25rem, var(--safe-area-bottom, 0px) + 80px)' }}>
         <div className="p-4 md:p-6">
           {children}
         </div>
