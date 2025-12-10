@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import type { TherapyType } from '@/lib/types'
-import { PlannerCard } from './planner-card'
+import { PlannerTableRow } from './planner-table-row'
+import { PlannerCardRow } from './planner-card-row'
 import { Button } from '@/components/ui/button'
-import { Plus, AlertCircle } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { getMonthlyPlansWithTherapies } from '@/lib/actions/monthly-plans'
 import { formatEuro } from '@/lib/utils'
@@ -31,7 +32,6 @@ export function PlannerGrid({
   month,
   onAddTherapy
 }: PlannerGridProps) {
-  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [plans, setPlans] = useState<MonthlyPlanWithTherapy[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
@@ -107,26 +107,74 @@ export function PlannerGrid({
 
   return (
     <div className="space-y-6">
-      {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {therapies.map((therapy) => (
-          <PlannerCard
-            key={therapy.id}
-            therapy={therapy}
-            month={month}
-            isExpanded={expandedId === therapy.id}
-            onToggleExpand={() =>
-              setExpandedId(expandedId === therapy.id ? null : therapy.id)
-            }
-            onRefresh={refreshPlans}
-          />
-        ))}
+      {/* Desktop Table View (hidden on mobile) */}
+      <div className="hidden md:block bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+        <table className="w-full">
+          {/* Header */}
+          <thead className="bg-neutral-50 dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-700">
+            <tr>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-neutral-900 dark:text-white">
+                Therapieart
+              </th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-neutral-900 dark:text-white">
+                Preis/Sitzung
+              </th>
+              <th className="px-6 py-4 text-center text-sm font-semibold text-neutral-900 dark:text-white">
+                Geplante Sitzungen
+              </th>
+              <th className="px-6 py-4 text-right text-sm font-semibold text-neutral-900 dark:text-white">
+                Geplanter Umsatz
+              </th>
+              <th className="px-6 py-4 text-center text-sm font-semibold text-neutral-900 dark:text-white">
+                Aktion
+              </th>
+            </tr>
+          </thead>
+
+          {/* Body */}
+          <tbody className="divide-y divide-neutral-200 dark:divide-neutral-700">
+            {therapies.map((therapy) => {
+              const plan = plans.find((p) => p.therapy_type_id === therapy.id)
+              const plannedRevenue = (plan?.planned_sessions || 0) * therapy.price_per_session
+
+              return (
+                <PlannerTableRow
+                  key={therapy.id}
+                  therapy={therapy}
+                  plan={plan}
+                  month={month}
+                  plannedRevenue={plannedRevenue}
+                  onRefresh={refreshPlans}
+                />
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile Card View (hidden on desktop) */}
+      <div className="md:hidden space-y-3">
+        {therapies.map((therapy) => {
+          const plan = plans.find((p) => p.therapy_type_id === therapy.id)
+          const plannedRevenue = (plan?.planned_sessions || 0) * therapy.price_per_session
+
+          return (
+            <PlannerCardRow
+              key={therapy.id}
+              therapy={therapy}
+              plan={plan}
+              month={month}
+              plannedRevenue={plannedRevenue}
+              onRefresh={refreshPlans}
+            />
+          )
+        })}
       </div>
 
       {/* Summary with Fee Breakdown */}
       <div className="bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 p-6">
         <h3 className="font-semibold text-neutral-900 dark:text-white mb-4">
-          Zusammenfassung fuer {month}
+          Zusammenfassung für {month}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
@@ -142,7 +190,7 @@ export function PlannerGrid({
               Geplante Sitzungen
             </p>
             <p className="text-2xl font-bold text-neutral-900 dark:text-white">
-              {totals.sessions > 0 ? totals.sessions : '---'}
+              {totals.sessions > 0 ? totals.sessions : '—'}
             </p>
           </div>
           <div>
@@ -150,15 +198,15 @@ export function PlannerGrid({
               Bruttoumsatz
             </p>
             <p className="text-2xl font-bold text-neutral-900 dark:text-white">
-              {totals.grossRevenue > 0 ? formatEuro(totals.grossRevenue) : '---'}
+              {totals.grossRevenue > 0 ? formatEuro(totals.grossRevenue) : '—'}
             </p>
           </div>
           <div>
             <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
-              Zahlungsgebuehren ({totals.feePercentage}%)
+              Zahlungsgebühren ({totals.feePercentage}%)
             </p>
             <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-              {totals.paymentFees > 0 ? `-${formatEuro(totals.paymentFees)}` : '---'}
+              {totals.paymentFees > 0 ? `-${formatEuro(totals.paymentFees)}` : '—'}
             </p>
           </div>
           <div>
@@ -166,7 +214,7 @@ export function PlannerGrid({
               Nettoumsatz
             </p>
             <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-              {totals.netRevenue > 0 ? formatEuro(totals.netRevenue) : '---'}
+              {totals.netRevenue > 0 ? formatEuro(totals.netRevenue) : '—'}
             </p>
           </div>
         </div>
