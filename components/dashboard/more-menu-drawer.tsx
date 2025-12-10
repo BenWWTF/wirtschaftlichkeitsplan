@@ -27,7 +27,7 @@ interface DrawerItem {
   id: string
   label: string
   href?: string
-  icon: ReactNode
+  icon?: ReactNode
   action?: () => void
   divider?: boolean
 }

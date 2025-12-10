@@ -37,14 +37,16 @@ interface MobileFormProps {
  * - Dark mode support
  *
  * @example
+ * ```tsx
  * <MobileForm
  *   title="Neue Therapie"
  *   submitLabel="Erstellen"
  *   onCancel={() => setOpen(false)}
  *   onSubmit={(e) => handleSubmit(e)}
  * >
- *   {/* Form fields */}
+ *   {form fields here}
  * </MobileForm>
+ * ```
  */
 export function MobileForm({
   title,
