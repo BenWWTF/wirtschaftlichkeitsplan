@@ -12,10 +12,8 @@ export async function getMonthlyPlans(month: string): Promise<MonthlyPlan[]> {
   const supabase = await createClient()
 
   const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    console.error('[getMonthlyPlans] Authentication error:', authError)
-    return []
-  }
+  // Use demo user if no authenticated user
+  const userId = user?.id || '00000000-0000-0000-0000-000000000000'
 
   // Convert YYYY-MM to YYYY-MM-01 for date column
   const monthDate = month.includes('-') && month.length === 7
@@ -25,7 +23,7 @@ export async function getMonthlyPlans(month: string): Promise<MonthlyPlan[]> {
   const { data, error } = await supabase
     .from('monthly_plans')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .eq('month', monthDate)
     .order('created_at', { ascending: false })
 
@@ -44,10 +42,8 @@ export async function getMonthlyPlansWithTherapies(month: string) {
   const supabase = await createClient()
 
   const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    console.error('[getMonthlyPlansWithTherapies] Authentication error:', authError)
-    return []
-  }
+  // Use demo user if no authenticated user
+  const userId = user?.id || '00000000-0000-0000-0000-000000000000'
 
   // Convert YYYY-MM to YYYY-MM-01 for date column
   const monthDate = month.includes('-') && month.length === 7
@@ -58,7 +54,7 @@ export async function getMonthlyPlansWithTherapies(month: string) {
   const { data: plans, error: plansError } = await supabase
     .from('monthly_plans')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .eq('month', monthDate)
     .order('created_at', { ascending: false })
 
