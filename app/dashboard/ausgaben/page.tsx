@@ -1,5 +1,8 @@
 import { getExpenses } from '@/lib/actions/expenses'
 import { ExpenseList } from '@/components/dashboard/expense-list'
+import { RelatedPages } from '@/components/dashboard/related-pages'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata = {
   title: 'Ausgaben - Wirtschaftlichkeitsplan',
@@ -13,6 +16,7 @@ export default async function AusgabenPage() {
     <main className="min-h-screen bg-white dark:bg-neutral-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <ExpenseList expenses={expenses} />
+        <RelatedPages currentPage="/dashboard/ausgaben" />
       </div>
     </main>
   )
