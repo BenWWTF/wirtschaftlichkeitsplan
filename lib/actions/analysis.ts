@@ -30,13 +30,21 @@ interface BreakEvenSummary {
 export async function getBreakEvenAnalysis(): Promise<BreakEvenAnalysis[]> {
   const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+  // Get authenticated user
+  const {
+    data: { user },
+    error: authError
+  } = await supabase.auth.getUser()
+
+  if (!user || authError) {
+    console.error('User not authenticated:', authError)
+    return []
+  }
 
   const { data, error } = await supabase
     .from('therapy_types')
     .select('*')
-    .eq('user_id', DEMO_USER_ID)
+    .eq('user_id', user.id)
     .order('created_at', { ascending: true })
 
   if (error) {
@@ -65,14 +73,22 @@ export async function getBreakEvenAnalysis(): Promise<BreakEvenAnalysis[]> {
 export async function getMonthlyExpenses(month?: string): Promise<number> {
   const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+  // Get authenticated user
+  const {
+    data: { user },
+    error: authError
+  } = await supabase.auth.getUser()
+
+  if (!user || authError) {
+    console.error('User not authenticated:', authError)
+    return 0
+  }
 
   // Get all expenses
   const { data, error } = await supabase
     .from('expenses')
     .select('amount, is_recurring, recurrence_interval, expense_date')
-    .eq('user_id', DEMO_USER_ID)
+    .eq('user_id', user.id)
 
   if (error) {
     console.error('Error fetching expenses:', error)
@@ -139,14 +155,22 @@ export async function getAverageSessionsPerTherapy(month?: string): Promise<
 > {
   const supabase = await createClient()
 
-  // Use demo/default user ID for public access (no authentication required)
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+  // Get authenticated user
+  const {
+    data: { user },
+    error: authError
+  } = await supabase.auth.getUser()
+
+  if (!user || authError) {
+    console.error('User not authenticated:', authError)
+    return {}
+  }
 
   // Get monthly plans
   const { data, error } = await supabase
     .from('monthly_plans')
     .select('therapy_type_id, planned_sessions, actual_sessions')
-    .eq('user_id', DEMO_USER_ID)
+    .eq('user_id', user.id)
 
   if (error) {
     console.error('Error fetching monthly plans:', error)
@@ -309,7 +333,17 @@ export async function getBreakEvenHistory(
   fixedCosts: number = 2000
 ) {
   const supabase = await createClient()
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
+
+  // Get authenticated user
+  const {
+    data: { user },
+    error: authError
+  } = await supabase.auth.getUser()
+
+  if (!user || authError) {
+    console.error('User not authenticated:', authError)
+    return []
+  }
 
   // Calculate month range
   const monthsToRetrieve = monthRange === 'last3' ? 3 : monthRange === 'last6' ? 6 : 12
@@ -335,7 +369,7 @@ export async function getBreakEvenHistory(
     const { data: plans, error: plansError } = await supabase
       .from('monthly_plans')
       .select('planned_sessions, actual_sessions')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', user.id)
       .eq('month', monthDate)
 
     if (plansError) {
