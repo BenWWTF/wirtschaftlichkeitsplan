@@ -90,15 +90,13 @@ export async function getPracticeSettings(): Promise<PracticeSettings | null> {
     const supabase = await createClient()
 
     const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      console.error('[getPracticeSettings] Authentication error:', authError)
-      return null
-    }
+    // Use demo user if no authenticated user
+    const userId = user?.id || '00000000-0000-0000-0000-000000000000'
 
     const { data, error } = await supabase
       .from('practice_settings')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single()
 
     if (error) {

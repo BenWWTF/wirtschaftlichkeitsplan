@@ -30,15 +30,13 @@ export async function getBreakEvenAnalysis(): Promise<BreakEvenAnalysis[]> {
   const supabase = await createClient()
 
   const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    console.error('[getBreakEvenAnalysis] Authentication error:', authError)
-    return []
-  }
+  // Use demo user if no authenticated user
+  const userId = user?.id || '00000000-0000-0000-0000-000000000000'
 
   const { data, error } = await supabase
     .from('therapy_types')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .order('created_at', { ascending: true })
 
   if (error) {

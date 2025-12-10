@@ -169,15 +169,13 @@ export async function getExpenses(): Promise<Expense[]> {
 
     // Get the authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return []
-    }
+    // Use demo user if no authenticated user
+    const userId = user?.id || '00000000-0000-0000-0000-000000000000'
 
     const { data, error } = await supabase
       .from('expenses')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .order('expense_date', { ascending: false })
 
     if (error) {
