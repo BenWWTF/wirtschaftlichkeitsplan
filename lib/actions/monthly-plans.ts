@@ -11,6 +11,11 @@ import type { MonthlyPlan, TherapyType } from '@/lib/types'
  * Get all monthly plans for a specific month
  */
 export async function getMonthlyPlans(month: string): Promise<MonthlyPlan[]> {
+  // Handle null/undefined month - return empty array
+  if (!month) {
+    return []
+  }
+
   const userId = await getAuthUserId()
   const supabase = await createClient()
 
@@ -38,6 +43,11 @@ export async function getMonthlyPlans(month: string): Promise<MonthlyPlan[]> {
  * Get monthly plans with therapy details
  */
 export async function getMonthlyPlansWithTherapies(month: string) {
+  // Handle null/undefined month - return empty array
+  if (!month) {
+    return []
+  }
+
   const userId = await getAuthUserId()
   const supabase = await createClient()
 
@@ -198,5 +208,90 @@ export async function deleteMonthlyPlanAction(id: string) {
       return { error: error.message }
     }
     return { error: 'Fehler beim Löschen' }
+  }
+}
+
+/**
+ * Copy plans from previous month if current month has no plans
+ * Called automatically when selecting a new month without plans
+ */
+export async function copyPlansFromPreviousMonthAction(month: string) {
+  const userId = await getAuthUserId()
+  const supabase = await createClient()
+
+  try {
+    // Convert YYYY-MM to YYYY-MM-01 for date column
+    const monthDate = month.includes('-') && month.length === 7
+      ? `${month}-01`
+      : month
+
+    // Check if current month already has plans
+    const { data: existingPlans } = await supabase
+      .from('monthly_plans')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('month', monthDate)
+      .limit(1)
+
+    if (existingPlans && existingPlans.length > 0) {
+      // Month already has plans, don't copy
+      return { success: false, message: 'Month already has plans' }
+    }
+
+    // Calculate previous month
+    const [year, monthNum] = month.split('-')
+    let prevYear = parseInt(year)
+    let prevMonth = parseInt(monthNum) - 1
+
+    if (prevMonth < 1) {
+      prevMonth = 12
+      prevYear--
+    }
+
+    const previousMonth = `${prevYear}-${String(prevMonth).padStart(2, '0')}`
+    const previousMonthDate = `${previousMonth}-01`
+
+    // Get plans from previous month
+    const { data: previousPlans, error: fetchError } = await supabase
+      .from('monthly_plans')
+      .select('therapy_type_id, planned_sessions, notes')
+      .eq('user_id', userId)
+      .eq('month', previousMonthDate)
+
+    if (fetchError) {
+      logError('copyPlansFromPreviousMonthAction', 'Error fetching previous month plans', fetchError, { month, previousMonth })
+      return { error: `Fehler beim Abrufen der Vormonats-Pläne: ${fetchError.message}` }
+    }
+
+    if (!previousPlans || previousPlans.length === 0) {
+      return { success: false, message: 'No plans in previous month to copy' }
+    }
+
+    // Create new plans for current month based on previous month
+    const newPlans = previousPlans.map(plan => ({
+      user_id: userId,
+      therapy_type_id: plan.therapy_type_id,
+      month: monthDate,
+      planned_sessions: plan.planned_sessions,
+      actual_sessions: null,
+      notes: plan.notes
+    }))
+
+    const { error: insertError } = await supabase
+      .from('monthly_plans')
+      .insert(newPlans)
+
+    if (insertError) {
+      logError('copyPlansFromPreviousMonthAction', 'Error copying plans to current month', insertError, { month })
+      return { error: `Fehler beim Kopieren: ${insertError.message}` }
+    }
+
+    revalidatePath('/dashboard/planung')
+    return { success: true, copied: previousPlans.length }
+  } catch (error) {
+    if (error instanceof Error) {
+      return { error: error.message }
+    }
+    return { error: 'Fehler beim Kopieren der Pläne' }
   }
 }

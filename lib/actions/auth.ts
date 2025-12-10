@@ -95,6 +95,6 @@ export async function sendMagicLink(email: string) {
     return { error: error.message }
   }
 
-  // Magic link has been sent (or would be sent with email provider)
+  // Magic link has been sent
   return { success: true, data }
 }

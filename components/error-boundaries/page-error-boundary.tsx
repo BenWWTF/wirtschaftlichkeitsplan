@@ -50,11 +50,11 @@ export class PageErrorBoundary extends React.Component<Props, State> {
                   <AlertCircle className="h-12 w-12 text-red-600 dark:text-red-400" />
                 </div>
                 <h1 className="text-2xl font-bold text-center text-red-900 dark:text-red-100 mb-2">
-                  Oops! Something went wrong
+                  Oops! Etwas ist schief gelaufen
                 </h1>
                 <p className="text-sm text-center text-red-800 dark:text-red-200 mb-6">
-                  {this.props.pageName && `on the ${this.props.pageName} page. `}
-                  {this.state.error?.message || 'An unexpected error occurred.'}
+                  {this.props.pageName && `auf der Seite ${this.props.pageName}. `}
+                  {this.state.error?.message || 'Ein unerwarteter Fehler ist aufgetreten.'}
                 </p>
                 <div className="space-y-3">
                   <button
@@ -62,20 +62,20 @@ export class PageErrorBoundary extends React.Component<Props, State> {
                     className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600 transition-colors font-medium"
                   >
                     <RefreshCw className="h-4 w-4" />
-                    Reload Page
+                    Seite neu laden
                   </button>
                   <Link
                     href="/dashboard"
                     className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-red-200 dark:border-red-800 text-red-900 dark:text-red-100 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors font-medium"
                   >
                     <Home className="h-4 w-4" />
-                    Go to Dashboard
+                    Zum Dashboard
                   </Link>
                 </div>
                 {process.env.NODE_ENV === 'development' && this.state.error && (
                   <details className="mt-6 p-3 bg-red-100 dark:bg-red-900/40 rounded border border-red-300 dark:border-red-700">
                     <summary className="cursor-pointer font-mono text-xs text-red-900 dark:text-red-100">
-                      Error Details
+                      Fehlerdetails
                     </summary>
                     <pre className="mt-2 font-mono text-xs text-red-800 dark:text-red-200 overflow-auto max-h-40">
                       {this.state.error.message}

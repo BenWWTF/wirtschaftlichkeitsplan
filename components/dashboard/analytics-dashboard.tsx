@@ -29,8 +29,8 @@ export function AnalyticsDashboard() {
         const data = await getAdvancedAnalytics()
         setAnalytics(data)
       } catch (err) {
-        console.error('Failed to load analytics:', err)
-        setError('Failed to load analytics data')
+        console.error('Fehler beim Laden der Analysen:', err)
+        setError('Fehler beim Laden der Analysedaten')
       } finally {
         setIsLoading(false)
       }
@@ -55,10 +55,10 @@ export function AnalyticsDashboard() {
         <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
         <div>
           <h3 className="font-medium text-yellow-900 dark:text-yellow-100">
-            {error || 'No data available'}
+            {error || 'Keine Daten verfügbar'}
           </h3>
           <p className="text-sm text-yellow-800 dark:text-yellow-200 mt-1">
-            Make sure you have created therapy types, monthly plans, and expenses.
+            Stellen Sie sicher, dass Sie Therapietypen, Monatspläne und Ausgaben erstellt haben.
           </p>
         </div>
       </div>

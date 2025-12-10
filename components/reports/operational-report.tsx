@@ -18,8 +18,8 @@ export function OperationalReport() {
         const data = await getAdvancedAnalytics()
         setAnalytics(data)
       } catch (err) {
-        console.error('Failed to load analytics:', err)
-        setError('Failed to load report data')
+        console.error('Fehler beim Laden der Analysen:', err)
+        setError('Fehler beim Laden der Berichtsdaten')
       } finally {
         setIsLoading(false)
       }
@@ -44,10 +44,10 @@ export function OperationalReport() {
         <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
         <div>
           <h3 className="font-medium text-yellow-900 dark:text-yellow-100">
-            {error || 'No data available'}
+            {error || 'Keine Daten verfügbar'}
           </h3>
           <p className="text-sm text-yellow-800 dark:text-yellow-200 mt-1">
-            Create monthly plans to generate operational reports.
+            Erstellen Sie monatliche Pläne, um Betriebsberichte zu erstellen.
           </p>
         </div>
       </div>

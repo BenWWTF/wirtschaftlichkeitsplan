@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, BarChart3, Calendar, FileText, Pill, Home, Briefcase } from 'lucide-react'
+import { Menu, X, BarChart3, Calendar, FileText, Pill, Home, Briefcase, DollarSign, Download, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
@@ -44,6 +44,21 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Berichte',
     icon: <FileText className="w-5 h-5" />,
     shortcut: 'Alt+R',
+  },
+  {
+    href: '/dashboard/ausgaben',
+    label: 'Ausgaben',
+    icon: <DollarSign className="w-5 h-5" />,
+  },
+  {
+    href: '/dashboard/daten-import',
+    label: 'Daten Import',
+    icon: <Download className="w-5 h-5" />,
+  },
+  {
+    href: '/dashboard/einstellungen',
+    label: 'Einstellungen',
+    icon: <Settings className="w-5 h-5" />,
   },
 ]
 
@@ -131,7 +146,7 @@ export function DashboardNav() {
               )}
               onClick={() => setIsMobileMenuOpen(false)}
               aria-current={isActive(item.href) ? 'page' : undefined}
-              title={`${item.label} (${item.shortcut})`}
+              title={item.label}
             >
               <span className={cn(
                 'flex-shrink-0 w-5 h-5 transition-colors',
@@ -142,11 +157,6 @@ export function DashboardNav() {
                 {item.icon}
               </span>
               <span className="flex-1">{item.label}</span>
-              {item.shortcut && (
-                <kbd className="hidden xl:inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-neutral-500 bg-neutral-100 dark:bg-neutral-800/60 dark:text-neutral-400 group-hover:bg-neutral-200 dark:group-hover:bg-neutral-700/60">
-                  {item.shortcut}
-                </kbd>
-              )}
             </Link>
           ))}
         </nav>
@@ -220,7 +230,7 @@ export function DashboardNav() {
                   )}
                   onClick={() => setIsMobileMenuOpen(false)}
                   aria-current={isActive(item.href) ? 'page' : undefined}
-                  title={`${item.label} (${item.shortcut})`}
+                  title={item.label}
                 >
                   <span className="flex-shrink-0" aria-hidden="true">{item.icon}</span>
                   <span className="flex-1">{item.label}</span>

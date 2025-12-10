@@ -4,6 +4,10 @@ import { createClient } from '@/utils/supabase/server'
 import { getAuthUserId } from '@/lib/utils/auth'
 import { logError } from '@/lib/utils/logger'
 import type { TherapyType, MonthlyPlan } from '@/lib/types'
+import { getPlannedMetrics } from '@/lib/metrics/planned-metrics'
+import { getActualMetrics } from '@/lib/metrics/actual-metrics'
+import { get12MonthHistory, type MonthlyHistory } from '@/lib/metrics/history-metrics'
+import type { MetricsResult } from '@/lib/metrics/metrics-result'
 
 export interface MonthlyMetrics {
   month: string
@@ -386,5 +390,85 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
     average_session_price: averageSessionPrice,
     profitability_rate: profitabilityRate,
     break_even_status: breakEvenStatus
+  }
+}
+
+/**
+ * New unified dashboard metrics interface
+ * Combines planned forecast with actual results and 12-month history
+ */
+export interface DashboardMetrics {
+  month_year: string
+  forecast: MetricsResult
+  results: MetricsResult
+  history_12_months: MonthlyHistory[]
+  total_expenses: number
+}
+
+/**
+ * Get comprehensive dashboard metrics including forecast and results
+ * This is the new unified dashboard data fetcher
+ */
+export async function getDashboardMetrics(): Promise<DashboardMetrics> {
+  const userId = await getAuthUserId()
+  const supabase = await createClient()
+
+  // Get current month in YYYY-MM format
+  const currentMonth = new Date().toISOString().slice(0, 7)
+
+  try {
+    // Fetch planned metrics, actual metrics, and history in parallel
+    const [forecast, results, history] = await Promise.all([
+      getPlannedMetrics(userId, currentMonth),
+      getActualMetrics(userId, currentMonth),
+      get12MonthHistory(userId, currentMonth)
+    ])
+
+    // Fetch total expenses for break-even calculation
+    const { data: expenses, error: expensesError } = await supabase
+      .from('expenses')
+      .select('amount')
+      .eq('user_id', userId)
+
+    if (expensesError) {
+      logError('getDashboardMetrics', 'Error fetching expenses', expensesError, { userId })
+    }
+
+    const totalExpenses = expenses?.reduce((sum, e) => sum + e.amount, 0) || 0
+
+    return {
+      month_year: currentMonth,
+      forecast,
+      results,
+      history_12_months: history,
+      total_expenses: totalExpenses
+    }
+
+  } catch (error) {
+    logError('getDashboardMetrics', 'Error fetching dashboard metrics', error, { userId, currentMonth })
+
+    // Return empty metrics on error
+    return {
+      month_year: currentMonth,
+      forecast: createEmptyMetrics(),
+      results: createEmptyMetrics(),
+      history_12_months: [],
+      total_expenses: 0
+    }
+  }
+}
+
+/**
+ * Helper function to create empty metrics
+ */
+function createEmptyMetrics(): MetricsResult {
+  return {
+    total_sessions: 0,
+    total_revenue: 0,
+    total_variable_costs: 0,
+    total_margin: 0,
+    margin_percent: 0,
+    break_even_status: 'deficit',
+    by_therapy: []
   }
 }

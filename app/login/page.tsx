@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const [linkSent, setLinkSent] = useState(false)
+  const [sentEmail, setSentEmail] = useState('')
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,6 +29,7 @@ export default function LoginPage() {
       }
 
       setLinkSent(true)
+      setSentEmail(email)
       setMessage(`✓ Magic Link wurde an ${email} versendet`)
       setEmail('')
     } catch (err) {
@@ -41,6 +43,38 @@ export default function LoginPage() {
     setLinkSent(false)
     setMessage('')
     setError('')
+    setSentEmail('')
+  }
+
+  const handleFreshLink = async () => {
+    setError('')
+    setMessage('')
+    setLoading(true)
+
+    try {
+      const response = await fetch('/api/auth/refresh-magic-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: sentEmail })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.error || 'Fehler beim Anfordern des Magic Links')
+        setLoading(false)
+        return
+      }
+
+      setMessage(`✓ Frischer Magic Link wurde an ${sentEmail} versendet`)
+    } catch (err) {
+      setError('Ein unerwarteter Fehler ist aufgetreten')
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -131,14 +165,25 @@ export default function LoginPage() {
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleResend}
-                  disabled={loading}
-                  className="w-full px-4 py-2 bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-white font-medium rounded-lg hover:bg-neutral-300 dark:hover:bg-neutral-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Wird versendet...' : 'Andere E-Mail verwenden'}
-                </button>
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={handleFreshLink}
+                    disabled={loading}
+                    className="w-full px-4 py-2 bg-amber-600 text-white font-medium rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Wird versendet...' : '🔄 Frischen Link anfordern'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={loading}
+                    className="w-full px-4 py-2 bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-white font-medium rounded-lg hover:bg-neutral-300 dark:hover:bg-neutral-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Wird versendet...' : 'Andere E-Mail verwenden'}
+                  </button>
+                </div>
               </div>
             )}
 

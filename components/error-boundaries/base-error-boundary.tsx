@@ -38,16 +38,16 @@ export class BaseErrorBoundary extends React.Component<Props, State> {
               <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
               <div>
                 <h3 className="font-semibold text-red-900 dark:text-red-100 mb-1">
-                  Something went wrong
+                  Etwas ist schief gelaufen
                 </h3>
                 <p className="text-sm text-red-800 dark:text-red-200 mb-3">
-                  {this.state.error?.message || 'An unexpected error occurred'}
+                  {this.state.error?.message || 'Ein unerwarteter Fehler ist aufgetreten'}
                 </p>
                 <button
                   onClick={() => this.setState({ hasError: false })}
                   className="text-sm px-3 py-1.5 bg-red-200 dark:bg-red-800 text-red-900 dark:text-red-100 rounded hover:bg-red-300 dark:hover:bg-red-700 transition-colors"
                 >
-                  Try again
+                  Erneut versuchen
                 </button>
               </div>
             </div>

@@ -28,7 +28,7 @@ export function KPICard({
   // Determine trend direction and color
   const getTrendInfo = () => {
     if (trend === null || trend === undefined) {
-      return { icon: Minus, color: 'text-neutral-500', bgColor: 'bg-neutral-100 dark:bg-neutral-800', label: 'No trend' }
+      return { icon: Minus, color: 'text-neutral-500', bgColor: 'bg-neutral-100 dark:bg-neutral-800', label: 'Kein Trend' }
     }
     if (trend > 1) {
       return { icon: ArrowUp, color: 'text-green-600 dark:text-green-400', bgColor: 'bg-green-100 dark:bg-green-900/30', label: `+${trend.toFixed(1)}%` }
@@ -36,7 +36,7 @@ export function KPICard({
     if (trend < -1) {
       return { icon: ArrowDown, color: 'text-red-600 dark:text-red-400', bgColor: 'bg-red-100 dark:bg-red-900/30', label: `${trend.toFixed(1)}%` }
     }
-    return { icon: Minus, color: 'text-neutral-500', bgColor: 'bg-neutral-100 dark:bg-neutral-800', label: 'Flat' }
+    return { icon: Minus, color: 'text-neutral-500', bgColor: 'bg-neutral-100 dark:bg-neutral-800', label: 'Stabil' }
   }
 
   const trendInfo = getTrendInfo()
@@ -112,7 +112,7 @@ export function KPICard({
       )}
       {previousValue && !description && (
         <p className="text-xs text-neutral-600 dark:text-neutral-400">
-          Previous: {previousValue}
+          Vorig: {previousValue}
         </p>
       )}
     </div>
