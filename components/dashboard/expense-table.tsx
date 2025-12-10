@@ -14,6 +14,8 @@ import type { Expense } from '@/lib/types'
 import { formatEuro } from '@/lib/utils'
 import { format } from 'date-fns'
 import { de } from 'date-fns/locale'
+import { useIsMobile } from '@/components/ui/hooks/useMediaQuery'
+import { MobileCard, MobileCardRow } from '@/components/dashboard/mobile-card'
 
 interface ExpenseTableProps {
   expenses: Expense[]
@@ -22,6 +24,8 @@ interface ExpenseTableProps {
 }
 
 export function ExpenseTable({ expenses, onEdit, onDelete }: ExpenseTableProps) {
+  const isMobile = useIsMobile()
+
   const handleDelete = async (id: string) => {
     if (window.confirm('Sind Sie sicher, dass Sie diese Ausgabe löschen möchten?')) {
       try {
@@ -56,6 +60,78 @@ export function ExpenseTable({ expenses, onEdit, onDelete }: ExpenseTableProps) 
     )
   }
 
+  // Mobile view: Render cards
+  if (isMobile) {
+    return (
+      <div className="space-y-3">
+        {expenses.map((expense) => {
+          const date = new Date(expense.expense_date)
+          const formattedDate = format(date, 'dd.MM.yyyy', { locale: de })
+          const recurrenceLabel = getRecurrenceLabel(expense.recurrence_interval)
+
+          return (
+            <MobileCard
+              key={expense.id}
+              title={expense.category}
+              subtitle={expense.subcategory || formattedDate}
+              badge={
+                <span className="text-sm font-semibold text-accent-700 dark:text-accent-300 whitespace-nowrap">
+                  {formatEuro(expense.amount)}
+                </span>
+              }
+              expandableContent={
+                <div className="space-y-2">
+                  <MobileCardRow label="Datum" value={formattedDate} />
+                  {expense.description && (
+                    <MobileCardRow label="Beschreibung" value={expense.description} />
+                  )}
+                  {expense.is_recurring && recurrenceLabel && (
+                    <div className="flex items-center gap-2 py-2">
+                      <Repeat className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                        {recurrenceLabel}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              }
+              expandLabel={expense.description || expense.is_recurring ? 'Details' : undefined}
+              actions={
+                <div className="flex gap-2 w-full">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onEdit(expense)}
+                    className="flex-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/20"
+                  >
+                    <Edit2 className="h-4 w-4 mr-2" />
+                    Bearbeiten
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDelete(expense.id)}
+                    className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Löschen
+                  </Button>
+                </div>
+              }
+            >
+              <MobileCardRow
+                label="Betrag"
+                value={formatEuro(expense.amount)}
+                variant="highlight"
+              />
+            </MobileCard>
+          )
+        })}
+      </div>
+    )
+  }
+
+  // Desktop view: Render table
   return (
     <div className="rounded-lg border border-border overflow-hidden">
       <Table>

@@ -1,9 +1,13 @@
 /**
  * Forecast Calculator
  * Projects future revenue and metrics based on historical trends
+ *
+ * NOTE: All revenue forecasts are GROSS revenue. When calculating profit/break-even,
+ * payment fees must be applied using calculateNetRevenue from payment-fees.ts.
  */
 
 import type { ForecastDataPoint } from '../types'
+import { calculateNetRevenue, SUMUP_FEE_RATE } from '../payment-fees'
 
 export interface HistoricalMetrics {
   month: Date
@@ -139,7 +143,15 @@ function generateEmptyForecast(monthsAhead: number): ForecastDataPoint[] {
 
 /**
  * Calculate break-even month based on forecast
- * @param forecast Array of forecast data points
+ *
+ * IMPORTANT: This uses NET revenue (after payment fees) for break-even calculation.
+ * The forecasted revenue is gross, so we apply the payment fee deduction before
+ * comparing against fixed costs.
+ *
+ * Break-even is reached when: Net Revenue >= Fixed Costs
+ * Where: Net Revenue = Gross Revenue * (1 - SUMUP_FEE_RATE)
+ *
+ * @param forecast Array of forecast data points (with GROSS revenue)
  * @param fixedCosts Monthly fixed costs
  * @returns Month when break-even is projected, or null if not projecting break-even
  */
@@ -148,7 +160,9 @@ export function calculateBreakEvenMonth(
   fixedCosts: number
 ): Date | null {
   for (const point of forecast) {
-    if (point.forecastedRevenue >= fixedCosts) {
+    // Apply payment fees to get net revenue before comparing to costs
+    const netRevenue = calculateNetRevenue(point.forecastedRevenue)
+    if (netRevenue >= fixedCosts) {
       return point.month
     }
   }
@@ -209,11 +223,14 @@ export function identifyTrendChanges(
 
 /**
  * Forecast break-even date given expenses
- * @param currentRevenue Current monthly revenue
- * @param historicalData Historical revenue for trend
- * @param targetExpenses Monthly expenses
+ *
+ * NOTE: Uses NET revenue (after payment fees) for break-even calculation.
+ * The 1.39% SumUp fee is automatically deducted from gross forecasted revenue.
+ *
+ * @param historicalData Historical revenue for trend (gross revenue)
+ * @param targetExpenses Monthly expenses (fixed costs)
  * @param monthsAhead How many months to forecast
- * @returns Estimated month when break-even is reached, or null
+ * @returns Estimated month when break-even is reached (using net revenue), or null
  */
 export function forecastBreakEvenDate(
   historicalData: HistoricalMetrics[],
@@ -240,8 +257,12 @@ export function getConfidenceBandWidth(forecast: ForecastDataPoint[]): number[] 
 
 /**
  * Compare forecast to plan for risk assessment
- * @param forecast Forecast data points
- * @param plannedRevenue Planned monthly revenue
+ *
+ * NOTE: Uses NET revenue (after payment fees) for risk comparison.
+ * The forecast lower bound (gross) is adjusted for 1.39% payment fee.
+ *
+ * @param forecast Forecast data points (gross revenue)
+ * @param plannedRevenue Planned monthly revenue (gross)
  * @returns Risk assessment
  */
 export function assessForecastRisk(
@@ -254,8 +275,13 @@ export function assessForecastRisk(
 } {
   let monthsAtRisk = 0
 
+  // Apply payment fees to both the forecast lower bound and planned revenue
+  // for accurate comparison of net revenue risk
+  const netPlannedRevenue = calculateNetRevenue(plannedRevenue)
+
   for (const point of forecast) {
-    if (point.lowerBound < plannedRevenue * 0.8) {
+    const netLowerBound = calculateNetRevenue(point.lowerBound)
+    if (netLowerBound < netPlannedRevenue * 0.8) {
       monthsAtRisk++
     }
   }
