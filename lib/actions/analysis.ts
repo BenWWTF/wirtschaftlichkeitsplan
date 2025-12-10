@@ -1,7 +1,8 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
-import type { TherapyType, BreakEvenAnalysis } from '@/lib/types'
+import type { TherapyType, BreakEvenAnalysis, PracticeSettings } from '@/lib/types'
+import { calculatePaymentFee, calculateNetRevenuePerSession } from '@/lib/calculations/payment-fees'
 
 interface BreakEvenResult {
   therapy_type_id: string
@@ -33,25 +34,48 @@ export async function getBreakEvenAnalysis(): Promise<BreakEvenAnalysis[]> {
   // Use demo user if no authenticated user
   const userId = user?.id || '00000000-0000-0000-0000-000000000000'
 
-  const { data, error } = await supabase
+  // Fetch therapies
+  const { data: therapyData, error: therapyError } = await supabase
     .from('therapy_types')
     .select('*')
     .eq('user_id', userId)
     .order('created_at', { ascending: true })
 
-  if (error) {
-    console.error('Error fetching therapies for break-even:', error)
+  if (therapyError) {
+    console.error('Error fetching therapies for break-even:', therapyError)
     return []
   }
 
-  // Return therapy information (break-even analysis removed since variable costs are tracked separately)
-  return (data || []).map((therapy: TherapyType) => ({
-    therapy_type_id: therapy.id,
-    therapy_type_name: therapy.name,
-    price_per_session: therapy.price_per_session,
-    contribution_margin: 0,
-    contribution_margin_percent: 0
-  }))
+  // Fetch practice settings for variable cost and payment fee percentage
+  const { data: settingsData } = await supabase
+    .from('practice_settings')
+    .select('average_variable_cost_per_session, payment_processing_fee_percentage')
+    .eq('user_id', userId)
+    .single()
+
+  const variableCostPerSession = settingsData?.average_variable_cost_per_session || 0
+  const feePercentage = settingsData?.payment_processing_fee_percentage || 1.39
+
+  // Return therapy information with payment fee calculations
+  return (therapyData || []).map((therapy: TherapyType) => {
+    const paymentFeePerSession = calculatePaymentFee(therapy.price_per_session)
+    const netRevenuePerSession = calculateNetRevenuePerSession(therapy.price_per_session)
+    const contributionMargin = netRevenuePerSession - variableCostPerSession
+    const contributionMarginPercent = therapy.price_per_session > 0
+      ? (contributionMargin / netRevenuePerSession) * 100
+      : 0
+
+    return {
+      therapy_type_id: therapy.id,
+      therapy_type_name: therapy.name,
+      price_per_session: therapy.price_per_session,
+      payment_fee_per_session: paymentFeePerSession,
+      net_revenue_per_session: netRevenuePerSession,
+      variable_cost_per_session: variableCostPerSession,
+      contribution_margin: contributionMargin,
+      contribution_margin_percent: contributionMarginPercent
+    }
+  })
 }
 
 /**
