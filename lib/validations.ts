@@ -35,7 +35,7 @@ export const PracticeSettingsSchema = z.object({
   monthly_fixed_costs: z.number().nonnegative('Fixkosten können nicht negativ sein'),
   average_variable_cost_per_session: z.number().nonnegative('Variable Kosten können nicht negativ sein'),
   expected_growth_rate: z.number().min(-100, 'Wachstum kann nicht unter -100% sein').max(1000, 'Wachstum zu hoch'),
-  payment_processing_fee_percentage: z.number().min(0, 'Gebührensatz kann nicht negativ sein').max(100, 'Gebührensatz kann 100% nicht übersteigen').optional().default(1.39)
+  payment_processing_fee_percentage: z.number().min(0, 'Gebühr kann nicht negativ sein').max(100, 'Gebühr kann nicht über 100% sein').default(1.39)
 })
 
 export type PracticeSettingsInput = z.infer<typeof PracticeSettingsSchema>

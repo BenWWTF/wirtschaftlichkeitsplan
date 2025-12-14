@@ -22,7 +22,6 @@ import {
   calculateForecast
 } from '@/lib/calculations'
 import { calculateAustrianTax } from '@/lib/utils/austrian-tax'
-import { calculateNetRevenue, calculateNetPrice, calculateSumUpCosts } from '@/lib/calculations/payment-fees'
 
 import type {
   ViabilityScore,
@@ -63,10 +62,11 @@ export interface UnifiedMetricsResponse {
   netIncome: number
 
   // Tier 2: Primary KPI Metrics
-  totalRevenue: number
-  totalGrossRevenue: number
-  totalExpenses: number
-  sumupCosts: number
+  totalRevenue: number // Gross revenue before payment fees
+  totalPaymentFees: number // Total payment processing fees (SumUp)
+  totalNetRevenue: number // Net revenue after payment fees
+  paymentFeePercentage: number // Fee percentage used (e.g., 1.39)
+  totalExpenses: number // Fixed and variable costs
   totalSessions: number
   totalPlannedSessions: number
   averageSessionPrice: number
@@ -75,18 +75,6 @@ export interface UnifiedMetricsResponse {
   // Tier 3: Detailed Breakdown
   therapyMetrics: TherapyMetric[]
   monthlyBreakdown?: MonthlyMetric[]
-
-  // Previous Period Data (for month-over-month comparisons)
-  previousPeriod?: {
-    totalRevenue: number
-    totalGrossRevenue: number
-    totalExpenses: number
-    sumupCosts: number
-    totalSessions: number
-    totalPlannedSessions: number
-    averageSessionPrice: number
-    netIncome: number
-  }
 
   // Actionable Intelligence
   variances: VarianceAlert[]
@@ -186,18 +174,7 @@ export async function getUnifiedMetrics(
       variances.push(...comparison)
     }
 
-    // 6. Fetch previous period data for month-over-month comparisons
-    const previousPeriod = getComparisonPeriod(input.scope, input.date, 'lastPeriod')
-    const previousPeriodData = await fetchScopeData(
-      supabase,
-      userId,
-      input.scope,
-      previousPeriod,
-      input.dataViewMode
-    )
-    const previousCalculatedMetrics = calculateMetrics(previousPeriodData, input.dataViewMode)
-
-    // 7. Generate forecast if applicable
+    // 6. Generate forecast if applicable
     let forecast: ForecastDataPoint[] | undefined
     if (input.scope === 'year' || input.scope === 'allTime') {
       const historicalData = await fetchHistoricalData(supabase, userId, 12)
@@ -212,10 +189,10 @@ export async function getUnifiedMetrics(
       )
     }
 
-    // 8. Determine data quality
+    // 7. Determine data quality
     const dataQuality = determineDataQuality(scopeData, input.scope)
 
-    // 9. Return unified response
+    // 8. Return unified response
     return {
       scope: input.scope,
       period,
@@ -226,9 +203,10 @@ export async function getUnifiedMetrics(
       breakEvenStatus: calculatedMetrics.breakEvenStatus,
       netIncome: calculatedMetrics.netIncome,
       totalRevenue: calculatedMetrics.totalRevenue,
-      totalGrossRevenue: scopeData.totalGrossRevenue,
+      totalPaymentFees: calculatedMetrics.totalPaymentFees,
+      totalNetRevenue: calculatedMetrics.totalNetRevenue,
+      paymentFeePercentage: calculatedMetrics.paymentFeePercentage,
       totalExpenses: calculatedMetrics.totalExpenses,
-      sumupCosts: scopeData.sumupCosts,
       totalSessions: calculatedMetrics.totalSessions,
       totalPlannedSessions: calculatedMetrics.totalPlannedSessions,
       averageSessionPrice: calculatedMetrics.averageSessionPrice,
@@ -238,16 +216,6 @@ export async function getUnifiedMetrics(
         input.scope === 'quarter' || input.scope === 'year'
           ? scopeData.monthlyBreakdown
           : undefined,
-      previousPeriod: {
-        totalRevenue: previousCalculatedMetrics.totalRevenue,
-        totalGrossRevenue: previousPeriodData.totalGrossRevenue,
-        totalExpenses: previousCalculatedMetrics.totalExpenses,
-        sumupCosts: previousPeriodData.sumupCosts,
-        totalSessions: previousCalculatedMetrics.totalSessions,
-        totalPlannedSessions: previousCalculatedMetrics.totalPlannedSessions,
-        averageSessionPrice: previousCalculatedMetrics.averageSessionPrice,
-        netIncome: previousCalculatedMetrics.netIncome
-      },
       variances,
       forecast,
       lastUpdated: new Date(),
@@ -381,7 +349,7 @@ async function fetchScopeData(
   period: { start: Date; end: Date },
   dataViewMode?: 'prognose' | 'resultate'
 ): Promise<MetricsData> {
-  // Fetch user settings (for practice type, payment fees, and tax calculations)
+  // Fetch user settings (for practice type, tax calculations, and payment fee percentage)
   const { data: userSettings } = await supabase
     .from('practice_settings')
     .select('practice_type, payment_processing_fee_percentage')
@@ -389,7 +357,8 @@ async function fetchScopeData(
     .single()
 
   const practiceType = (userSettings?.practice_type as 'kassenarzt' | 'wahlarzt' | 'mixed') || 'wahlarzt'
-  const paymentFeePercentage = userSettings?.payment_processing_fee_percentage || 1.39
+  // Default to 1.39% (SumUp standard fee) if not set
+  const paymentFeePercentage = userSettings?.payment_processing_fee_percentage ?? 1.39
 
   // Fetch therapy types
   const { data: therapies } = await supabase
@@ -494,17 +463,13 @@ async function fetchScopeData(
       // Use appropriate session count based on data view mode
       const sessionsForRevenue = useActualSessions ? totalActual : totalPlanned
 
-      // Calculate revenue using gross price, then apply payment fee
-      const grossRevenue = calculateSessionRevenue(
+      const totalRevenue = calculateSessionRevenue(
         sessionsForRevenue,
         therapy.price_per_session
       ).revenue
-      const totalRevenue = calculateNetRevenue(grossRevenue, paymentFeePercentage)
 
-      // Calculate margin with net price (after payment fees)
-      const netPrice = calculateNetPrice(therapy.price_per_session, paymentFeePercentage)
       const margin = calculateContributionMargin(
-        netPrice,
+        therapy.price_per_session,
         therapy.variable_cost_per_session
       )
 
@@ -538,38 +503,34 @@ async function fetchScopeData(
     0
   )
 
-  // Calculate gross revenue (before payment fees) for SumUp cost calculation
-  // totalRevenue is NET (after fees), so we need to recalculate gross
-  const totalGrossRevenue = therapyMetrics.reduce((sum, t) => {
-    const sessions = useActualSessions ? t.actualSessions : t.plannedSessions
-    return sum + (sessions * t.pricePerSession)
-  }, 0)
+  // Calculate payment fees
+  const totalPaymentFees = totalRevenue * (paymentFeePercentage / 100)
+  const totalNetRevenue = totalRevenue - totalPaymentFees
 
-  const grossIncome = totalRevenue - totalExpenses
+  const grossIncome = totalNetRevenue - totalExpenses
 
   // Calculate number of months in the period for prorating annual tax contributions
   const monthsInPeriod = Math.max(1, Math.round((period.end.getTime() - period.start.getTime()) / (1000 * 60 * 60 * 24 * 30.44)))
 
   // Calculate net income after taxes (Austrian practice)
+  // Note: We use net revenue (after payment fees) as the gross revenue for tax calculation
   const taxResult = calculateAustrianTax({
-    grossRevenue: totalRevenue,
+    grossRevenue: totalNetRevenue,
     totalExpenses: totalExpenses,
     practiceType: practiceType,
-    applyingPauschalierung: totalRevenue < 220000, // Eligible if under €220k
+    applyingPauschalierung: totalNetRevenue < 220000, // Eligible if under €220k
     monthsInPeriod: monthsInPeriod
   })
 
   const netIncome = taxResult.netIncome
-  const marginPercent = grossIncome > 0 ? (grossIncome / totalRevenue) * 100 : 0
-
-  // Calculate SumUp costs based on GROSS revenue (before payment fees are deducted)
-  const sumupCosts = calculateSumUpCosts(totalGrossRevenue, paymentFeePercentage)
+  const marginPercent = totalRevenue > 0 ? (grossIncome / totalRevenue) * 100 : 0
 
   return {
     totalRevenue,
-    totalGrossRevenue,
+    totalPaymentFees,
+    totalNetRevenue,
+    paymentFeePercentage,
     totalExpenses,
-    sumupCosts,
     totalSessions,
     totalPlannedSessions: totalPlanned,
     netIncome,
@@ -587,15 +548,6 @@ async function fetchHistoricalData(
   userId: string,
   months: number
 ): Promise<MonthlyMetric[]> {
-  // Fetch payment fee percentage
-  const { data: settings } = await supabase
-    .from('practice_settings')
-    .select('payment_processing_fee_percentage')
-    .eq('user_id', userId)
-    .single()
-
-  const paymentFeePercentage = settings?.payment_processing_fee_percentage || 0
-
   const { data: plans } = await supabase
     .from('monthly_plans')
     .select('month, therapy_type_id, actual_sessions')
@@ -637,9 +589,8 @@ async function fetchHistoricalData(
     }
 
     const metric = monthlyData.get(month)!
-    const grossPrice = therapyPriceMap.get(plan.therapy_type_id) || 0
-    const netPrice = calculateNetPrice(grossPrice, paymentFeePercentage)
-    metric.totalRevenue += (plan.actual_sessions || 0) * netPrice
+    const price = therapyPriceMap.get(plan.therapy_type_id) || 0
+    metric.totalRevenue += (plan.actual_sessions || 0) * price
     metric.totalSessions += plan.actual_sessions || 0
   })
 
@@ -667,6 +618,9 @@ interface CalculatedMetrics {
   breakEvenStatus: 'surplus' | 'breakeven' | 'deficit'
   netIncome: number
   totalRevenue: number
+  totalPaymentFees: number
+  totalNetRevenue: number
+  paymentFeePercentage: number
   totalExpenses: number
   totalSessions: number
   totalPlannedSessions: number
@@ -689,7 +643,8 @@ function calculateMetrics(data: MetricsData, dataViewMode: 'prognose' | 'resulta
     ).length
   })
 
-  const marginResult = calculateMargin(data.totalRevenue, data.totalExpenses)
+  // Use net revenue (after payment fees) for margin calculation
+  const marginResult = calculateMargin(data.totalNetRevenue, data.totalExpenses)
 
   const breakEvenStatus: 'surplus' | 'breakeven' | 'deficit' = marginResult.breakEven
     ? data.netIncome > 0
@@ -702,6 +657,9 @@ function calculateMetrics(data: MetricsData, dataViewMode: 'prognose' | 'resulta
     breakEvenStatus,
     netIncome: data.netIncome,
     totalRevenue: data.totalRevenue,
+    totalPaymentFees: data.totalPaymentFees,
+    totalNetRevenue: data.totalNetRevenue,
+    paymentFeePercentage: data.paymentFeePercentage,
     totalExpenses: data.totalExpenses,
     totalSessions: data.totalSessions,
     totalPlannedSessions: data.totalPlannedSessions,

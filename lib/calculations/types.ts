@@ -123,10 +123,11 @@ export interface ForecastDataPoint {
  * Complete metrics data for a scope
  */
 export interface MetricsData {
-  totalRevenue: number
-  totalGrossRevenue: number
-  totalExpenses: number
-  sumupCosts: number
+  totalRevenue: number // Gross revenue before payment fees
+  totalPaymentFees: number // Total payment processing fees (SumUp)
+  totalNetRevenue: number // Net revenue after payment fees
+  paymentFeePercentage: number // Fee percentage used (e.g., 1.39)
+  totalExpenses: number // Fixed and variable costs
   totalSessions: number
   totalPlannedSessions: number
   netIncome: number

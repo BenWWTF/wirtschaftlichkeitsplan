@@ -9,6 +9,7 @@ import { AlertCircle } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { getMonthlyPlansWithTherapies } from '@/lib/actions/monthly-plans'
 import { formatEuro } from '@/lib/utils'
+import { calculatePaymentFee, calculateNetRevenue, SUMUP_FEE_RATE } from '@/lib/calculations/payment-fees'
 
 interface PlannerGridProps {
   therapies: TherapyType[]
@@ -58,22 +59,37 @@ export function PlannerGrid({
     setPlans(data || [])
   }
 
-  // Calculate total planned revenue
+  // Calculate total planned revenue with fee breakdown
   const totals = useMemo(() => {
-    return therapies.reduce(
-      (acc, therapy) => {
-        const plan = plans.find((p) => p.therapy_type_id === therapy.id)
-        const plannedSessions = plan?.planned_sessions || 0
-        const plannedRevenue = plannedSessions * therapy.price_per_session
+    const result = plans.reduce(
+      (acc, plan) => {
+        // Safely handle cases where therapy_types might be null or undefined
+        if (!plan.therapy_types) {
+          return acc
+        }
+
+        const grossRevenue = plan.planned_sessions * plan.therapy_types.price_per_session
 
         return {
-          sessions: acc.sessions + plannedSessions,
-          revenue: acc.revenue + plannedRevenue
+          sessions: acc.sessions + plan.planned_sessions,
+          grossRevenue: acc.grossRevenue + grossRevenue
         }
       },
-      { sessions: 0, revenue: 0 }
+      { sessions: 0, grossRevenue: 0 }
     )
-  }, [plans, therapies])
+
+    // Calculate fees and net revenue from totals
+    const paymentFees = calculatePaymentFee(result.grossRevenue)
+    const netRevenue = calculateNetRevenue(result.grossRevenue)
+    const feePercentage = (SUMUP_FEE_RATE * 100).toFixed(2)
+
+    return {
+      ...result,
+      paymentFees,
+      netRevenue,
+      feePercentage
+    }
+  }, [plans])
 
   if (therapies.length === 0) {
     return (
@@ -155,9 +171,12 @@ export function PlannerGrid({
         })}
       </div>
 
-      {/* Summary Footer */}
+      {/* Summary with Fee Breakdown */}
       <div className="bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 p-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <h3 className="font-semibold text-neutral-900 dark:text-white mb-4">
+          Zusammenfassung fuer {month}
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
             <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
               Therapiearten
@@ -171,23 +190,31 @@ export function PlannerGrid({
               Geplante Sitzungen
             </p>
             <p className="text-2xl font-bold text-neutral-900 dark:text-white">
-              {totals.sessions > 0 ? totals.sessions : '—'}
+              {totals.sessions > 0 ? totals.sessions : '---'}
             </p>
           </div>
           <div>
             <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
-              Geschätzter Umsatz
+              Bruttoumsatz
+            </p>
+            <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+              {totals.grossRevenue > 0 ? formatEuro(totals.grossRevenue) : '---'}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
+              Zahlungsgebuehren ({totals.feePercentage}%)
+            </p>
+            <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+              {totals.paymentFees > 0 ? `-${formatEuro(totals.paymentFees)}` : '---'}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
+              Nettoumsatz
             </p>
             <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-              {totals.revenue > 0 ? formatEuro(totals.revenue) : '—'}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
-              Ø Sitzungspreis
-            </p>
-            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-              {totals.sessions > 0 ? formatEuro(totals.revenue / totals.sessions) : '—'}
+              {totals.netRevenue > 0 ? formatEuro(totals.netRevenue) : '---'}
             </p>
           </div>
         </div>

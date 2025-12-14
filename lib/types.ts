@@ -7,6 +7,19 @@ export type TherapyType = {
   updated_at: string
 }
 
+/**
+ * Therapy type enriched with payment fee metrics
+ * Used to display net revenue per session after SumUp payment fees
+ */
+export type TherapyWithMetrics = TherapyType & {
+  /** Net revenue per session after payment processing fees (in EUR) */
+  netRevenuePerSession: number
+  /** Payment processing fee per session (in EUR) */
+  paymentFeePerSession: number
+  /** Fee percentage used for calculation (e.g., 1.39 for 1.39%) */
+  feePercentage: number
+}
+
 export type MonthlyPlan = {
   id: string
   user_id: string
@@ -41,7 +54,7 @@ export type PracticeSettings = {
   monthly_fixed_costs: number
   average_variable_cost_per_session: number
   expected_growth_rate: number // as percentage (e.g., 5 for 5%)
-  payment_processing_fee_percentage: number // as percentage (e.g., 1.39 for 1.39%)
+  payment_processing_fee_percentage: number // SumUp payment fee percentage (default 1.39)
   created_at: string
   updated_at: string
 }
@@ -58,6 +71,13 @@ export type BreakEvenAnalysis = {
   therapy_type_id: string
   therapy_type_name: string
   price_per_session: number
+  /** Payment processing fee per session (SumUp 1.39%) */
+  payment_fee_per_session: number
+  /** Net revenue per session after payment fees */
+  net_revenue_per_session: number
+  /** Variable cost per session (materials, consumables, etc.) */
+  variable_cost_per_session: number
+  /** Contribution margin = net_revenue - variable_cost */
   contribution_margin: number
   contribution_margin_percent: number
 }

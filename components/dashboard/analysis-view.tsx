@@ -55,10 +55,13 @@ export function AnalysisView({ therapies }: AnalysisViewProps) {
               Deckungsbeitrag
             </h4>
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              Der Deckungsbeitrag ist die Differenz zwischen dem Preis einer Sitzung und den variablen Kosten. Dieser Betrag trägt zur Deckung Ihrer Fixkosten bei.
+              Der Deckungsbeitrag ist die Differenz zwischen dem Netto-Preis einer Sitzung (nach Abzug der Zahlungsgebuehren) und den variablen Kosten. Dieser Betrag traegt zur Deckung Ihrer Fixkosten bei.
             </p>
             <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">
-              <strong>Deckungsbeitrag = Preis pro Sitzung - Variable Kosten</strong>
+              <strong>Deckungsbeitrag = Netto-Preis (nach 1,39% SumUp-Gebuehr) - Variable Kosten</strong>
+            </p>
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+              Hinweis: Die SumUp-Zahlungsgebuehr von 1,39% wird automatisch beruecksichtigt.
             </p>
           </div>
 
@@ -67,10 +70,13 @@ export function AnalysisView({ therapies }: AnalysisViewProps) {
               Berechnung
             </h4>
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              <strong>Sessions für Break-Even = Fixkosten ÷ Deckungsbeitrag</strong>
+              <strong>Sessions fuer Break-Even = Fixkosten / Deckungsbeitrag</strong>
             </p>
             <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">
-              Wenn Sie über diesem Punkt liegen, machen Sie Gewinn. Darunter machen Sie Verlust.
+              Der Deckungsbeitrag wird auf Basis der Netto-Einnahmen berechnet (Brutto-Preis minus 1,39% Zahlungsgebuehr minus variable Kosten).
+            </p>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">
+              Wenn Sie ueber diesem Punkt liegen, machen Sie Gewinn. Darunter machen Sie Verlust.
             </p>
           </div>
 
