@@ -94,7 +94,7 @@ export function VarianceAnalysisTab({ metrics }: VarianceAnalysisTabProps) {
 
   // Estimate planned revenue based on average price and planned sessions
   const plannedRevenue = Math.round(metrics.averageSessionPrice * metrics.totalPlannedSessions)
-  const revenueVariance = plannedRevenue - metrics.totalGrossRevenue
+  const revenueVariance = plannedRevenue - metrics.totalRevenue
   const revenueVariancePercent = plannedRevenue > 0 ? ((revenueVariance / plannedRevenue) * 100) : 0
 
   // Build variance rows
@@ -110,7 +110,7 @@ export function VarianceAnalysisTab({ metrics }: VarianceAnalysisTabProps) {
     {
       label: 'Umsatz (geplant vs. Ist)',
       planned: plannedRevenue,
-      actual: metrics.totalGrossRevenue,
+      actual: metrics.totalRevenue,
       variance: revenueVariance,
       variancePercent: revenueVariancePercent,
       status: getVarianceStatus(revenueVariancePercent)

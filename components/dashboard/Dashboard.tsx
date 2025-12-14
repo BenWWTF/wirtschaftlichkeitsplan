@@ -273,7 +273,7 @@ export function Dashboard({
           <MetricExplanation
             icon={<DollarSign className="h-5 w-5" />}
             title="Monatlicher Umsatz"
-            value={metrics.totalGrossRevenue.toLocaleString('de-DE', { maximumFractionDigits: 0 })}
+            value={metrics.totalRevenue.toLocaleString('de-DE', { maximumFractionDigits: 0 })}
             unit="€"
             description="Summe aller Einnahmen aus Therapiesitzungen in diesem Zeitraum. Berechnet als: Anzahl der Sitzungen × Preis pro Sitzung für jede Therapieart."
             benchmark="Steigen Sie ab, wenn Sie mehr Patienten behandeln oder die Preise erhöhen."
@@ -283,7 +283,7 @@ export function Dashboard({
           <MetricExplanation
             icon={<Target className="h-5 w-5" />}
             title="Kosten gesamt"
-            value={(metrics.totalExpenses + metrics.sumupCosts).toLocaleString('de-DE', { maximumFractionDigits: 0 })}
+            value={(metrics.totalExpenses + metrics.totalPaymentFees).toLocaleString('de-DE', { maximumFractionDigits: 0 })}
             unit="€"
             description="Die Summe aller Ihrer fixen und variablen Kosten für diesen Zeitraum, einschließlich Therapieraum, Material und Verwaltung."
             benchmark="Versuchen Sie, Kosten unter 55% des Umsatzes zu halten."

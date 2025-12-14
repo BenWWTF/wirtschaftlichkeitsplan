@@ -12,15 +12,12 @@ interface ForecastTabProps {
 }
 
 export function ForecastTab({ metrics }: ForecastTabProps) {
-  // Calculate baseline monthly costs as average of current + previous period
-  // This smooths out one-time expenses and seasonal variations
-  const baselineMonthlyExpenses = metrics.previousPeriod
-    ? Math.round((metrics.totalExpenses + metrics.previousPeriod.totalExpenses) / 2)
-    : metrics.totalExpenses
+  // Use current period expenses as baseline (no previous period data available in UnifiedMetricsResponse)
+  const baselineMonthlyExpenses = metrics.totalExpenses
 
   // Calculate average revenue per session for default
   const defaultAvgRevenuePerSession = metrics.totalSessions > 0
-    ? metrics.totalGrossRevenue / metrics.totalSessions
+    ? metrics.totalRevenue / metrics.totalSessions
     : metrics.averageSessionPrice
 
   // Calculate break-even sessions for initial value
@@ -128,9 +125,7 @@ export function ForecastTab({ metrics }: ForecastTabProps) {
           <CardHeader>
             <CardTitle className="text-base">Fixkosten pro Monat</CardTitle>
             <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
-              {metrics.previousPeriod
-                ? "Ø aus aktuellem + Vormonat"
-                : "Basierend auf aktuellem Monat"}
+              Basierend auf aktuellem Monat
             </p>
           </CardHeader>
           <CardContent>
@@ -143,11 +138,7 @@ export function ForecastTab({ metrics }: ForecastTabProps) {
                 min="0"
               />
               <div className="text-xs text-neutral-500">
-                {metrics.previousPeriod ? (
-                  <>Diesen Monat: {formatCurrency(metrics.totalExpenses)} | Vormonat: {formatCurrency(metrics.previousPeriod.totalExpenses)}</>
-                ) : (
-                  <>Keine Vormonatsdaten verfügbar</>
-                )}
+                Aktueller Monat: {formatCurrency(metrics.totalExpenses)}
               </div>
             </div>
           </CardContent>
