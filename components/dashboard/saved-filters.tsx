@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -50,12 +50,7 @@ export function SavedFilters({
   const [editName, setEditName] = useState('')
   const [collections, setCollections] = useState<string[]>([])
 
-  // Load saved filters on mount
-  useEffect(() => {
-    loadFilters()
-  }, [pageType])
-
-  const loadFilters = async () => {
+  const loadFilters = useCallback(async () => {
     setIsLoading(true)
     try {
       const result = await getSavedFilters(pageType)
@@ -78,7 +73,12 @@ export function SavedFilters({
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [pageType])
+
+  // Load saved filters on mount
+  useEffect(() => {
+    loadFilters()
+  }, [loadFilters])
 
   const handleSelectFilter = (filter: SavedFilter) => {
     onSelectFilter(filter.filters)

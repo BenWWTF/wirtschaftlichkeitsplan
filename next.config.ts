@@ -32,6 +32,22 @@ const nextConfig: NextConfig = {
             key: 'Expires',
             value: '0',
           },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
+          },
         ],
       },
       {
@@ -63,16 +79,11 @@ const nextConfig: NextConfig = {
     ]
   },
 
-  // Webpack configuration for development
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.watchOptions = {
-        poll: 1000,
-        aggregateTimeout: 300,
-        ignored: /node_modules/,
-      }
-    }
-    return config
+  // Turbopack configuration for Next.js 16+
+  turbopack: {
+    resolveAlias: {
+      '@': './',
+    },
   },
 }
 

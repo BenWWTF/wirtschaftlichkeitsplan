@@ -69,7 +69,7 @@ export function SettingsForm({ settings, onSaveSuccess }: SettingsFormProps) {
       // Explicitly update practice_type for Select component
       form.setValue('practice_type', settings.practice_type)
     }
-  }, [settings?.id, form])
+  }, [settings?.id, settings, form])
 
   const onSubmit = async (values: PracticeSettingsInput) => {
     setIsLoading(true)

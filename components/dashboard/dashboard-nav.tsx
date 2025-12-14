@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, Calendar, FileText, Pill, Home, Receipt, Settings, Calculator, BarChart3 } from 'lucide-react'
+import { Menu, X, Calendar, FileText, Pill, Home, Receipt, Settings, Calculator, BarChart3, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useIsMobile } from '@/components/ui/hooks/useMediaQuery'
 import { MobileBottomNav } from './mobile-bottom-nav'
 import { ThemeToggle } from './theme-toggle'
+import { createClient } from '@/utils/supabase/client'
+import { useRouter } from 'next/navigation'
 
 interface NavItem {
   href: string
@@ -82,8 +84,17 @@ interface DashboardNavProps {
  */
 export function DashboardNav({ practiceName = '' }: DashboardNavProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   const isMobile = useIsMobile()
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
 
   // Handle keyboard shortcuts: Alt+H, Alt+T, Alt+P, Alt+A, Alt+R, Escape to close mobile menu
   useEffect(() => {
@@ -173,6 +184,14 @@ export function DashboardNav({ practiceName = '' }: DashboardNavProps) {
         {/* Footer */}
         <div className="border-t border-neutral-200 px-3 py-4 dark:border-accent-700/20 space-y-2">
           <ThemeToggle />
+          <button
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="flex items-center gap-3 w-full rounded-md px-3 py-2.5 text-sm font-medium text-neutral-600 hover:bg-red-50 hover:text-red-600 dark:text-neutral-300 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all duration-200 min-h-[44px] disabled:opacity-50"
+          >
+            <LogOut className="w-5 h-5" />
+            <span>{isLoggingOut ? 'Abmelden...' : 'Abmelden'}</span>
+          </button>
           <div className="px-3">
             <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium">
               v1.0
@@ -202,9 +221,8 @@ export function DashboardNav({ practiceName = '' }: DashboardNavProps) {
           </Link>
           <Button
             variant="ghost"
-            size="sm"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-accent-300"
+            className="min-h-[44px] min-w-[44px] p-2 text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-accent-300"
             aria-label={isMobileMenuOpen ? 'Menü schließen' : 'Menü öffnen'}
             aria-expanded={isMobileMenuOpen}
             aria-controls="mobile-menu"
@@ -246,8 +264,19 @@ export function DashboardNav({ practiceName = '' }: DashboardNavProps) {
                 </Link>
               ))}
             </div>
-            <div className="border-t border-neutral-200 px-3 py-3 dark:border-accent-700/20">
+            <div className="border-t border-neutral-200 px-3 py-3 dark:border-accent-700/20 space-y-2">
               <ThemeToggle />
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false)
+                  handleLogout()
+                }}
+                disabled={isLoggingOut}
+                className="flex items-center gap-3 w-full rounded-md px-3 py-2.5 text-sm font-medium text-neutral-600 hover:bg-red-50 hover:text-red-600 dark:text-neutral-300 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all duration-200 min-h-[44px] disabled:opacity-50"
+              >
+                <LogOut className="w-5 h-5" />
+                <span>{isLoggingOut ? 'Abmelden...' : 'Abmelden'}</span>
+              </button>
             </div>
           </nav>
         )}

@@ -42,7 +42,7 @@ export type PracticeSettingsInput = z.infer<typeof PracticeSettingsSchema>
 
 export const LoginSchema = z.object({
   email: z.string().email('Ungültige E-Mail-Adresse'),
-  password: z.string().min(6, 'Passwort muss mindestens 6 Zeichen lang sein')
+  password: z.string().min(8, 'Passwort muss mindestens 8 Zeichen lang sein')
 })
 
 export type LoginInput = z.infer<typeof LoginSchema>

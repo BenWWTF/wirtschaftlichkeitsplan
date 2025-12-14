@@ -283,10 +283,4 @@ a:focus-visible {
     }
   }
 
-  /* Desktop adaptations (hide mobile-only classes) */
-  @media (min-width: 768px) {
-    .md:hidden {
-      @apply hidden;
-    }
-  }
 }
