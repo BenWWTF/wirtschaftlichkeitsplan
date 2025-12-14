@@ -13,7 +13,11 @@ const sourceSans = Source_Sans_3({
 
 export const metadata: Metadata = {
   title: 'Wirtschaftlichkeitsplan',
-  description: 'Financial planning dashboard for Austrian medical practices'
+  description: 'Financial planning dashboard for Austrian medical practices',
+  icons: {
+    icon: '/icon.png',
+    apple: '/apple-icon.png',
+  },
 }
 
 export default function RootLayout({
