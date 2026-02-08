@@ -19,6 +19,14 @@ import {
   deleteExpense,
   getMonthlySummary,
 } from '../src/lib/database.js';
+import {
+  performSync,
+  getSyncStatus,
+  startAutoSync,
+} from '../src/lib/sync.js';
+import {
+  setRemoteSyncConfig,
+} from '../src/lib/mariadb-api.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -55,6 +63,9 @@ app.on('ready', () => {
   db = initializeDatabase(dbPath);
 
   createWindow();
+
+  // Start auto-sync (5 minutes)
+  startAutoSync(300000);
 });
 
 app.on('window-all-closed', () => {
@@ -117,6 +128,20 @@ ipcMain.handle('expenses:delete', async (event, id) => {
 // IPC Handlers - Summary
 ipcMain.handle('summary:monthly', async (event, month) => {
   return getMonthlySummary(month);
+});
+
+// IPC Handlers - Sync
+ipcMain.handle('sync:status', async () => {
+  return getSyncStatus();
+});
+
+ipcMain.handle('sync:now', async () => {
+  return performSync();
+});
+
+ipcMain.handle('sync:set-config', async (event, config) => {
+  setRemoteSyncConfig(config);
+  return { success: true };
 });
 
 export { db };

@@ -25,6 +25,7 @@ const ipcApi = {
   // Sync
   getSyncStatus: () => ipcRenderer.invoke('sync:status'),
   syncNow: () => ipcRenderer.invoke('sync:now'),
+  setRemoteSyncConfig: (config) => ipcRenderer.invoke('sync:set-config', config),
 
   // Summary
   getMonthlySummary: (month) => ipcRenderer.invoke('summary:monthly', month),
