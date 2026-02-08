@@ -25,6 +25,9 @@ const ipcApi = {
   // Sync
   getSyncStatus: () => ipcRenderer.invoke('sync:status'),
   syncNow: () => ipcRenderer.invoke('sync:now'),
+
+  // Summary
+  getMonthlySummary: (month) => ipcRenderer.invoke('summary:monthly', month),
 };
 
 contextBridge.exposeInMainWorld('api', ipcApi);

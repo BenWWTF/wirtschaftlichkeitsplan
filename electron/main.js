@@ -2,6 +2,23 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import Database from 'better-sqlite3';
+import {
+  initializeDatabase,
+  getDatabase,
+  getAllTherapyTypes,
+  createTherapyType,
+  updateTherapyType,
+  deleteTherapyType,
+  getMonthlyPlans,
+  createMonthlyPlan,
+  updateMonthlyPlan,
+  deleteMonthlyPlan,
+  getExpenses,
+  createExpense,
+  updateExpense,
+  deleteExpense,
+  getMonthlySummary,
+} from '../src/lib/database.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -35,8 +52,7 @@ function createWindow() {
 app.on('ready', () => {
   // Initialize SQLite database
   const dbPath = path.join(app.getPath('userData'), 'wirtschaftlichkeitsplan.db');
-  db = new Database(dbPath);
-  db.pragma('journal_mode = WAL');
+  db = initializeDatabase(dbPath);
 
   createWindow();
 });
@@ -47,6 +63,60 @@ app.on('window-all-closed', () => {
   }
 });
 
-// IPC Handlers (defined in next tasks)
+// IPC Handlers - Therapy Types
+ipcMain.handle('therapy-types:list', async () => {
+  return getAllTherapyTypes();
+});
+
+ipcMain.handle('therapy-types:create', async (event, data) => {
+  return createTherapyType(data);
+});
+
+ipcMain.handle('therapy-types:update', async (event, { id, data }) => {
+  return updateTherapyType(id, data);
+});
+
+ipcMain.handle('therapy-types:delete', async (event, id) => {
+  return deleteTherapyType(id);
+});
+
+// IPC Handlers - Monthly Plans
+ipcMain.handle('monthly-plans:list', async (event, month) => {
+  return getMonthlyPlans(month);
+});
+
+ipcMain.handle('monthly-plans:create', async (event, data) => {
+  return createMonthlyPlan(data);
+});
+
+ipcMain.handle('monthly-plans:update', async (event, { id, data }) => {
+  return updateMonthlyPlan(id, data);
+});
+
+ipcMain.handle('monthly-plans:delete', async (event, id) => {
+  return deleteMonthlyPlan(id);
+});
+
+// IPC Handlers - Expenses
+ipcMain.handle('expenses:list', async (event, month) => {
+  return getExpenses(month);
+});
+
+ipcMain.handle('expenses:create', async (event, data) => {
+  return createExpense(data);
+});
+
+ipcMain.handle('expenses:update', async (event, { id, data }) => {
+  return updateExpense(id, data);
+});
+
+ipcMain.handle('expenses:delete', async (event, id) => {
+  return deleteExpense(id);
+});
+
+// IPC Handlers - Summary
+ipcMain.handle('summary:monthly', async (event, month) => {
+  return getMonthlySummary(month);
+});
 
 export { db };
