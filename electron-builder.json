@@ -1,0 +1,22 @@
+{
+  "appId": "com.wirtschaftlichkeitsplan.app",
+  "productName": "Wirtschaftlichkeitsplan",
+  "directories": {
+    "buildResources": "assets",
+    "output": "dist"
+  },
+  "mac": {
+    "target": ["dmg", "zip"],
+    "category": "public.app-category.business",
+    "icon": "assets/icon.icns"
+  },
+  "files": [
+    "dist-electron/**/*",
+    "dist/**/*",
+    "node_modules/**/*",
+    "package.json"
+  ],
+  "extraMetadata": {
+    "main": "dist-electron/main.js"
+  }
+}
