@@ -27,6 +27,10 @@ import {
 import {
   setRemoteSyncConfig,
 } from '../src/lib/mariadb-api.js';
+import {
+  generateMonthlyReportPDF,
+  generateMonthlyReportCSV,
+} from '../src/lib/export.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -142,6 +146,18 @@ ipcMain.handle('sync:now', async () => {
 ipcMain.handle('sync:set-config', async (event, config) => {
   setRemoteSyncConfig(config);
   return { success: true };
+});
+
+// IPC Handlers - Reports
+ipcMain.handle('reports:generate', async (event, { type, params }) => {
+  if (type === 'pdf') {
+    const buffer = await generateMonthlyReportPDF(params.month);
+    // Return base64 for transmission across IPC boundary
+    return buffer.toString('base64');
+  } else if (type === 'csv') {
+    return await generateMonthlyReportCSV(params.month);
+  }
+  throw new Error(`Unknown report type: ${type}`);
 });
 
 export { db };
