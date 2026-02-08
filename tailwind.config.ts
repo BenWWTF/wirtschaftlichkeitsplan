@@ -1,34 +1,36 @@
 import type { Config } from 'tailwindcss'
 
 const config = {
-  darkMode: 'class',
   content: [
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
-    './node_modules/@tremor/**/*.{js,ts,tsx}'
+    './index.html',
+    './src/**/*.{js,ts,jsx,tsx}'
   ],
   theme: {
     extend: {
       fontFamily: {
-        // Primary font: Source Sans 3 (headings, body, and mono)
-        heading: [
-          'var(--font-source-sans)',
-          'system-ui',
-          'sans-serif'
-        ],
-        // Body text: Source Sans 3
-        sans: [
-          'var(--font-source-sans)',
-          'system-ui',
-          'sans-serif'
-        ],
-        mono: [
-          'var(--font-source-sans)',
-          'system-ui',
+        base: [
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Segoe UI',
+          'Roboto',
+          'Helvetica Neue',
+          'Arial',
           'sans-serif'
         ]
       },
       colors: {
+        // Wirtschaftlichkeitsplan design tokens
+        'wb-black': '#000000',
+        'wb-charcoal': '#101010',
+        'wb-dark-gray': '#606060',
+        'wb-medium-gray': '#AAAAAA',
+        'wb-silver': '#D0D0D0',
+        'wb-light-gray': '#F1F1F1',
+        'wb-pale-gray': '#F7F7F7',
+        'wb-white': '#FFFFFF',
+        'wb-accent-primary': '#7A9BA8',
+        'wb-accent-light': '#A8C5D1',
+        'wb-accent-dark': '#5A7B88',
         // Taubenblau accent - sophisticated dusty blue-gray
         accent: {
           50: '#F0F3F6',
