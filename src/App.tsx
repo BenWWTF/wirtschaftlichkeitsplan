@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
 import { Dashboard } from './pages/Dashboard';
+import { Settings } from './pages/Settings';
 import './styles/design-tokens.css';
 
 function App() {
@@ -10,9 +11,9 @@ function App() {
       <AppShell>
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/plans" element={<div>Plans Page (Coming Soon)</div>} />
-          <Route path="/reports" element={<div>Reports Page (Coming Soon)</div>} />
-          <Route path="/settings" element={<div>Settings Page (Coming Soon)</div>} />
+          <Route path="/plans" element={<div style={{padding: '2rem'}}>Plans Page (Coming Soon)</div>} />
+          <Route path="/reports" element={<div style={{padding: '2rem'}}>Reports Page (Coming Soon)</div>} />
+          <Route path="/settings" element={<Settings />} />
         </Routes>
       </AppShell>
     </BrowserRouter>
