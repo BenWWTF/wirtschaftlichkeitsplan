@@ -32,19 +32,30 @@ import {
   generateMonthlyReportCSV,
 } from '../src/lib/export.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Get the directory path - works in both development and production
+let __dirname: string;
+try {
+  __dirname = path.dirname(fileURLToPath(import.meta.url));
+} catch (e) {
+  // Fallback for when fileURLToPath doesn't work
+  __dirname = path.dirname(process.argv[1]);
+}
 
 let mainWindow;
 let db;
 
 function createWindow() {
+  const preloadPath = path.join(__dirname, 'preload.cjs');
+  console.log('[Electron] __dirname:', __dirname);
+  console.log('[Electron] preload path:', preloadPath);
+
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
     minWidth: 800,
     minHeight: 600,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.cjs'),
+      preload: preloadPath,
       contextIsolation: true,
       enableRemoteModule: false,
       nodeIntegration: false,

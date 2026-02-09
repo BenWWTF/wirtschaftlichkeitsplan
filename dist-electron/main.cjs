@@ -475,16 +475,24 @@ async function generateMonthlyReportCSV(month) {
   return csv;
 }
 var define_process_env_default = {};
-const __dirname$1 = path.dirname(url.fileURLToPath(typeof document === "undefined" ? require("url").pathToFileURL(__filename).href : _documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === "SCRIPT" && _documentCurrentScript.src || new URL("main.cjs", document.baseURI).href));
+let __dirname$1;
+try {
+  __dirname$1 = path.dirname(url.fileURLToPath(typeof document === "undefined" ? require("url").pathToFileURL(__filename).href : _documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === "SCRIPT" && _documentCurrentScript.src || new URL("main.cjs", document.baseURI).href));
+} catch (e) {
+  __dirname$1 = path.dirname(process.argv[1]);
+}
 let mainWindow;
 function createWindow() {
+  const preloadPath = path.join(__dirname$1, "preload.cjs");
+  console.log("[Electron] __dirname:", __dirname$1);
+  console.log("[Electron] preload path:", preloadPath);
   mainWindow = new electron.BrowserWindow({
     width: 1400,
     height: 900,
     minWidth: 800,
     minHeight: 600,
     webPreferences: {
-      preload: path.join(__dirname$1, "preload.cjs"),
+      preload: preloadPath,
       contextIsolation: true,
       enableRemoteModule: false,
       nodeIntegration: false
