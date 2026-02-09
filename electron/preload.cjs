@@ -1,5 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
+console.log('[Preload] Starting preload script');
+
 const ipcApi = {
   // Business Plans
   createBusinessPlan: (data) => ipcRenderer.invoke('business-plan:create', data),
@@ -31,4 +33,6 @@ const ipcApi = {
   getMonthlySummary: (month) => ipcRenderer.invoke('summary:monthly', month),
 };
 
+console.log('[Preload] Exposing API to main world:', Object.keys(ipcApi));
 contextBridge.exposeInMainWorld('api', ipcApi);
+console.log('[Preload] API exposed. window.api should be available.');
