@@ -42,6 +42,49 @@ export function initializeDatabase(dbPath?: string): Database.Database {
   db = new Database(finalPath);
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
+
+  // Create tables if they don't exist
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS therapy_types (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      price_per_session REAL NOT NULL,
+      variable_cost_per_session REAL NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS monthly_plans (
+      id TEXT PRIMARY KEY,
+      therapy_type_id TEXT NOT NULL,
+      month TEXT NOT NULL,
+      planned_sessions INTEGER NOT NULL,
+      actual_sessions INTEGER,
+      notes TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (therapy_type_id) REFERENCES therapy_types(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS expenses (
+      id TEXT PRIMARY KEY,
+      category TEXT NOT NULL,
+      subcategory TEXT,
+      amount REAL NOT NULL,
+      expense_date TEXT NOT NULL,
+      is_recurring BOOLEAN NOT NULL DEFAULT 0,
+      recurrence_interval TEXT,
+      description TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_monthly_plans_month ON monthly_plans(month);
+    CREATE INDEX IF NOT EXISTS idx_monthly_plans_therapy_type ON monthly_plans(therapy_type_id);
+    CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(expense_date);
+    CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category);
+  `);
+
   return db;
 }
 
