@@ -48,62 +48,18 @@ export default function LoginPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4"
+      className="fixed inset-0 flex items-center justify-center p-4 overflow-hidden"
       style={{
-        backgroundImage: "url('/images/gradient-background.jpg')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       }}
     >
-      <div
-        className="absolute inset-0 opacity-0"
-        style={{
-          background: 'rgba(0, 0, 0, 0.15)',
-        }}
-      />
 
-      {/* Floating glass orbs for visual interest */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div
-          className="absolute top-1/4 left-1/4 w-32 h-32 rounded-full opacity-50 animate-pulse"
-          style={{
-            background: 'rgba(255, 255, 255, 0.15)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            border: '2px solid rgba(255, 255, 255, 0.3)',
-            boxShadow: '0 8px 32px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.4)',
-          }}
-        />
-        <div
-          className="absolute top-3/4 right-1/4 w-24 h-24 rounded-full opacity-40 animate-pulse"
-          style={{
-            background: 'rgba(255, 255, 255, 0.15)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            border: '2px solid rgba(255, 255, 255, 0.3)',
-            boxShadow: '0 8px 32px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.4)',
-            animationDelay: '1s',
-          }}
-        />
-        <div
-          className="absolute top-1/2 right-1/3 w-16 h-16 rounded-full opacity-45 animate-pulse"
-          style={{
-            background: 'rgba(255, 255, 255, 0.15)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            border: '2px solid rgba(255, 255, 255, 0.3)',
-            boxShadow: '0 8px 32px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.4)',
-            animationDelay: '0.5s',
-          }}
-        />
-      </div>
 
       <Card
-        className="w-full max-w-md relative z-10 border-transparent"
+        className="w-full max-w-sm relative z-10"
         style={{
-          background: 'rgba(255, 255, 255, 0.25)',
-          backdropFilter: 'blur(40px) saturate(250%)',
-          border: '1px solid rgba(255, 255, 255, 0.4)',
-          boxShadow:
-            '0 32px 80px rgba(0, 0, 0, 0.3), 0 16px 64px rgba(255, 255, 255, 0.2), inset 0 3px 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 rgba(255, 255, 255, 0.3)',
+          background: 'rgba(255, 255, 255, 0.95)',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
         }}
       >
         <CardHeader className="text-center space-y-2">
@@ -134,10 +90,7 @@ export default function LoginPage() {
                 placeholder="ihremail@beispiel.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="border-white/40 bg-white/20 placeholder:text-neutral-500 text-neutral-800 py-3 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:bg-white/30 transition-all duration-200"
-                style={{
-                  backdropFilter: 'blur(10px)',
-                }}
+                className="w-full"
                 required
               />
             </div>
@@ -152,21 +105,14 @@ export default function LoginPage() {
                 placeholder="Ihr Passwort"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="border-white/40 bg-white/20 placeholder:text-neutral-500 text-neutral-800 py-3 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:bg-white/30 transition-all duration-200"
-                style={{
-                  backdropFilter: 'blur(10px)',
-                }}
+                className="w-full"
                 required
               />
             </div>
 
             <Button
               type="submit"
-              className="w-full font-semibold py-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-              style={{
-                backgroundColor: '#0C115B',
-                color: 'white',
-              }}
+              className="w-full"
               disabled={isLoading}
             >
               {isLoading ? 'Wird angemeldet...' : 'Anmelden'}
@@ -185,7 +131,7 @@ export default function LoginPage() {
           {/* Security Info */}
           <div className="pt-4 text-center text-xs text-neutral-500 space-y-1">
             <p>Sichere Authentifizierung mit Supabase</p>
-            <p>Ihre Daten sind verschlusselt und sicher</p>
+            <p>Ihre Daten sind verschlüsselt und sicher</p>
           </div>
         </CardContent>
       </Card>

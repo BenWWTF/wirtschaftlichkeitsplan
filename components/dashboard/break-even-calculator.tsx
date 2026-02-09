@@ -41,7 +41,8 @@ export function BreakEvenCalculator({
       practice_type: 'wahlarzt',
       monthly_fixed_costs: initialFixedCosts,
       average_variable_cost_per_session: 0,
-      expected_growth_rate: 0
+      expected_growth_rate: 0,
+      payment_processing_fee_percentage: 1.39
     }
   })
 

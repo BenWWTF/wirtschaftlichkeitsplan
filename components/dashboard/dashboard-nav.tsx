@@ -134,11 +134,14 @@ export function DashboardNav({ practiceName = '' }: DashboardNavProps) {
 
   return (
     <>
-      {/* Mobile Bottom Navigation - Only rendered on mobile */}
-      {isMobile && <MobileBottomNav />}
-
-      {/* Desktop Sidebar */}
-      <nav className="hidden md:fixed md:left-0 md:top-0 md:z-40 md:flex md:h-screen md:w-64 md:flex-col md:border-r md:border-neutral-200 md:bg-white md:dark:border-accent-700/30 md:dark:bg-neutral-900/80 md:backdrop-blur-md">
+      {/* Desktop Sidebar - Simple grid layout */}
+      <nav
+        className="border-r border-neutral-200 bg-white dark:border-accent-700/30 dark:bg-neutral-900/80 dark:backdrop-blur-md flex flex-col"
+        style={{
+          height: '100vh',
+          overflowY: 'auto',
+        }}
+      >
         {/* Logo/Header */}
         <Link href="/dashboard" className="border-b border-neutral-200 px-6 py-6 dark:border-accent-700/20 hover:opacity-80 transition-opacity block flex items-center gap-3">
           <div className="flex-1 min-w-0">
@@ -205,90 +208,6 @@ export function DashboardNav({ practiceName = '' }: DashboardNavProps) {
           </div>
         </div>
       </nav>
-
-      {/* Mobile Top Bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 md:hidden border-b border-neutral-200 bg-white dark:border-accent-700/20 dark:bg-neutral-900/80 dark:backdrop-blur-md">
-        <div className="flex items-center justify-between px-4 py-3">
-          <Link href="/dashboard" className="hover:opacity-80 transition-opacity flex items-center gap-2 flex-1 min-w-0">
-            <div className="flex-1 min-w-0">
-              <span className="text-lg font-bold text-neutral-900 dark:text-white block">Ordi</span>
-              {practiceName && (
-                <span className="text-xs text-neutral-600 dark:text-neutral-400 truncate block leading-tight">
-                  {practiceName}
-                </span>
-              )}
-            </div>
-          </Link>
-          <Button
-            variant="ghost"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="min-h-[44px] min-w-[44px] p-2 text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-accent-300"
-            aria-label={isMobileMenuOpen ? 'Menü schließen' : 'Menü öffnen'}
-            aria-expanded={isMobileMenuOpen}
-            aria-controls="mobile-menu"
-          >
-            {isMobileMenuOpen ? (
-              <X className="w-5 h-5" />
-            ) : (
-              <Menu className="w-5 h-5" />
-            )}
-          </Button>
-        </div>
-
-        {/* Mobile Menu - Dropdown */}
-        {isMobileMenuOpen && (
-          <nav
-            id="mobile-menu"
-            className="border-t border-neutral-200 bg-neutral-50 dark:border-accent-700/20 dark:bg-neutral-900/60 max-h-[calc(100vh-56px)] overflow-y-auto"
-            role="navigation"
-            aria-label="Mobile Navigation"
-          >
-            <div className="space-y-1 p-3">
-              {NAV_ITEMS.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    'flex items-center gap-3 rounded-md px-3 py-2.5 transition-all duration-200 min-h-[44px]',
-                    'text-sm font-medium',
-                    isActive(item.href)
-                      ? 'bg-accent-100 text-accent-900 dark:bg-accent-900/30 dark:text-accent-200'
-                      : 'text-neutral-700 hover:bg-white dark:text-neutral-100 dark:hover:bg-accent-900/10 dark:hover:text-accent-300'
-                  )}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  aria-current={isActive(item.href) ? 'page' : undefined}
-                  title={`${item.label} (${item.shortcut})`}
-                >
-                  <span className="flex-shrink-0" aria-hidden="true">{item.icon}</span>
-                  <span className="flex-1">{item.label}</span>
-                </Link>
-              ))}
-            </div>
-            <div className="border-t border-neutral-200 px-3 py-3 dark:border-accent-700/20 space-y-2">
-              <ThemeToggle />
-              <button
-                onClick={() => {
-                  setIsMobileMenuOpen(false)
-                  handleLogout()
-                }}
-                disabled={isLoggingOut}
-                className="flex items-center gap-3 w-full rounded-md px-3 py-2.5 text-sm font-medium text-neutral-600 hover:bg-red-50 hover:text-red-600 dark:text-neutral-300 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all duration-200 min-h-[44px] disabled:opacity-50"
-              >
-                <LogOut className="w-5 h-5" />
-                <span>{isLoggingOut ? 'Abmelden...' : 'Abmelden'}</span>
-              </button>
-            </div>
-          </nav>
-        )}
-      </div>
-
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 top-14 z-40 bg-black/50 md:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
     </>
   )
 }

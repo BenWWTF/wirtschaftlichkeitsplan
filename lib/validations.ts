@@ -17,7 +17,7 @@ export const ExpenseSchema = z.object({
   description: z.string().optional()
 })
 
-export type ExpenseInput = z.infer<typeof ExpenseSchema>
+export type ExpenseInput = z.input<typeof ExpenseSchema>
 
 export const MonthlyPlanSchema = z.object({
   therapy_type_id: z.string().uuid('Ungültige Therapieart ID'),
@@ -38,7 +38,7 @@ export const PracticeSettingsSchema = z.object({
   payment_processing_fee_percentage: z.number().min(0, 'Gebühr kann nicht negativ sein').max(100, 'Gebühr kann nicht über 100% sein').default(1.39)
 })
 
-export type PracticeSettingsInput = z.infer<typeof PracticeSettingsSchema>
+export type PracticeSettingsInput = z.input<typeof PracticeSettingsSchema>
 
 export const LoginSchema = z.object({
   email: z.string().email('Ungültige E-Mail-Adresse'),
