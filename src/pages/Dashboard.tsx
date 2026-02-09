@@ -32,6 +32,12 @@ export function Dashboard() {
     setLoading(true);
     setError(null);
     try {
+      if (!api) {
+        setError('API not available. Electron IPC bridge may not be initialized.');
+        setLoading(false);
+        return;
+      }
+
       const [types, plans, expensesData, monthlySummary] = await Promise.all([
         api.getTherapyTypes(),
         api.getMonthlyPlans(currentMonth),

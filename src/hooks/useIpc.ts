@@ -22,5 +22,9 @@ declare global {
 }
 
 export function useIpc() {
+  if (typeof window === 'undefined' || !window.api) {
+    console.error('IPC API not available. Preload script may not have loaded.');
+    return null as any;
+  }
   return window.api;
 }
