@@ -40,7 +40,6 @@ body {
 /* Heading typography: Source Sans 3 */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-source-sans, system-ui, sans-serif);
-  text-transform: uppercase;
   letter-spacing: -0.02em;
   line-height: 1.2;
   font-weight: 700;

@@ -39,15 +39,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   }
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '256px 1fr',
-        minHeight: '100vh',
-        backgroundColor: '#f9fafb',
-      }}
-      className="dark:bg-neutral-950 relative"
-    >
+    <div className="relative min-h-screen bg-gray-50 dark:bg-neutral-950">
       {/* Subtle gradient background */}
       <div
         className="fixed inset-0 pointer-events-none opacity-[0.15] dark:opacity-[0.08]"
@@ -59,15 +51,24 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         }}
       />
 
-      {/* Desktop Sidebar Navigation */}
-      <DashboardNav practiceName={practiceName} />
-
-      {/* Main Content Area */}
-      <main className="relative z-10 overflow-auto">
-        <div className="p-4 md:p-6">
-          {children}
+      <div className="flex min-h-screen">
+        {/* Desktop Sidebar Navigation - hidden on mobile */}
+        <div className="hidden md:block md:w-64 md:flex-shrink-0">
+          <DashboardNav practiceName={practiceName} />
         </div>
-      </main>
+
+        {/* Main Content Area */}
+        <main className="relative z-10 flex-1 overflow-auto pb-20 md:pb-0">
+          <div className="p-4 md:p-6">
+            {children}
+          </div>
+        </main>
+      </div>
+
+      {/* Mobile Bottom Nav - shown only on mobile */}
+      <div className="md:hidden">
+        <DashboardNav practiceName={practiceName} />
+      </div>
     </div>
   )
 }

@@ -132,15 +132,16 @@ export function DashboardNav({ practiceName = '' }: DashboardNavProps) {
     return pathname.startsWith(href)
   }
 
+  // On mobile, render MobileBottomNav instead
+  if (isMobile) {
+    return <MobileBottomNav />
+  }
+
   return (
     <>
-      {/* Desktop Sidebar - Simple grid layout */}
+      {/* Desktop Sidebar */}
       <nav
-        className="border-r border-neutral-200 bg-white dark:border-accent-700/30 dark:bg-neutral-900/80 dark:backdrop-blur-md flex flex-col"
-        style={{
-          height: '100vh',
-          overflowY: 'auto',
-        }}
+        className="fixed top-0 left-0 w-64 border-r border-neutral-200 bg-white dark:border-accent-700/30 dark:bg-neutral-900/80 dark:backdrop-blur-md flex flex-col h-screen overflow-y-auto"
       >
         {/* Logo/Header */}
         <Link href="/dashboard" className="border-b border-neutral-200 px-6 py-6 dark:border-accent-700/20 hover:opacity-80 transition-opacity block flex items-center gap-3">
