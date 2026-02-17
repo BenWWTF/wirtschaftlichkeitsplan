@@ -5,7 +5,7 @@ import { RelatedPages } from '@/components/dashboard/related-pages'
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Ausgaben - Wirtschaftlichkeitsplan',
+  title: 'Ausgaben - Ordi Pro',
   description: 'Verwalten Sie Ihre Betriebsausgaben'
 }
 

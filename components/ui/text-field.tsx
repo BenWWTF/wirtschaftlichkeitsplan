@@ -144,7 +144,7 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(
           {/* Loading indicator */}
           {isValidatingState && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
-              <div className="h-5 w-5 border-2 border-neutral-300 border-t-blue-500 rounded-full animate-spin" />
+              <div className="h-5 w-5 border-2 border-neutral-300 border-t-accent-500 rounded-full animate-spin" />
             </div>
           )}
         </div>

@@ -32,7 +32,8 @@ export async function createExpenseAction(input: ExpenseInput) {
         expense_date: validated.expense_date,
         is_recurring: validated.is_recurring || false,
         recurrence_interval: validated.recurrence_interval || null,
-        description: validated.description || null
+        description: validated.description || null,
+        spread_monthly: validated.spread_monthly || false
       })
       .select()
 
@@ -90,6 +91,7 @@ export async function updateExpenseAction(
         is_recurring: validated.is_recurring || false,
         recurrence_interval: validated.recurrence_interval || null,
         description: validated.description || null,
+        spread_monthly: validated.spread_monthly || false,
         updated_at: new Date().toISOString()
       })
       .eq('id', id)

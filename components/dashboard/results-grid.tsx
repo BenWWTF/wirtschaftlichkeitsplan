@@ -6,7 +6,7 @@ import { EditableResultsTableRow } from './editable-results-table-row'
 import { EditableResultsCardRow } from './editable-results-card-row'
 import { AlertCircle, TrendingUp, TrendingDown } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
-import { getMonthlyResultsWithTherapies, calculateMonthlyMetrics, updateActualSessions } from '@/lib/actions/monthly-results'
+import { getMonthlyResultsWithTherapies, calculateMonthlyMetrics, updateActualSessions, resetActualSessions } from '@/lib/actions/monthly-results'
 import { formatEuro } from '@/lib/utils'
 import type { ResultsRow } from '@/lib/actions/monthly-results'
 import { toast } from 'sonner'
@@ -71,6 +71,30 @@ export function ResultsGrid({
     }
   }
 
+  // Handle deleting/resetting actual sessions
+  const handleDeleteActualSessions = async (therapyTypeId: string) => {
+    try {
+      const result = await resetActualSessions(therapyTypeId, month)
+      if (result.error) {
+        toast.error(result.error || 'Fehler beim Zurücksetzen')
+        return
+      }
+
+      // Reload data
+      const [updatedResults, updatedMetrics] = await Promise.all([
+        getMonthlyResultsWithTherapies(month),
+        calculateMonthlyMetrics(month)
+      ])
+      setResults(updatedResults || [])
+      setMetrics(updatedMetrics)
+
+      toast.success('Ergebnisse zurückgesetzt')
+    } catch (error) {
+      console.error('Error resetting actual sessions:', error)
+      toast.error('Fehler beim Zurücksetzen der Ergebnisse')
+    }
+  }
+
   if (therapies.length === 0) {
     return (
       <EmptyState
@@ -125,7 +149,7 @@ export function ResultsGrid({
           {/* Body */}
           <tbody className="divide-y divide-neutral-200 dark:divide-neutral-700">
             {results.map((result) => (
-              <EditableResultsTableRow key={result.id} result={result} onSave={handleSaveActualSessions} />
+              <EditableResultsTableRow key={result.id} result={result} onSave={handleSaveActualSessions} onDelete={handleDeleteActualSessions} />
             ))}
           </tbody>
 
@@ -176,77 +200,9 @@ export function ResultsGrid({
       {/* Mobile Card View (hidden on desktop) */}
       <div className="md:hidden space-y-3">
         {results.map((result) => (
-          <EditableResultsCardRow key={result.id} result={result} onSave={handleSaveActualSessions} />
+          <EditableResultsCardRow key={result.id} result={result} onSave={handleSaveActualSessions} onDelete={handleDeleteActualSessions} />
         ))}
       </div>
-
-      {/* Summary Card */}
-      {metrics && (
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800 p-6">
-          <h3 className="font-semibold text-neutral-900 dark:text-white mb-4">
-            Zusammenfassung
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-white dark:bg-neutral-800 rounded p-4">
-              <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
-                Geplante Sitzungen
-              </p>
-              <p className="text-2xl font-bold text-neutral-900 dark:text-white">
-                {metrics.totalPlanned}
-              </p>
-              <p className="text-xs text-neutral-500 mt-1">
-                {formatEuro(metrics.totalPlannedRevenue)}
-              </p>
-            </div>
-
-            <div className="bg-white dark:bg-neutral-800 rounded p-4">
-              <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
-                Tatsächliche Sitzungen
-              </p>
-              <p className="text-2xl font-bold text-neutral-900 dark:text-white">
-                {metrics.totalActual}
-              </p>
-              <p className="text-xs text-neutral-500 mt-1">
-                {formatEuro(metrics.totalActualRevenue)}
-              </p>
-            </div>
-
-            <div className="bg-white dark:bg-neutral-800 rounded p-4">
-              <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
-                Gesamt-Abweichung
-              </p>
-              <p className={`text-2xl font-bold ${
-                metrics.totalVariance >= 0
-                  ? 'text-green-700 dark:text-green-400'
-                  : 'text-red-700 dark:text-red-400'
-              }`}>
-                {metrics.totalVariance >= 0 ? '+' : ''}{metrics.totalVariance}
-              </p>
-              <p className="text-xs text-neutral-500 mt-1">
-                {metrics.totalVariancePercent >= 0 ? '+' : ''}{metrics.totalVariancePercent}%
-              </p>
-            </div>
-
-            <div className="bg-white dark:bg-neutral-800 rounded p-4">
-              <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
-                Gesamt-Erreichung
-              </p>
-              <p className={`text-2xl font-bold ${
-                metrics.overallAchievement >= 100
-                  ? 'text-green-700 dark:text-green-400'
-                  : metrics.overallAchievement >= 90
-                  ? 'text-amber-700 dark:text-amber-400'
-                  : 'text-red-700 dark:text-red-400'
-              }`}>
-                {metrics.overallAchievement}%
-              </p>
-              <p className="text-xs text-neutral-500 mt-1">
-                Sitzungen durchgeführt
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

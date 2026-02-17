@@ -10,7 +10,7 @@ import { RelatedPages } from '@/components/dashboard/related-pages'
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Geschäftsberichte - Wirtschaftlichkeitsplan',
+  title: 'Geschäftsberichte - Ordi Pro',
   description: 'Detaillierte Geschäftsberichte und Analysen'
 }
 

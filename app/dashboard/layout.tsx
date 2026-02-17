@@ -1,5 +1,10 @@
 import { ReactNode } from 'react'
 import { DashboardNav } from '@/components/dashboard/dashboard-nav'
+import { DashboardHeader } from '@/components/dashboard/dashboard-header'
+import { CommandPalette } from '@/components/dashboard/command-palette'
+import { KeyboardShortcutsOverlay } from '@/components/dashboard/keyboard-shortcuts-overlay'
+import { ExpenseFab } from '@/components/dashboard/expense-fab'
+import { ErrorBoundary } from '@/components/error-boundary'
 import { createClient } from '@/utils/supabase/server'
 
 /**
@@ -60,7 +65,9 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         {/* Main Content Area */}
         <main className="relative z-10 flex-1 overflow-auto pb-20 md:pb-0">
           <div className="p-4 md:p-6">
-            {children}
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
           </div>
         </main>
       </div>
@@ -69,6 +76,18 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       <div className="md:hidden">
         <DashboardNav practiceName={practiceName} />
       </div>
+
+      {/* Command Palette - available on all dashboard pages */}
+      <CommandPalette />
+
+      {/* Keyboard Shortcuts Overlay - press ? to toggle */}
+      <KeyboardShortcutsOverlay />
+
+      {/* Floating Action Button - quick expense entry */}
+      <ExpenseFab />
+
+      {/* Dashboard Header - theme toggle and logout */}
+      <DashboardHeader />
     </div>
   )
 }

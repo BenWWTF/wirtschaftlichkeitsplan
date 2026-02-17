@@ -28,19 +28,19 @@ export const PAGE_RELATIONSHIPS: PageRelationships = {
   '/dashboard/planung': [
     {
       title: 'Monatliche Ergebnisse',
-      description: 'See actual vs planned sessions for this month',
+      description: 'Vergleichen Sie geplante und tatsächliche Sitzungen',
       href: '/dashboard/ergebnisse',
       icon: 'BarChart3',
     },
     {
       title: 'Therapiearten',
-      description: 'Manage therapy types and pricing',
+      description: 'Therapiearten und Preise verwalten',
       href: '/dashboard/therapien',
       icon: 'Pill',
     },
     {
       title: 'Ausgaben',
-      description: 'Track fixed and variable costs',
+      description: 'Fix- und variable Kosten erfassen',
       href: '/dashboard/ausgaben',
       icon: 'Receipt',
     },
@@ -48,19 +48,19 @@ export const PAGE_RELATIONSHIPS: PageRelationships = {
   '/dashboard/ergebnisse': [
     {
       title: 'Monatliche Planung',
-      description: 'Plan sessions and revenue targets',
+      description: 'Sitzungen und Umsatzziele planen',
       href: '/dashboard/planung',
       icon: 'Calendar',
     },
     {
       title: 'Ausgaben',
-      description: 'Review costs and their impact',
+      description: 'Kosten und deren Auswirkungen prüfen',
       href: '/dashboard/ausgaben',
       icon: 'Receipt',
     },
     {
       title: 'Analyse',
-      description: 'Deep dive into metrics and trends',
+      description: 'Detaillierte Kennzahlen und Trends',
       href: '/dashboard/analyse',
       icon: 'TrendingUp',
     },
@@ -68,19 +68,19 @@ export const PAGE_RELATIONSHIPS: PageRelationships = {
   '/dashboard/therapien': [
     {
       title: 'Monatliche Planung',
-      description: 'Use these therapy types in your plan',
+      description: 'Therapiearten in Ihre Planung einbeziehen',
       href: '/dashboard/planung',
       icon: 'Calendar',
     },
     {
       title: 'Ausgaben',
-      description: 'View costs associated with each type',
+      description: 'Kosten pro Therapieart einsehen',
       href: '/dashboard/ausgaben',
       icon: 'Receipt',
     },
     {
       title: 'Einstellungen',
-      description: 'Configure default pricing and settings',
+      description: 'Standardpreise und Einstellungen konfigurieren',
       href: '/dashboard/einstellungen',
       icon: 'Settings',
     },
@@ -88,19 +88,19 @@ export const PAGE_RELATIONSHIPS: PageRelationships = {
   '/dashboard/ausgaben': [
     {
       title: 'Monatliche Planung',
-      description: 'See impact of costs on profitability',
+      description: 'Auswirkung der Kosten auf die Rentabilität',
       href: '/dashboard/planung',
       icon: 'Calendar',
     },
     {
       title: 'Monatliche Ergebnisse',
-      description: 'Compare planned vs actual costs',
+      description: 'Plan- und Ist-Kosten vergleichen',
       href: '/dashboard/ergebnisse',
       icon: 'BarChart3',
     },
     {
       title: 'Meine Steuerprognose',
-      description: 'See tax impact of your expenses',
+      description: 'Steuerliche Auswirkung Ihrer Ausgaben',
       href: '/dashboard/steuerprognose',
       icon: 'Calculator',
     },
@@ -108,19 +108,19 @@ export const PAGE_RELATIONSHIPS: PageRelationships = {
   '/dashboard/steuerprognose': [
     {
       title: 'Analyse',
-      description: 'Understand your financial trends',
+      description: 'Finanzielle Trends verstehen',
       href: '/dashboard/analyse',
       icon: 'TrendingUp',
     },
     {
       title: 'Ausgaben',
-      description: 'Adjust costs to optimize taxes',
+      description: 'Kosten zur Steueroptimierung anpassen',
       href: '/dashboard/ausgaben',
       icon: 'Receipt',
     },
     {
       title: 'Einstellungen',
-      description: 'Configure tax-related settings',
+      description: 'Steuerrelevante Einstellungen konfigurieren',
       href: '/dashboard/einstellungen',
       icon: 'Settings',
     },
@@ -128,19 +128,19 @@ export const PAGE_RELATIONSHIPS: PageRelationships = {
   '/dashboard/analyse': [
     {
       title: 'Meine Steuerprognose',
-      description: 'See your tax forecast',
+      description: 'Ihre Steuerschätzung einsehen',
       href: '/dashboard/steuerprognose',
       icon: 'Calculator',
     },
     {
       title: 'Monatliche Planung',
-      description: 'Plan based on insights',
+      description: 'Planung basierend auf Erkenntnissen',
       href: '/dashboard/planung',
       icon: 'Calendar',
     },
     {
       title: 'Monatliche Ergebnisse',
-      description: 'Review execution results',
+      description: 'Ergebnisse der Umsetzung prüfen',
       href: '/dashboard/ergebnisse',
       icon: 'BarChart3',
     },
@@ -148,19 +148,19 @@ export const PAGE_RELATIONSHIPS: PageRelationships = {
   '/dashboard/berichte': [
     {
       title: 'Analyse',
-      description: 'See detailed analytics and trends',
+      description: 'Detaillierte Analysen und Trends',
       href: '/dashboard/analyse',
       icon: 'TrendingUp',
     },
     {
       title: 'Monatliche Ergebnisse',
-      description: 'Review monthly performance',
+      description: 'Monatliche Leistung überprüfen',
       href: '/dashboard/ergebnisse',
       icon: 'BarChart3',
     },
     {
       title: 'Meine Steuerprognose',
-      description: 'Check your tax forecast',
+      description: 'Ihre Steuerschätzung prüfen',
       href: '/dashboard/steuerprognose',
       icon: 'Calculator',
     },
@@ -168,19 +168,19 @@ export const PAGE_RELATIONSHIPS: PageRelationships = {
   '/dashboard/einstellungen': [
     {
       title: 'Therapiearten',
-      description: 'Manage therapy offerings',
+      description: 'Therapieangebote verwalten',
       href: '/dashboard/therapien',
       icon: 'Pill',
     },
     {
       title: 'Ausgaben',
-      description: 'Configure fixed and variable costs',
+      description: 'Fix- und variable Kosten konfigurieren',
       href: '/dashboard/ausgaben',
       icon: 'Receipt',
     },
     {
       title: 'Monatliche Planung',
-      description: 'Return to planning',
+      description: 'Zurück zur Planung',
       href: '/dashboard/planung',
       icon: 'Calendar',
     },

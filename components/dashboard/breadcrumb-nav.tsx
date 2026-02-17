@@ -61,10 +61,10 @@ export function BreadcrumbNav() {
                 href={item.href}
                 className={cn(
                   'text-sm font-medium transition-colors',
-                  'text-blue-600 dark:text-blue-400',
-                  'hover:text-blue-700 dark:hover:text-blue-300',
+                  'text-accent-600 dark:text-accent-400',
+                  'hover:text-accent-700 dark:hover:text-accent-300',
                   'hover:underline',
-                  'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 dark:focus:ring-offset-neutral-950 rounded px-1'
+                  'focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-1 dark:focus:ring-offset-neutral-950 rounded px-1'
                 )}
               >
                 {item.label}

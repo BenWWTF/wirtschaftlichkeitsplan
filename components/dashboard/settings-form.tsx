@@ -26,7 +26,7 @@ import type { PracticeSettings } from '@/lib/types'
 import { upsertPracticeSettingsAction } from '@/lib/actions/settings'
 import { PRACTICE_TYPES } from '@/lib/constants'
 import { toast } from 'sonner'
-import { Save } from 'lucide-react'
+import { Save, Target } from 'lucide-react'
 
 interface SettingsFormProps {
   settings: PracticeSettings | null
@@ -45,6 +45,7 @@ export function SettingsForm({ settings, onSaveSuccess }: SettingsFormProps) {
       average_variable_cost_per_session: settings.average_variable_cost_per_session,
       expected_growth_rate: settings.expected_growth_rate,
       payment_processing_fee_percentage: settings.payment_processing_fee_percentage,
+      annual_revenue_goal: settings.annual_revenue_goal,
     } : {
       practice_name: '',
       practice_type: 'mixed',
@@ -52,6 +53,7 @@ export function SettingsForm({ settings, onSaveSuccess }: SettingsFormProps) {
       average_variable_cost_per_session: 20,
       expected_growth_rate: 5,
       payment_processing_fee_percentage: 1.39,
+      annual_revenue_goal: null,
     },
   })
 
@@ -65,6 +67,7 @@ export function SettingsForm({ settings, onSaveSuccess }: SettingsFormProps) {
         average_variable_cost_per_session: settings.average_variable_cost_per_session,
         expected_growth_rate: settings.expected_growth_rate,
         payment_processing_fee_percentage: settings.payment_processing_fee_percentage,
+        annual_revenue_goal: settings.annual_revenue_goal,
       })
       // Explicitly update practice_type for Select component
       form.setValue('practice_type', settings.practice_type)
@@ -212,6 +215,53 @@ export function SettingsForm({ settings, onSaveSuccess }: SettingsFormProps) {
                   </FormControl>
                   <FormDescription>
                     Der Prozentsatz, den Sie pro Zahlung an den Kartendienstleister zahlen
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Annual Revenue Goal */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
+                <Target className="h-5 w-5 text-accent-500" />
+                Jahresziel
+              </h3>
+              <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                Optionales Nettoumsatz-Ziel für das laufende Jahr
+              </p>
+            </div>
+
+            <FormField
+              control={form.control}
+              name="annual_revenue_goal"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Jahresziel Nettoumsatz</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        step="100"
+                        min="0"
+                        placeholder="z.B. 80000"
+                        value={field.value ?? ''}
+                        onChange={(e) => {
+                          const value = e.target.value === '' ? null : parseFloat(e.target.value)
+                          field.onChange(value)
+                        }}
+                        disabled={isLoading}
+                        className="h-12 md:h-10 w-full md:max-w-xs"
+                        inputMode="numeric"
+                        autoComplete="off"
+                      />
+                      <span className="text-neutral-600 dark:text-neutral-400">EUR</span>
+                    </div>
+                  </FormControl>
+                  <FormDescription>
+                    Ihr angestrebter Nettoumsatz für das gesamte Jahr. Wird als Fortschrittsbalken im Dashboard angezeigt.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

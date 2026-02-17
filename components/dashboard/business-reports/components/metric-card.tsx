@@ -1,5 +1,14 @@
-import { ReactNode } from 'react'
+'use client'
+
+import { ReactNode, useMemo } from 'react'
 import { TrendingUp, TrendingDown } from 'lucide-react'
+import {
+  LineChart,
+  Line,
+  ResponsiveContainer,
+  YAxis,
+} from 'recharts'
+import { CHART_COLORS } from './chart-config'
 
 interface MetricCardProps {
   label: string
@@ -13,6 +22,15 @@ interface MetricCardProps {
   subtext?: string
   variant?: 'default' | 'success' | 'warning' | 'danger'
   className?: string
+  /** Array of numbers to render as a sparkline inside the card */
+  sparkline?: number[]
+}
+
+const SPARKLINE_COLORS: Record<string, string> = {
+  default: CHART_COLORS.revenue,
+  success: CHART_COLORS.profit,
+  warning: '#F59E0B',
+  danger: CHART_COLORS.loss,
 }
 
 export function MetricCard({
@@ -22,8 +40,21 @@ export function MetricCard({
   trend,
   subtext,
   variant = 'default',
-  className = ''
+  className = '',
+  sparkline,
 }: MetricCardProps) {
+  const sparklineData = useMemo(() => {
+    if (!sparkline || sparkline.length < 2) return null
+    return sparkline.map((v) => ({ v }))
+  }, [sparkline])
+
+  const sparklineColor = SPARKLINE_COLORS[variant] || SPARKLINE_COLORS.default
+
+  // Determine if sparkline trend is up or down
+  const sparklineTrendUp = sparkline && sparkline.length >= 2
+    ? sparkline[sparkline.length - 1] >= sparkline[0]
+    : true
+
   const getBackgroundColor = () => {
     switch (variant) {
       case 'success':
@@ -51,42 +82,64 @@ export function MetricCard({
   }
 
   return (
-    <div className={`${getBackgroundColor()} rounded-lg border p-6 ${className}`}>
-      <div className="flex items-center justify-between mb-4">
-        <p className={`text-sm font-medium ${getLabelColor()}`}>
-          {label}
+    <div className={`${getBackgroundColor()} rounded-lg border p-6 relative overflow-hidden ${className}`}>
+      {/* Sparkline background */}
+      {sparklineData && (
+        <div className="absolute bottom-0 left-0 right-0 h-12 opacity-20 pointer-events-none" aria-hidden="true">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={sparklineData} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+              <YAxis hide domain={['dataMin', 'dataMax']} />
+              <Line
+                type="monotone"
+                dataKey="v"
+                stroke={sparklineTrendUp ? CHART_COLORS.profit : CHART_COLORS.loss}
+                strokeWidth={2}
+                dot={false}
+                isAnimationActive={false}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Content */}
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-4">
+          <p className={`text-sm font-medium ${getLabelColor()}`}>
+            {label}
+          </p>
+          {icon && (
+            <div className="text-neutral-400 dark:text-neutral-500">
+              {icon}
+            </div>
+          )}
+        </div>
+
+        <p className="text-3xl font-bold text-neutral-900 dark:text-white">
+          {value}
         </p>
-        {icon && (
-          <div className="text-neutral-400 dark:text-neutral-500">
-            {icon}
-          </div>
+
+        {trend && (
+          <p className={`text-sm mt-2 flex items-center gap-1 ${
+            trend.isPositive
+              ? 'text-green-600 dark:text-green-400'
+              : 'text-red-600 dark:text-red-400'
+          }`}>
+            {trend.isPositive ? (
+              <TrendingUp className="h-4 w-4" />
+            ) : (
+              <TrendingDown className="h-4 w-4" />
+            )}
+            {Math.abs(trend.value).toFixed(1)}% {trend.label}
+          </p>
+        )}
+
+        {subtext && !trend && (
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">
+            {subtext}
+          </p>
         )}
       </div>
-
-      <p className="text-3xl font-bold text-neutral-900 dark:text-white">
-        {value}
-      </p>
-
-      {trend && (
-        <p className={`text-sm mt-2 flex items-center gap-1 ${
-          trend.isPositive
-            ? 'text-green-600 dark:text-green-400'
-            : 'text-red-600 dark:text-red-400'
-        }`}>
-          {trend.isPositive ? (
-            <TrendingUp className="h-4 w-4" />
-          ) : (
-            <TrendingDown className="h-4 w-4" />
-          )}
-          {Math.abs(trend.value).toFixed(1)}% {trend.label}
-        </p>
-      )}
-
-      {subtext && !trend && (
-        <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">
-          {subtext}
-        </p>
-      )}
     </div>
   )
 }

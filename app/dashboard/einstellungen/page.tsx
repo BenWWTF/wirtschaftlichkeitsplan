@@ -2,8 +2,9 @@
 
 import { getPracticeSettings } from '@/lib/actions/settings'
 import { SettingsForm } from '@/components/dashboard/settings-form'
+import { MfaEnroll } from '@/components/auth/mfa-enroll'
 import { RelatedPages } from '@/components/dashboard/related-pages'
-import { Settings } from 'lucide-react'
+import { Settings, Lock } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { PracticeSettings } from '@/lib/types'
 
@@ -38,8 +39,33 @@ export default function EinstellungenPage() {
             </p>
           </div>
 
-          {/* Form */}
-          <SettingsForm settings={settings} onSaveSuccess={loadSettings} />
+          {/* Forms */}
+          <div className="space-y-8">
+            {/* Practice Settings Form */}
+            <SettingsForm settings={settings} onSaveSuccess={loadSettings} />
+
+            {/* Security Section */}
+            <div className="pt-8 border-t border-neutral-200 dark:border-neutral-800">
+              <div className="space-y-4 mb-6">
+                <div className="flex items-center gap-3">
+                  <Lock className="h-6 w-6 text-neutral-700 dark:text-neutral-300" />
+                  <div>
+                    <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">
+                      Sicherheit
+                    </h2>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
+                      Schützen Sie Ihr Konto mit zusätzlichen Sicherheitsmaßnahmen
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2FA Settings */}
+              <div className="max-w-3xl">
+                <MfaEnroll onEnrolled={() => {}} />
+              </div>
+            </div>
+          </div>
         </div>
         <RelatedPages currentPage="/dashboard/einstellungen" />
       </div>

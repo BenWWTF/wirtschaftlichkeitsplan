@@ -46,10 +46,10 @@ export function TherapyFilter({ therapies, onFilterChange }: TherapyFilterProps)
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="relative flex items-center gap-2">
       <Filter className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
 
-      <div className="flex items-center gap-2 relative">
+      <div className="flex items-center gap-2">
         <Button
           variant={selectedTherapies.length > 0 ? 'default' : 'outline'}
           size="sm"
@@ -80,7 +80,7 @@ export function TherapyFilter({ therapies, onFilterChange }: TherapyFilterProps)
       </div>
 
       {showFilter && (
-        <div className="absolute mt-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg p-4 z-50 min-w-64 max-w-sm">
+        <div className="absolute top-full mt-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg p-4 z-[60] min-w-64 max-w-sm">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-semibold text-neutral-900 dark:text-white">
               Therapien filtern
@@ -110,7 +110,7 @@ export function TherapyFilter({ therapies, onFilterChange }: TherapyFilterProps)
                 >
                   <Checkbox
                     checked={selectedTherapies.includes(therapy.id)}
-                    onChange={() => handleTherapyToggle(therapy.id)}
+                    onCheckedChange={() => handleTherapyToggle(therapy.id)}
                     id={therapy.id}
                     aria-label={`${therapy.name} ${selectedTherapies.includes(therapy.id) ? 'ausgewählt' : 'nicht ausgewählt'}`}
                   />

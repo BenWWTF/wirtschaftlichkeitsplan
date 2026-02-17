@@ -27,7 +27,7 @@ interface StatCardProps {
  * <StatCard
  *   title="Gesamtumsatz"
  *   value="€ 2.500,00"
- *   icon={DollarSign}
+ *   icon={Banknote}
  *   trend={{ value: 12.5, label: "+12.5% vs. letzter Monat" }}
  *   variant="success"
  * />

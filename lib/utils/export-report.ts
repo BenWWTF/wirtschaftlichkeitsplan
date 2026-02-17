@@ -228,7 +228,7 @@ export function exportAsHTML(data: BreakEvenReportData): void {
   </p>
 
   <div class="footer">
-    <p>Dieser Bericht wurde mit Wirtschaftlichkeitsplan generiert.</p>
+    <p>Dieser Bericht wurde mit Ordi Pro generiert.</p>
     <p>Die Berechnungen basieren auf den eingegebenen Daten und den aktuellen Therapiearten.</p>
   </div>
 </body>

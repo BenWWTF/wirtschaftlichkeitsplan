@@ -9,7 +9,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Edit2, Trash2, Repeat } from 'lucide-react'
+import { Edit2, Trash2, Repeat, CalendarClock } from 'lucide-react'
 import type { Expense } from '@/lib/types'
 import { formatEuro } from '@/lib/utils'
 import { format } from 'date-fns'
@@ -50,6 +50,13 @@ export function ExpenseTable({ expenses, onEdit, onDelete }: ExpenseTableProps) 
     }
   }
 
+  const getSpreadMonthlyAmount = (expense: Expense) => {
+    if (!expense.spread_monthly || !expense.recurrence_interval) return null
+    if (expense.recurrence_interval === 'yearly') return expense.amount / 12
+    if (expense.recurrence_interval === 'quarterly') return expense.amount / 3
+    return null
+  }
+
   if (expenses.length === 0) {
     return (
       <div className="rounded-lg border border-border bg-card p-8 text-center">
@@ -68,6 +75,7 @@ export function ExpenseTable({ expenses, onEdit, onDelete }: ExpenseTableProps) 
           const date = new Date(expense.expense_date)
           const formattedDate = format(date, 'dd.MM.yyyy', { locale: de })
           const recurrenceLabel = getRecurrenceLabel(expense.recurrence_interval)
+          const spreadAmount = getSpreadMonthlyAmount(expense)
 
           return (
             <MobileCard
@@ -87,9 +95,17 @@ export function ExpenseTable({ expenses, onEdit, onDelete }: ExpenseTableProps) 
                   )}
                   {expense.is_recurring && recurrenceLabel && (
                     <div className="flex items-center gap-2 py-2">
-                      <Repeat className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                      <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                      <Repeat className="h-4 w-4 text-accent-600 dark:text-accent-400" />
+                      <span className="text-xs font-medium text-accent-600 dark:text-accent-400">
                         {recurrenceLabel}
+                      </span>
+                    </div>
+                  )}
+                  {spreadAmount !== null && (
+                    <div className="flex items-center gap-2 py-2">
+                      <CalendarClock className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                        = {formatEuro(spreadAmount)}/Monat
                       </span>
                     </div>
                   )}
@@ -102,7 +118,7 @@ export function ExpenseTable({ expenses, onEdit, onDelete }: ExpenseTableProps) 
                     variant="ghost"
                     size="sm"
                     onClick={() => onEdit(expense)}
-                    className="flex-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/20"
+                    className="flex-1 text-accent-600 hover:text-accent-700 hover:bg-accent-50 dark:hover:bg-accent-950/20"
                   >
                     <Edit2 className="h-4 w-4 mr-2" />
                     Bearbeiten
@@ -149,6 +165,7 @@ export function ExpenseTable({ expenses, onEdit, onDelete }: ExpenseTableProps) 
             const date = new Date(expense.expense_date)
             const formattedDate = format(date, 'dd.MM.yyyy', { locale: de })
             const recurrenceLabel = getRecurrenceLabel(expense.recurrence_interval)
+            const spreadAmount = getSpreadMonthlyAmount(expense)
 
             return (
               <TableRow key={expense.id} className="border-border hover:bg-muted/50">
@@ -164,7 +181,7 @@ export function ExpenseTable({ expenses, onEdit, onDelete }: ExpenseTableProps) 
                       </span>
                     )}
                     {expense.is_recurring && recurrenceLabel && (
-                      <span className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 mt-1">
+                      <span className="inline-flex items-center gap-1 text-xs text-accent-600 dark:text-accent-400 mt-1">
                         <Repeat className="h-3 w-3" />
                         {recurrenceLabel}
                       </span>
@@ -175,14 +192,23 @@ export function ExpenseTable({ expenses, onEdit, onDelete }: ExpenseTableProps) 
                   {expense.description || '-'}
                 </TableCell>
                 <TableCell className="text-right">
-                  <span className="font-semibold">{formatEuro(expense.amount)}</span>
+                  <div className="flex flex-col items-end">
+                    <span className="font-semibold">{formatEuro(expense.amount)}</span>
+                    {spreadAmount !== null && (
+                      <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">
+                        <CalendarClock className="h-3 w-3" />
+                        = {formatEuro(spreadAmount)}/Mo.
+                      </span>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell className="text-right space-x-2">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => onEdit(expense)}
-                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                    className="text-accent-600 hover:text-accent-700 hover:bg-accent-50"
+                    aria-label={`Ausgabe ${expense.description || 'bearbeiten'}`}
                   >
                     <Edit2 className="h-4 w-4" />
                   </Button>
@@ -191,6 +217,7 @@ export function ExpenseTable({ expenses, onEdit, onDelete }: ExpenseTableProps) 
                     size="sm"
                     onClick={() => handleDelete(expense.id)}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    aria-label={`Ausgabe ${expense.description || 'löschen'}`}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

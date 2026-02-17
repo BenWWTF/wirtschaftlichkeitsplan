@@ -103,7 +103,7 @@ export function MonthSelector({
               setIsOpen(!isOpen)
             }
           }}
-          className="px-4 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors font-medium text-neutral-900 dark:text-white flex items-center gap-2"
+          className="min-h-[44px] px-4 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors font-medium text-neutral-900 dark:text-white flex items-center gap-2"
           aria-label={`Monat wählen. ${getMonthLabel(parseInt(selectedYear), selectedMonthNumber)} ${selectedYear} ausgewählt`}
           aria-haspopup="dialog"
           aria-expanded={isOpen}
@@ -171,9 +171,9 @@ export function MonthSelector({
                       handleSelectMonth(month)
                     }
                   }}
-                  className={`py-2 px-2 rounded text-sm font-medium transition-colors ${
+                  className={`min-h-[44px] py-2 px-2 rounded text-sm font-medium transition-colors ${
                     isSelected
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-accent-600 text-white'
                       : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-600'
                   } ${hasData ? 'ring-2 ring-green-500 dark:ring-green-400' : ''}`}
                   title={hasData ? 'Daten vorhanden' : 'Keine Daten'}

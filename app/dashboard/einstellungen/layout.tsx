@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Einstellungen - Wirtschaftlichkeitsplan',
+  title: 'Einstellungen - Ordi Pro',
   description: 'Praxis-Einstellungen verwalten'
 }
 

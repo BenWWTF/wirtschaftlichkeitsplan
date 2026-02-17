@@ -5,7 +5,7 @@
  * in the Supabase database.
  */
 
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/utils/supabase/client'
 import type { TaxScenario, ComprehensiveTaxInput, ComprehensiveTaxResult } from '@/lib/types/tax-types'
 
 // ========================================================================

@@ -85,7 +85,7 @@ export function ProgressRing({
       },
       blue: {
         ring: '#0EA5E9',
-        label: 'text-blue-600 dark:text-blue-400'
+        label: 'text-accent-600 dark:text-accent-400'
       },
       neutral: {
         ring: '#6B7280',

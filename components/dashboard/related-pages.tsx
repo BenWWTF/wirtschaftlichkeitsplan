@@ -51,7 +51,7 @@ export function RelatedPages({ currentPage, limit = 4 }: RelatedPagesProps) {
   return (
     <div className="mt-12 pt-8 border-t border-neutral-200 dark:border-neutral-700">
       <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">
-        Related Pages
+        Verwandte Seiten
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">

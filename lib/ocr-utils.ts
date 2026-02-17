@@ -2,9 +2,11 @@
 
 /**
  * OCR Utilities for bill and receipt text extraction
- * Uses Tesseract.js for client-side OCR
- * Loads from CDN to avoid webpack chunking issues
- * Supports PDF rendering via PDF.js
+ *
+ * Strategy:
+ * 1. For PDFs: Try PDF.js text extraction first (instant, accurate for digital PDFs)
+ * 2. If PDF has no embedded text (<50 chars), fall back to OCR
+ * 3. For images: Use Tesseract.js OCR directly
  */
 
 declare global {
@@ -22,196 +24,195 @@ declare global {
 let tesseractScriptLoading: Promise<void> | null = null
 
 function loadTesseractScript(): Promise<void> {
-  // If already loading, wait for it
-  if (tesseractScriptLoading) {
-    return tesseractScriptLoading
-  }
-
-  // If already loaded, return immediately
-  if (typeof window !== 'undefined' && window.Tesseract) {
-    return Promise.resolve()
-  }
+  if (tesseractScriptLoading) return tesseractScriptLoading
+  if (typeof window !== 'undefined' && window.Tesseract) return Promise.resolve()
 
   tesseractScriptLoading = new Promise((resolve, reject) => {
     const script = document.createElement('script')
     script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js'
     script.async = true
-    script.onload = () => {
-      tesseractScriptLoading = null
-      resolve()
-    }
-    script.onerror = () => {
-      tesseractScriptLoading = null
-      reject(new Error('Failed to load Tesseract.js from CDN'))
-    }
+    script.onload = () => { tesseractScriptLoading = null; resolve() }
+    script.onerror = () => { tesseractScriptLoading = null; reject(new Error('Failed to load Tesseract.js from CDN')) }
     document.head.appendChild(script)
   })
-
   return tesseractScriptLoading
 }
 
 let pdfJsLoading: Promise<any> | null = null
 
 async function loadPdfJsScript(): Promise<any> {
-  // If already loading, wait for it
-  if (pdfJsLoading) {
-    return pdfJsLoading
-  }
-
-  // If already loaded, return immediately
-  if (typeof window !== 'undefined' && (window as any).pdfjsLib) {
-    return (window as any).pdfjsLib
-  }
+  if (pdfJsLoading) return pdfJsLoading
+  if (typeof window !== 'undefined' && (window as any).pdfjsLib) return (window as any).pdfjsLib
 
   pdfJsLoading = new Promise((resolve, reject) => {
     const script = document.createElement('script')
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'
     script.async = true
     script.onload = () => {
-      // Set up worker
       const pdfjsLib = (window as any).pdfjsLib
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
       pdfJsLoading = null
       resolve(pdfjsLib)
     }
-    script.onerror = () => {
-      pdfJsLoading = null
-      reject(new Error('Failed to load PDF.js from CDN'))
-    }
+    script.onerror = () => { pdfJsLoading = null; reject(new Error('Failed to load PDF.js from CDN')) }
     document.head.appendChild(script)
   })
-
   return pdfJsLoading
 }
 
-async function renderPdfToImages(pdfBase64: string): Promise<string[]> {
-  // Only run in browser environment
+/**
+ * Convert base64 to Uint8Array
+ */
+function base64ToBytes(base64: string): Uint8Array {
+  const binaryString = atob(base64)
+  const bytes = new Uint8Array(binaryString.length)
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i)
+  }
+  return bytes
+}
+
+/**
+ * Extract embedded text from PDF using PDF.js getTextContent()
+ * This is instant and 100% accurate for digital PDFs
+ */
+async function extractPdfText(pdfBase64: string): Promise<string> {
   if (typeof window === 'undefined') {
     throw new Error('PDF-Verarbeitung ist nur im Browser verfügbar')
   }
 
+  const pdfjsLib = await loadPdfJsScript()
+  const bytes = base64ToBytes(pdfBase64)
+  const pdf = await pdfjsLib.getDocument({ data: bytes }).promise
+  const numPages = pdf.numPages
+  console.log(`[PDF Text] Extracting text from ${numPages} page(s)...`)
+
+  const pageTexts: string[] = []
+
+  for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+    const page = await pdf.getPage(pageNum)
+    const textContent = await page.getTextContent()
+    const pageText = textContent.items
+      .map((item: any) => item.str)
+      .join(' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+    if (pageText) pageTexts.push(pageText)
+  }
+
+  const fullText = pageTexts.join('\n')
+  console.log(`[PDF Text] Extracted ${fullText.length} characters from embedded text`)
+  return fullText
+}
+
+/**
+ * Render PDF pages to images for OCR fallback
+ */
+async function renderPdfToImages(pdfBase64: string): Promise<string[]> {
+  if (typeof window === 'undefined') {
+    throw new Error('PDF-Verarbeitung ist nur im Browser verfügbar')
+  }
+
+  const pdfjsLib = await loadPdfJsScript()
+  const bytes = base64ToBytes(pdfBase64)
+  const pdf = await pdfjsLib.getDocument({ data: bytes }).promise
+  const numPages = pdf.numPages
+  const images: string[] = []
+
+  for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+    console.log(`[OCR] Rendering PDF page ${pageNum}/${numPages} to canvas...`)
+    const page = await pdf.getPage(pageNum)
+    const viewport = page.getViewport({ scale: 2 })
+
+    const canvas = document.createElement('canvas')
+    const context = canvas.getContext('2d')
+    if (!context) throw new Error('Failed to get canvas context')
+
+    canvas.width = viewport.width
+    canvas.height = viewport.height
+    await page.render({ canvasContext: context, viewport }).promise
+    images.push(canvas.toDataURL('image/jpeg').split(',')[1])
+  }
+
+  return images
+}
+
+/**
+ * Run Tesseract OCR on base64 images
+ */
+async function runOcr(imageBase64Array: string[], fileType: string): Promise<string> {
+  console.log('[OCR] Loading Tesseract.js...')
+  await loadTesseractScript()
+
+  if (!window.Tesseract) {
+    throw new Error('Tesseract.js konnte nicht geladen werden')
+  }
+
+  const worker = await window.Tesseract.createWorker()
   try {
-    console.log('Setting up PDF.js from CDN...')
-    const pdfjsLib = await loadPdfJsScript()
-
-    // Convert base64 to binary
-    const binaryString = atob(pdfBase64)
-    const bytes = new Uint8Array(binaryString.length)
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i)
-    }
-
-    console.log('Loading PDF document...')
-    const pdf = await pdfjsLib.getDocument({ data: bytes }).promise
-    const numPages = pdf.numPages
-    console.log(`PDF has ${numPages} pages`)
-
-    const images: string[] = []
-
-    // Process all pages
-    for (let pageNum = 1; pageNum <= numPages; pageNum++) {
-      console.log(`Rendering PDF page ${pageNum}/${numPages} to canvas...`)
-      const page = await pdf.getPage(pageNum)
-      const viewport = page.getViewport({ scale: 2 }) // 2x scale for better OCR quality
-
-      const canvas = document.createElement('canvas')
-      const context = canvas.getContext('2d')
-      if (!context) {
-        throw new Error('Failed to get canvas context')
+    const texts: string[] = []
+    for (let i = 0; i < imageBase64Array.length; i++) {
+      console.log(`[OCR] Processing image ${i + 1}/${imageBase64Array.length}...`)
+      let dataUrl = imageBase64Array[i]
+      if (!dataUrl.startsWith('data:')) {
+        dataUrl = `data:${fileType};base64,${imageBase64Array[i]}`
       }
-
-      canvas.width = viewport.width
-      canvas.height = viewport.height
-
-      const renderTask = page.render({
-        canvasContext: context,
-        viewport: viewport
-      })
-
-      await renderTask.promise
-
-      // Convert canvas to base64 image
-      const imageBase64 = canvas.toDataURL('image/jpeg').split(',')[1]
-      images.push(imageBase64)
+      const result = await worker.recognize(dataUrl, ['deu', 'eng'])
+      const text = (result.data?.text || '').trim()
+      console.log(`[OCR] Image ${i + 1}: ${text.length} chars extracted`)
+      if (text) texts.push(text)
     }
-
-    console.log(`PDF rendered to ${images.length} images successfully`)
-    return images
-  } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : String(error)
-    throw new Error(`PDF-Rendering fehlgeschlagen: ${errorMsg}`)
+    return texts.join('\n\n')
+  } finally {
+    await worker.terminate()
   }
 }
 
+/**
+ * Main extraction function - handles both PDFs and images
+ */
 export async function extractTextFromImage(imageBase64: string, fileType: string = 'image/jpeg'): Promise<string> {
   try {
-    let ocrBase64Array: string[] = [imageBase64]
-
-    // Handle PDF files by rendering them to images first
+    // PDF handling: try text extraction first, fall back to OCR
     if (fileType === 'application/pdf') {
-      console.log('PDF file detected, rendering to images first...')
-      ocrBase64Array = await renderPdfToImages(imageBase64)
-      fileType = 'image/jpeg'
+      console.log('[Extract] PDF detected - trying embedded text extraction first...')
+
+      try {
+        const pdfText = await extractPdfText(imageBase64)
+
+        // If we got meaningful text (>50 chars), use it directly
+        if (pdfText.length > 50) {
+          console.log('[Extract] Got embedded text from PDF, skipping OCR')
+          return pdfText
+        }
+
+        console.log('[Extract] PDF has little/no embedded text, falling back to OCR...')
+      } catch (e) {
+        console.log('[Extract] PDF text extraction failed, falling back to OCR...', e)
+      }
+
+      // Fallback: render PDF to images and OCR
+      const images = await renderPdfToImages(imageBase64)
+      const ocrText = await runOcr(images, 'image/jpeg')
+      if (!ocrText) {
+        throw new Error('Kein Text im PDF erkannt. Das PDF könnte ein Bild-Scan mit schlechter Qualität sein.')
+      }
+      return ocrText
     }
 
-    // Only image files are supported for OCR
+    // Image handling: straight to OCR
     if (!fileType.startsWith('image/')) {
       throw new Error('Nur Bilddateien (JPG, PNG, WebP) und PDF-Dateien werden unterstützt')
     }
 
-    console.log('Loading Tesseract.js from CDN...')
-    await loadTesseractScript()
-
-    if (!window.Tesseract) {
-      throw new Error('Tesseract.js library failed to load from CDN')
+    const ocrText = await runOcr([imageBase64], fileType)
+    if (!ocrText) {
+      throw new Error('Kein Text im Bild erkannt. Das Bild könnte zu unscharf oder zu klein sein.')
     }
-
-    console.log('Creating Tesseract worker...')
-    const worker = await window.Tesseract.createWorker()
-
-    try {
-      const allExtractedTexts: string[] = []
-
-      // Process all images (pages)
-      for (let i = 0; i < ocrBase64Array.length; i++) {
-        const ocrBase64 = ocrBase64Array[i]
-        console.log(`Starting OCR recognition for image ${i + 1}/${ocrBase64Array.length}...`)
-
-        // Ensure we have a proper data URL
-        let dataUrl = ocrBase64
-        if (!dataUrl.startsWith('data:')) {
-          dataUrl = `data:${fileType};base64,${ocrBase64}`
-        }
-
-        // Recognize German and English text (common for Austrian businesses)
-        const result = await worker.recognize(dataUrl, ['deu', 'eng'])
-        const extractedText = (result.data?.text || '').trim()
-        console.log(`OCR completed for image ${i + 1}. Text length: ${extractedText.length}`)
-
-        if (extractedText) {
-          allExtractedTexts.push(extractedText)
-        }
-      }
-
-      const combinedText = allExtractedTexts.join('\n\n--- PAGE BREAK ---\n\n')
-      console.log('Combined OCR text from all pages. Total length:', combinedText.length)
-
-      if (!combinedText) {
-        throw new Error('Keine Textinhalte in der Bilddatei erkannt. Die Bilddatei könnte zu klein, zu unklar oder nicht lesbar sein.')
-      }
-
-      return combinedText
-    } finally {
-      console.log('Terminating Tesseract worker...')
-      await worker.terminate()
-    }
+    return ocrText
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
-    console.error('OCR Error details:', {
-      message: errorMsg,
-      stack: error instanceof Error ? error.stack : undefined,
-      fileType
-    })
+    console.error('[Extract] Error:', errorMsg)
     throw new Error(`OCR Fehler: ${errorMsg}`)
   }
 }
@@ -232,56 +233,110 @@ export function parseInvoiceText(text: string): {
     currency: 'EUR'
   }
 
-  // Extract amount - look for all currency patterns and amounts
-  const amountPatterns = [
-    // € or EUR before amount: € 123,45 or EUR 123.45
-    /(?:€|EUR)[\s]*([0-9]{1,}[.,][0-9]{2})/gi,
-    // Amount before € or EUR: 123,45 € or 123.45 EUR
-    /([0-9]{1,}[.,][0-9]{2})[\s]*(?:€|EUR)/gi,
-    // Keywords followed by amount: Summe: 123,45 or Total 123.45
-    /(?:Summe|Total|Gesamt|Endsumme|TOTAL|SUMME)[:\s]+([0-9]{1,}[.,][0-9]{2})/gi,
-    // Amount with thousands separator: 1.234,56
-    /([0-9]{1,3}(?:\.[0-9]{3})*[,][0-9]{2})/gi,
-    // Simple amount: 123,45 or 123.45
-    /([0-9]{2,}[.,][0-9]{2})/gi,
+  console.log('[Parse] Input text length:', text.length)
+  console.log('[Parse] First 300 chars:', text.substring(0, 300))
+
+  // ──────────────────────────────────────────────
+  // AMOUNT EXTRACTION - keyword-aware scoring
+  // ──────────────────────────────────────────────
+
+  // Match amounts in European format: 123,45 or 1.234,56 or with € symbol
+  const amountRegex = /(?:€\s*)?(\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2})(?:\s*€)?/g
+  // Also match dot-decimal format: 123.45 (less common in Austria but used in some systems)
+  const amountRegexDot = /(?:€\s*)?(\d+\.\d{2})(?:\s*€)?/g
+
+  const candidates: { amount: number; score: number; position: number; matchText: string }[] = []
+
+  const totalKeywords = [
+    'endsumme', 'gesamtbetrag', 'gesamtsumme', 'rechnungsbetrag',
+    'zahlbetrag', 'zu zahlen', 'total', 'summe', 'gesamt',
+    'brutto', 'bruttobetrag', 'endbetrag', 'fällig', 'netto',
+    'gesamtpreis', 'rechnungssumme', 'zwischensumme', 'betrag'
   ]
 
-  const amounts: number[] = []
-  for (const pattern of amountPatterns) {
-    let match
-    while ((match = pattern.exec(text)) !== null) {
-      let amountStr = match[1] || match[0]
-      // Clean up the amount string
-      amountStr = amountStr
-        .replace(/[€EUR\s]/gi, '')
-        .replace(/\.(?=\d{3})/g, '') // Remove thousands separator (dots before 3 digits)
-        .replace(/,/, '.') // Convert comma to period for decimal
+  function scoreAmount(matchText: string, amountStr: string, pos: number) {
+    // Parse the amount
+    let cleaned = amountStr
+      .replace(/\s/g, '')
+      .replace(/\.(?=\d{3})/g, '') // Remove thousands dots
+      .replace(/,/, '.') // Comma to period
 
-      const amount = parseFloat(amountStr)
-      if (!isNaN(amount) && amount > 0 && amount < 1000000) {
-        amounts.push(amount)
+    const amount = parseFloat(cleaned)
+    if (isNaN(amount) || amount <= 0 || amount >= 1000000) return
+
+    // Get context around the match
+    const contextStart = Math.max(0, pos - 120)
+    const contextEnd = Math.min(text.length, pos + matchText.length + 60)
+    const context = text.substring(contextStart, contextEnd).toLowerCase()
+
+    let score = 0
+
+    // Near a total keyword?
+    for (const keyword of totalKeywords) {
+      if (context.includes(keyword)) {
+        score += 50
+        break
       }
+    }
+
+    // Has € symbol?
+    if (/€/.test(matchText)) score += 25
+
+    // Position bonus (later = more likely total)
+    score += (pos / Math.max(text.length, 1)) * 15
+
+    // Penalize tiny amounts
+    if (amount < 1) score -= 20
+    else if (amount < 5) score -= 10
+
+    // Tiebreaker: slightly favor larger amounts
+    score += Math.min(amount / 100, 8)
+
+    candidates.push({ amount, score, position: pos, matchText: matchText.trim() })
+  }
+
+  // Scan with comma-decimal regex (standard Austrian/German format)
+  let match
+  while ((match = amountRegex.exec(text)) !== null) {
+    scoreAmount(match[0], match[1], match.index)
+  }
+
+  // Scan with dot-decimal regex (fallback for international formats)
+  // Only use if no comma-decimal amounts found
+  if (candidates.length === 0) {
+    while ((match = amountRegexDot.exec(text)) !== null) {
+      scoreAmount(match[0], match[1], match.index)
     }
   }
 
-  // Use the largest amount (usually the total)
-  if (amounts.length > 0) {
-    result.amount = Math.max(...amounts)
+  if (candidates.length > 0) {
+    candidates.sort((a, b) => b.score - a.score)
+    result.amount = candidates[0].amount
+    console.log('[Parse] Amount candidates:', candidates.slice(0, 5).map(c =>
+      `${c.amount} (score: ${c.score.toFixed(0)}, match: "${c.matchText}")`
+    ))
+  } else {
+    console.log('[Parse] No amounts found in text')
   }
 
-  // Extract date patterns (DD.MM.YYYY or DD/MM/YYYY format common in Austria/Germany)
-  // Prioritize dates near date-related keywords
-  const dateKeywords = ['datum', 'ausstellungsdatum', 'rechnungsdatum', 'date', 'invoice date', 'issued', 'ausgestellt']
+  // ──────────────────────────────────────────────
+  // DATE EXTRACTION - keyword-aware
+  // ──────────────────────────────────────────────
+
+  const dateKeywords = [
+    'rechnungsdatum', 'datum', 'ausstellungsdatum', 'date',
+    'invoice date', 'issued', 'ausgestellt', 'vom', 'rechnungstag'
+  ]
 
   let foundDate: string | null = null
 
-  // First, try to find dates near keywords (more likely to be invoice date)
+  // Try to find dates near keywords first
+  const lowerText = text.toLowerCase()
   for (const keyword of dateKeywords) {
-    const keywordIndex = text.toLowerCase().indexOf(keyword)
-    if (keywordIndex !== -1) {
-      // Look for dates within 50 characters after keyword
-      const contextWindow = text.substring(keywordIndex, keywordIndex + 100)
-      const dateMatch = contextWindow.match(/(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})|(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})/)
+    const idx = lowerText.indexOf(keyword)
+    if (idx !== -1) {
+      const window = text.substring(idx, idx + 80)
+      const dateMatch = window.match(/(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})/)
       if (dateMatch) {
         foundDate = dateMatch[0]
         break
@@ -289,46 +344,58 @@ export function parseInvoiceText(text: string): {
     }
   }
 
-  // Fallback: if no date found near keywords, get first date from text
+  // Fallback: first date in text
   if (!foundDate) {
-    const datePatterns = [
-      /(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})/g, // DD.MM.YYYY
-      /(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})/g, // YYYY.MM.DD
-    ]
-    for (const pattern of datePatterns) {
-      const match = text.match(pattern)
-      if (match) {
-        foundDate = match[0]
-        break
-      }
-    }
+    const dateMatch = text.match(/(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})/)
+    if (dateMatch) foundDate = dateMatch[0]
+  }
+
+  // Also try YYYY-MM-DD format
+  if (!foundDate) {
+    const isoMatch = text.match(/(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})/)
+    if (isoMatch) foundDate = isoMatch[0]
   }
 
   if (foundDate) {
     result.invoice_date = formatDateToISO(foundDate)
   }
+  console.log('[Parse] Date found:', foundDate, '→', result.invoice_date)
 
-  // Extract vendor name - look for company indicators and take longest reasonable line
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0)
+  // ──────────────────────────────────────────────
+  // VENDOR NAME EXTRACTION
+  // ──────────────────────────────────────────────
 
-  // Filter out lines that are clearly not company names
+  // Split into lines and clean up
+  const lines = text.split(/[\n\r]+/).map(l => l.trim()).filter(l => l.length > 2)
+
+  // Company legal form indicators (Austria/Germany/international)
+  const companyIndicators = /\b(gmbh|g\.m\.b\.h|ag|e\.?\s?u\.?|og|kg|gmbh\s*&\s*co|gesellschaft|co\.?\s*kg|ohg|verein|stiftung|ltd|inc|corp|ges\.?\s*m\.?\s*b\.?\s*h)\b/i
+
+  // Lines that are definitely NOT vendor names
+  const notNamePattern = /^(rechnung|invoice|datum|date|betrag|amount|summe|total|page|seite|tel\.?|fax|www\.|http|@|€|eur|mwst|ust|uid|iban|bic|blz|konto|nr\.|art\.?\s*nr|pos\.|menge|preis|stück|stk|netto|brutto|zwischensumme|rechnungsnummer|kundennummer|bestellnummer|lieferschein|\d{2,}[.,\/-]\d)/i
+
   const potentialNames = lines.filter(line => {
-    const len = line.length
-    // Skip very short lines (< 3 chars) and very long lines (probably descriptions)
-    if (len < 3 || len > 150) return false
-    // Skip lines that are mostly numbers
+    if (line.length > 120) return false
     if (/^\d+$/.test(line)) return false
-    // Skip common non-name keywords
-    if (/^(rechnung|invoice|datum|date|betrag|amount|summe|total|page|seite|tel|fax|www|http|@|€|eur|\d{2,}\.?\d*[,-]\d{2})/i.test(line)) return false
+    if (notNamePattern.test(line)) return false
+    // Skip lines that are just numbers with separators (dates, amounts, IDs)
+    if (/^[\d.,\/-\s€%]+$/.test(line)) return false
     return true
   })
 
-  // Prefer the first reasonable line as vendor name
-  if (potentialNames.length > 0) {
-    result.vendor_name = potentialNames[0].substring(0, 100)
+  // Priority 1: line with company legal form
+  const companyLine = potentialNames.find(line => companyIndicators.test(line))
+  if (companyLine) {
+    result.vendor_name = companyLine.substring(0, 100)
+  } else if (potentialNames.length > 0) {
+    // Priority 2: longest line in first 5 header lines
+    const headerLines = potentialNames.slice(0, 5)
+    const best = headerLines.reduce((a, b) => a.length >= b.length ? a : b)
+    result.vendor_name = best.substring(0, 100)
   }
 
-  console.log('Parsed invoice - Amounts found:', amounts.length, 'Selected amount:', result.amount, 'Vendor:', result.vendor_name, 'Date:', result.invoice_date)
+  console.log('[Parse] Vendor:', result.vendor_name)
+  console.log('[Parse] Result:', JSON.stringify(result))
 
   return result
 }
@@ -338,25 +405,17 @@ export function parseInvoiceText(text: string): {
  */
 export function debugExtractedText(text: string): void {
   const lines = text.split('\n')
-  console.log('=== DEBUG: EXTRACTED TEXT ANALYSIS ===')
-  console.log('Total characters:', text.length)
-  console.log('Total lines:', lines.length)
-  console.log('')
-  console.log('=== RAW TEXT (first 500 chars): ===')
+  console.log('=== DEBUG: EXTRACTED TEXT ===')
+  console.log('Length:', text.length, 'Lines:', lines.length)
+  console.log('--- First 500 chars ---')
   console.log(text.substring(0, 500))
-  console.log('')
-  console.log('=== LINE BY LINE: ===')
-  lines.forEach((line, idx) => {
-    if (line.trim()) {
-      console.log(`Line ${idx}: "${line}"`)
-    }
-  })
-  console.log('')
-  console.log('=== LOOKING FOR PATTERNS: ===')
-  console.log('Amounts:', text.match(/([0-9]{1,}[.,][0-9]{2})/g) || 'NONE FOUND')
-  console.log('Dates:', text.match(/(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})/g) || 'NONE FOUND')
-  console.log('Currency symbols:', text.match(/[€$]/g) || 'NONE FOUND')
-  console.log('=====================================')
+  console.log('--- Amounts found ---')
+  console.log(text.match(/\d{1,3}(?:\.\d{3})*,\d{2}/g) || 'NONE')
+  console.log('--- Dates found ---')
+  console.log(text.match(/\d{1,2}[.\/-]\d{1,2}[.\/-]\d{4}/g) || 'NONE')
+  console.log('--- € symbols ---')
+  console.log((text.match(/€/g) || []).length)
+  console.log('===========================')
 }
 
 /**
@@ -365,35 +424,27 @@ export function debugExtractedText(text: string): void {
 function formatDateToISO(dateStr: string): string | null {
   try {
     const parts = dateStr.split(/[.\/-]/)
-
     if (parts.length !== 3) return null
 
-    let year, month, day
+    let year: number, month: number, day: number
 
-    // Handle YYYY-MM-DD format
     if (parts[0].length === 4) {
+      // YYYY-MM-DD
       year = parseInt(parts[0])
       month = parseInt(parts[1])
       day = parseInt(parts[2])
     } else {
-      // Handle DD.MM.YYYY format
+      // DD.MM.YYYY
       day = parseInt(parts[0])
       month = parseInt(parts[1])
       year = parseInt(parts[2])
     }
 
-    // Validate date
-    if (month < 1 || month > 12 || day < 1 || day > 31) {
-      return null
-    }
-
-    // Validate year (must be recent)
-    if (year < 1990 || year > new Date().getFullYear() + 1) {
-      return null
-    }
+    if (month < 1 || month > 12 || day < 1 || day > 31) return null
+    if (year < 1990 || year > new Date().getFullYear() + 1) return null
 
     return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-  } catch (error) {
+  } catch {
     return null
   }
 }
@@ -406,7 +457,6 @@ export function suggestCategory(vendorName: string, text: string): string {
   const lowerVendor = vendorName.toLowerCase()
   const lowerText = text.toLowerCase()
 
-  // Map keywords to actual Austrian expense categories
   const categoryKeywords: Record<string, string[]> = {
     'Räumlichkeiten': [
       'miete', 'rent', 'pacht', 'lease',
@@ -465,5 +515,5 @@ export function suggestCategory(vendorName: string, text: string): string {
     }
   }
 
-  return 'Sonstige Betriebsausgaben' // Default to "Other Operating Costs"
+  return 'Sonstige Betriebsausgaben'
 }

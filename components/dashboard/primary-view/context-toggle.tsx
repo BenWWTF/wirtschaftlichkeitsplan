@@ -49,7 +49,7 @@ export function ContextToggle({
               onClick={() => onScopeChange(scope.value)}
               className={`relative group py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
                 currentScope === scope.value
-                  ? 'bg-blue-500 text-white shadow-sm'
+                  ? 'bg-accent-500 text-white shadow-sm'
                   : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
               }`}
               title={scope.description}

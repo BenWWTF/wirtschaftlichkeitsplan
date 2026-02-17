@@ -94,13 +94,13 @@ export function StatusIndicator({
         }
       case 'info':
         return {
-          bgLight: 'bg-blue-50 dark:bg-blue-950/20',
-          bgDark: 'dark:bg-blue-950/20',
-          border: 'border-blue-200 dark:border-blue-800',
-          textTitle: 'text-blue-900 dark:text-blue-200',
-          textDesc: 'text-blue-800 dark:text-blue-300',
+          bgLight: 'bg-accent-50 dark:bg-accent-950/20',
+          bgDark: 'dark:bg-accent-950/20',
+          border: 'border-accent-200 dark:border-accent-800',
+          textTitle: 'text-accent-900 dark:text-accent-200',
+          textDesc: 'text-accent-800 dark:text-accent-300',
           icon: icon || <Info className="h-5 w-5" />,
-          iconColor: 'text-blue-600 dark:text-blue-400'
+          iconColor: 'text-accent-600 dark:text-accent-400'
         }
       case 'loading':
         return {

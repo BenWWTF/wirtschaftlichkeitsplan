@@ -214,7 +214,7 @@ export function getHeatMapColor(
   if (inverted > 0.75) {
     return 'bg-green-200 dark:bg-green-900/40 text-green-900 dark:text-green-100'
   } else if (inverted > 0.5) {
-    return 'bg-blue-100 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100'
+    return 'bg-accent-100 dark:bg-accent-900/30 text-accent-900 dark:text-accent-100'
   } else if (inverted > 0.25) {
     return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-900 dark:text-yellow-100'
   } else {

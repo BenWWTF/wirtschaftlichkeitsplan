@@ -18,7 +18,7 @@ export default function DatenschutzPage() {
             Datenschutzerklärung
           </h1>
           <p className="text-neutral-600 dark:text-neutral-400">
-            Wirtschaftlichkeitsplan - Datenschutz und Datensicherheit
+            Ordi Pro - Datenschutz und Datensicherheit
           </p>
         </div>
 
@@ -72,7 +72,7 @@ export default function DatenschutzPage() {
             </h2>
             <p className="mb-3">Ihre Daten werden verarbeitet für:</p>
             <ul className="list-disc list-inside space-y-2">
-              <li>Bereitstellung der Wirtschaftlichkeitsplan-Anwendung</li>
+              <li>Bereitstellung der Ordi Pro-Anwendung</li>
               <li>Benutzerverwaltung und Authentifizierung</li>
               <li>Speicherung von Praxis- und Geschäftsdaten</li>
               <li>Sicherheit und Missbrauchsprävention</li>

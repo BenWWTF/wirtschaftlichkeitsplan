@@ -366,7 +366,7 @@ export function generateHTMLReport(
     </div>
 
     <footer>
-      <p>Wirtschaftlichkeitsplan - Steuerschätzung Tool</p>
+      <p>Ordi Pro - Steuerschätzung Tool</p>
       <p>Generiert am ${new Date().toLocaleString('de-AT')}</p>
     </footer>
   </div>
@@ -513,9 +513,16 @@ export async function generateReport(
     }
 
     case 'pdf': {
-      // PDF generation would require a library like pdfkit or html2pdf
-      // For now, return HTML which can be printed to PDF
+      // Generate HTML and open in a new window for print-to-PDF
       const html = generateHTMLReport(result, scenarioName)
+      const printWindow = window.open('', '_blank')
+      if (printWindow) {
+        printWindow.document.write(html)
+        printWindow.document.close()
+        printWindow.onload = () => {
+          printWindow.print()
+        }
+      }
       return new Blob([html], { type: 'text/html; charset=utf-8' })
     }
 

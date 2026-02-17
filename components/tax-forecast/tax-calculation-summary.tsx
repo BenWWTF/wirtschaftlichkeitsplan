@@ -5,16 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress'
 import {
   TrendingDown,
-  AlertCircle,
-  CheckCircle,
-  Info,
   Download,
-  Share2,
   Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import type { ComprehensiveTaxResult, TaxOptimizationTip } from '@/lib/types/tax-types'
-import { generateTaxOptimizationTips } from '@/lib/utils/comprehensive-tax'
+import type { ComprehensiveTaxResult } from '@/lib/types/tax-types'
 import { formatEuro } from '@/lib/config/tax-config'
 import { generateReport, downloadReport } from '@/lib/services/tax-report-generator'
 
@@ -27,7 +22,6 @@ export function TaxCalculationSummary({
   result,
   onExport,
 }: TaxCalculationSummaryProps) {
-  const tips = generateTaxOptimizationTips(result)
   const [isExporting, setIsExporting] = useState(false)
   const [exportFormat, setExportFormat] = useState<'pdf' | 'csv' | 'html' | null>(null)
 
@@ -40,22 +34,24 @@ export function TaxCalculationSummary({
     setIsExporting(true)
     setExportFormat(format)
     try {
-      const result_export = await generateReport(result, format === 'pdf' ? 'html' : format, `Steuerschätzung ${result.taxYear}`)
-      if (result_export instanceof Blob) {
-        downloadReport(
-          result_export,
-          `Steuerschaetzung-${result.taxYear}-${new Date().toISOString().split('T')[0]}`,
-          format === 'pdf' ? 'html' : format
-        )
-      } else {
-        // Handle string result (JSON/CSV)
-        const mimeType = format === 'csv' ? 'text/csv' : 'application/json'
-        const blob = new Blob([result_export], { type: mimeType })
-        downloadReport(
-          blob,
-          `Steuerschaetzung-${result.taxYear}-${new Date().toISOString().split('T')[0]}`,
-          format
-        )
+      const result_export = await generateReport(result, format, `Steuerschätzung ${result.taxYear}`)
+      // PDF opens a print window directly, no download needed
+      if (format !== 'pdf') {
+        if (result_export instanceof Blob) {
+          downloadReport(
+            result_export,
+            `Steuerschaetzung-${result.taxYear}-${new Date().toISOString().split('T')[0]}`,
+            format
+          )
+        } else {
+          const mimeType = format === 'csv' ? 'text/csv' : 'application/json'
+          const blob = new Blob([result_export], { type: mimeType })
+          downloadReport(
+            blob,
+            `Steuerschaetzung-${result.taxYear}-${new Date().toISOString().split('T')[0]}`,
+            format
+          )
+        }
       }
     } catch (error) {
       console.error('Export error:', error)
@@ -197,20 +193,6 @@ export function TaxCalculationSummary({
                 <Download className="w-4 h-4 mr-1" />
               )}
               CSV
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleExport('html')}
-              disabled={isExporting && exportFormat === 'html'}
-              className="flex-1"
-            >
-              {isExporting && exportFormat === 'html' ? (
-                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-              ) : (
-                <Share2 className="w-4 h-4 mr-1" />
-              )}
-              Teilen
             </Button>
           </div>
         </CardContent>
@@ -357,69 +339,6 @@ export function TaxCalculationSummary({
           </div>
         </CardContent>
       </Card>
-
-      {/* Tax Optimization Tips */}
-      {tips.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-accent-600 dark:text-accent-400" />
-              Steuertipps für Sie
-            </CardTitle>
-            <CardDescription>
-              Personalisierte Empfehlungen zur Steueroptimierung
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {tips.map((tip, index) => {
-              const bgColor =
-                tip.type === 'warning'
-                  ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
-                  : tip.type === 'success'
-                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                    : 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800'
-
-              const textColor =
-                tip.type === 'warning'
-                  ? 'text-amber-800 dark:text-amber-200'
-                  : tip.type === 'success'
-                    ? 'text-green-800 dark:text-green-200'
-                    : 'text-primary-800 dark:text-primary-200'
-
-              const IconComponent =
-                tip.type === 'warning'
-                  ? AlertCircle
-                  : tip.type === 'success'
-                    ? CheckCircle
-                    : Info
-
-              return (
-                <div
-                  key={index}
-                  className={`border p-4 rounded-lg space-y-1 ${bgColor}`}
-                >
-                  <div className="flex items-start gap-2">
-                    <IconComponent className={`w-5 h-5 mt-0.5 flex-shrink-0 ${textColor}`} />
-                    <div className="flex-1">
-                      <p className={`font-semibold text-sm ${textColor}`}>
-                        {tip.title}
-                      </p>
-                      <p className={`text-sm ${textColor}`}>
-                        {tip.description}
-                      </p>
-                      {tip.potentialSavings && (
-                        <p className={`text-sm font-semibold mt-2 ${textColor}`}>
-                          Mögliche Ersparnis: {formatEuro(tip.potentialSavings)}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </CardContent>
-        </Card>
-      )}
 
       {/* Info Box */}
       <div className="bg-neutral-100 dark:bg-neutral-800 rounded-sm p-4">

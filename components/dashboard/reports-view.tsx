@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import type { MonthlyMetrics, TherapyMetrics, DashboardSummary } from '@/lib/actions/dashboard'
 import type { AdvancedAnalytics } from '@/lib/actions/analytics'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -9,8 +9,6 @@ import { TherapyTab } from './business-reports/therapy-tab'
 import { FinancialTab } from './business-reports/financial-tab'
 import { ForecastTab } from './business-reports/forecast-tab'
 import { TaxesTab } from './business-reports/taxes-tab'
-import { DateRangeSelector } from './business-reports/components/date-range-selector'
-import { TherapyFilter } from './business-reports/components/therapy-filter'
 
 interface ReportsViewProps {
   monthlyData: MonthlyMetrics[]
@@ -26,66 +24,21 @@ export function ReportsView({
   analytics
 }: ReportsViewProps) {
   const [activeTab, setActiveTab] = useState('overview')
-  const [selectedTherapies, setSelectedTherapies] = useState<string[]>([])
-  const [dateRangeStart, setDateRangeStart] = useState<Date | null>(null)
-  const [dateRangeEnd, setDateRangeEnd] = useState<Date | null>(null)
 
   useEffect(() => {
-    // Restore tab state from URL hash
     const hash = window.location.hash.replace('#', '')
     if (hash && ['overview', 'therapy', 'financial', 'forecast', 'taxes'].includes(hash)) {
       setActiveTab(hash)
     }
   }, [])
 
-  // Filter data based on selected therapies and date range
-  const filteredTherapyMetrics = useMemo(() => {
-    let filtered = therapyMetrics
-
-    if (selectedTherapies.length > 0) {
-      filtered = filtered.filter((t) => selectedTherapies.includes(t.therapy_id))
-    }
-
-    return filtered
-  }, [therapyMetrics, selectedTherapies])
-
-  const filteredMonthlyData = useMemo(() => {
-    let filtered = monthlyData
-
-    if (dateRangeStart && dateRangeEnd) {
-      filtered = filtered.filter((m) => {
-        const date = new Date(m.month)
-        return date >= dateRangeStart && date <= dateRangeEnd
-      })
-    }
-
-    return filtered
-  }, [monthlyData, dateRangeStart, dateRangeEnd])
-
   const handleTabChange = (tab: string) => {
     setActiveTab(tab)
-    // Update URL hash for bookmarking/sharing
     window.history.replaceState(null, '', `#${tab}`)
   }
 
   return (
     <div className="space-y-8">
-      {/* Filters */}
-      {monthlyData.length > 0 && (
-        <div className="flex flex-wrap items-center gap-4">
-            <DateRangeSelector
-              onDateRangeChange={(startDate, endDate) => {
-                setDateRangeStart(startDate)
-                setDateRangeEnd(endDate)
-              }}
-            />
-            <TherapyFilter
-              therapies={therapyMetrics}
-              onFilterChange={setSelectedTherapies}
-            />
-          </div>
-        )}
-
       {/* Empty State */}
       {monthlyData.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12">
@@ -98,32 +51,34 @@ export function ReportsView({
       {/* Tabs */}
       {monthlyData.length > 0 && (
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">Übersicht</TabsTrigger>
-            <TabsTrigger value="therapy">Therapien</TabsTrigger>
-            <TabsTrigger value="financial">Finanzen</TabsTrigger>
-            <TabsTrigger value="forecast">Prognose</TabsTrigger>
-            <TabsTrigger value="taxes">Steuern</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+            <TabsList className="inline-flex sm:grid w-auto sm:w-full sm:grid-cols-5 min-w-full">
+              <TabsTrigger value="overview" className="min-h-[44px] flex-shrink-0">Übersicht</TabsTrigger>
+              <TabsTrigger value="therapy" className="min-h-[44px] flex-shrink-0">Therapien</TabsTrigger>
+              <TabsTrigger value="financial" className="min-h-[44px] flex-shrink-0">Finanzen</TabsTrigger>
+              <TabsTrigger value="forecast" className="min-h-[44px] flex-shrink-0">Prognose</TabsTrigger>
+              <TabsTrigger value="taxes" className="min-h-[44px] flex-shrink-0">Steuern</TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="overview" className="mt-6">
             <OverviewTab
-              monthlyData={filteredMonthlyData}
-              therapyMetrics={filteredTherapyMetrics}
+              monthlyData={monthlyData}
+              therapyMetrics={therapyMetrics}
               summary={summary}
             />
           </TabsContent>
 
           <TabsContent value="therapy" className="mt-6">
-            <TherapyTab analytics={analytics} therapies={filteredTherapyMetrics} />
+            <TherapyTab analytics={analytics} therapies={therapyMetrics} />
           </TabsContent>
 
           <TabsContent value="financial" className="mt-6">
-            <FinancialTab analytics={analytics} />
+            <FinancialTab monthlyData={monthlyData} />
           </TabsContent>
 
           <TabsContent value="forecast" className="mt-6">
-            <ForecastTab analytics={analytics} />
+            <ForecastTab monthlyData={monthlyData} />
           </TabsContent>
 
           <TabsContent value="taxes" className="mt-6">

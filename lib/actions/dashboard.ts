@@ -101,11 +101,16 @@ export async function getMonthlyMetrics(month: string): Promise<MonthlyMetrics |
     (therapies || []).map(t => [t.id, t])
   )
 
-  // Get monthly expenses
+  // Get monthly expenses - filter to the specific month
+  const nextMonthDate = new Date(Number(monthDate.split('-')[0]), Number(monthDate.split('-')[1]), 1)
+  const nextMonthStr = `${nextMonthDate.getFullYear()}-${String(nextMonthDate.getMonth() + 1).padStart(2, '0')}-01`
+
   const { data: expenses, error: expensesError } = await supabase
     .from('expenses')
     .select('amount')
     .eq('user_id', user.id)
+    .gte('expense_date', monthDate)
+    .lt('expense_date', nextMonthStr)
 
   if (expensesError) {
     console.error('Error fetching expenses:', expensesError)
@@ -321,14 +326,16 @@ export async function getMonthlyMetricsRange(
     monthlyData[month].actual_margin += actualMargin
   }
 
-  // Add expenses
+  // Add expenses - normalize to YYYY-MM-DD to match monthlyData keys
   if (expenses) {
     for (const expense of expenses) {
-      const expenseMonth = new Date(expense.expense_date)
-        .toISOString()
-        .slice(0, 7)
-      if (monthlyData[expenseMonth]) {
-        monthlyData[expenseMonth].total_expenses += expense.amount
+      const expenseMonth = String(expense.expense_date).slice(0, 7)
+      // monthlyData keys are "YYYY-MM-DD" from PostgreSQL DATE type
+      const matchingKey = Object.keys(monthlyData).find(
+        key => key.slice(0, 7) === expenseMonth
+      )
+      if (matchingKey) {
+        monthlyData[matchingKey].total_expenses += expense.amount
       }
     }
   }

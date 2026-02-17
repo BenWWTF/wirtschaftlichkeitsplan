@@ -187,7 +187,7 @@ export function AdvancedFilter({
           {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
           Erweiterte Filter
           {filters.length > 0 && (
-            <span className="ml-2 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+            <span className="ml-2 bg-accent-100 dark:bg-accent-900 text-accent-800 dark:text-accent-200 text-xs font-semibold px-2.5 py-0.5 rounded-full">
               {filters.length}
             </span>
           )}

@@ -99,7 +99,7 @@ export function PlannerCardRow({
 
   if (isEditing) {
     return (
-      <div className="bg-white dark:bg-neutral-800 rounded-lg border border-blue-200 dark:border-blue-700 p-4 space-y-3">
+      <div className="bg-white dark:bg-neutral-800 rounded-lg border border-accent-200 dark:border-accent-700 p-4 space-y-3">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-neutral-900 dark:text-white">{therapy.name}</h3>
@@ -132,13 +132,13 @@ export function PlannerCardRow({
             type="number"
             min="0"
             {...form.register('planned_sessions', { valueAsNumber: true })}
-            className="w-full"
+            className="w-full min-h-[44px]"
             placeholder="0"
           />
         </div>
 
         {/* Calculated Revenue */}
-        <div className="bg-blue-50 dark:bg-blue-950/20 rounded p-2">
+        <div className="bg-accent-50 dark:bg-accent-950/20 rounded p-2">
           <div className="flex justify-between text-sm">
             <span className="text-neutral-600 dark:text-neutral-400">Geschätzter Umsatz:</span>
             <span className="font-bold text-green-600 dark:text-green-400">

@@ -5,8 +5,8 @@ import { RelatedPages } from '@/components/dashboard/related-pages'
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Therapiearten - Wirtschaftlichkeitsplan',
-  description: 'Verwalten Sie Ihre Therapiearten und Preise'
+  title: 'Therapiearten - Ordi Pro',
+  description: 'Übersicht Ihrer Therapiearten und Preise pro Sitzung'
 }
 
 export default async function TherapienPage() {

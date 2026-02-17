@@ -51,7 +51,7 @@ export const PRACTICE_TYPES = [
   { value: 'mixed', label: 'Gemischt (Kasse + Privat)' }
 ] as const
 
-export const APP_NAME = 'Wirtschaftlichkeitsplan'
+export const APP_NAME = 'Ordi Pro'
 export const APP_DESCRIPTION = 'Financial Planning Dashboard für österreichische Arztpraxen'
 
 /**

@@ -1,6 +1,7 @@
 import type { Config } from 'tailwindcss'
 
 const config = {
+  darkMode: 'class',
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -20,7 +21,7 @@ const config = {
         ]
       },
       colors: {
-        // Wirtschaftlichkeitsplan design tokens
+        // Ordi Pro design tokens
         'wb-black': '#000000',
         'wb-charcoal': '#101010',
         'wb-dark-gray': '#606060',
@@ -44,6 +45,7 @@ const config = {
           700: '#5A7B88',
           800: '#4A6B78',
           900: '#3A5B68',
+          950: '#2A4B58',
           DEFAULT: '#7A9BA8'
         },
         primary: {
@@ -58,6 +60,7 @@ const config = {
           700: '#5A7B88',
           800: '#4A6B78',
           900: '#3A5B68',
+          950: '#2A4B58',
           DEFAULT: '#7A9BA8'
         },
         neutral: {

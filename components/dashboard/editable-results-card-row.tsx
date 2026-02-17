@@ -5,18 +5,20 @@ import type { ResultsRow } from '@/lib/actions/monthly-results'
 import { formatEuro } from '@/lib/utils'
 import { VarianceIndicator } from './variance-indicator'
 import { AchievementBadge } from './achievement-badge'
-import { Pencil, Check, X } from 'lucide-react'
+import { Pencil, Check, X, Trash2 } from 'lucide-react'
 
 interface EditableResultsCardRowProps {
   result: ResultsRow
   onSave: (therapyTypeId: string, actualSessions: number) => Promise<void>
+  onDelete?: (therapyTypeId: string) => Promise<void>
 }
 
-export function EditableResultsCardRow({ result, onSave }: EditableResultsCardRowProps) {
+export function EditableResultsCardRow({ result, onSave, onDelete }: EditableResultsCardRowProps) {
   const { therapy_type_id, therapy_name, price_per_session, planned_sessions, actual_sessions, variance, variancePercent, achievement } = result
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(actual_sessions?.toString() || '')
   const [isSaving, setIsSaving] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const handleEdit = () => {
     setEditValue(actual_sessions?.toString() || '')
@@ -45,9 +47,19 @@ export function EditableResultsCardRow({ result, onSave }: EditableResultsCardRo
     }
   }
 
+  const handleDelete = async () => {
+    if (!onDelete) return
+    setIsDeleting(true)
+    try {
+      await onDelete(therapy_type_id)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   if (isEditing) {
     return (
-      <div className="bg-blue-50 dark:bg-blue-900/10 rounded-lg border-2 border-blue-300 dark:border-blue-700 p-4">
+      <div className="bg-accent-50 dark:bg-accent-900/10 rounded-lg border-2 border-accent-300 dark:border-accent-700 p-4">
         <div className="flex items-start justify-between mb-3">
           <div>
             <p className="font-medium text-neutral-900 dark:text-white">{therapy_name}</p>
@@ -68,12 +80,12 @@ export function EditableResultsCardRow({ result, onSave }: EditableResultsCardRo
               min="0"
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
-              className="w-20 px-2 py-1 text-right rounded border border-blue-300 dark:border-blue-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white font-semibold"
+              className="w-20 px-2 py-1 text-right rounded border border-accent-300 dark:border-accent-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white font-semibold"
               autoFocus
             />
           </div>
 
-          <div className="pt-2 border-t border-blue-200 dark:border-blue-800 flex items-center justify-between">
+          <div className="pt-2 border-t border-accent-200 dark:border-accent-800 flex items-center justify-between">
             <span className="text-xs text-neutral-600 dark:text-neutral-400">Abweichung</span>
             <span className="text-xs text-neutral-500">-</span>
           </div>
@@ -108,13 +120,26 @@ export function EditableResultsCardRow({ result, onSave }: EditableResultsCardRo
           <p className="font-medium text-neutral-900 dark:text-white">{therapy_name}</p>
           <p className="text-xs text-neutral-500 dark:text-neutral-400">{formatEuro(price_per_session)}/Sitzung</p>
         </div>
-        <button
-          onClick={handleEdit}
-          className="p-1 text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition-colors"
-          title="Bearbeiten"
-        >
-          <Pencil className="h-4 w-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={handleEdit}
+            disabled={isDeleting}
+            className="p-1 text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition-colors disabled:opacity-50"
+            title="Bearbeiten"
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
+          {onDelete && actual_sessions !== null && actual_sessions > 0 && (
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="p-1 text-neutral-400 hover:text-red-600 dark:text-neutral-500 dark:hover:text-red-400 transition-colors disabled:opacity-50"
+              title="Ergebnisse zurücksetzen"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="space-y-2">

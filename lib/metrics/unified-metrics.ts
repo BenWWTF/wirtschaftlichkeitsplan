@@ -382,7 +382,7 @@ async function fetchScopeData(
   // Recurring expenses: include all that have is_recurring = true
   const { data: expenses } = await supabase
     .from('expenses')
-    .select('amount, expense_date, is_recurring, recurrence_interval')
+    .select('amount, expense_date, is_recurring, recurrence_interval, spread_monthly')
     .eq('user_id', userId)
     .or(`is_recurring.eq.true,and(is_recurring.eq.false,expense_date.gte.${period.start.toISOString().split('T')[0]},expense_date.lte.${period.end.toISOString().split('T')[0]})`)
 
@@ -420,9 +420,14 @@ async function fetchScopeData(
           break
 
         case 'quarterly':
-          // Add for each quarter in the period (quarters = months_in_period / 3)
-          const quartersInPeriod = Math.round(monthsInPeriod / 3)
-          totalExpenses += amount * Math.max(1, quartersInPeriod)
+          if (expense.spread_monthly) {
+            // Spread quarterly bill as monthly fixed cost (amount / 3 per month)
+            totalExpenses += (amount / 3) * monthsInPeriod
+          } else {
+            // Add for each quarter in the period (quarters = months_in_period / 3)
+            const quartersInPeriod = Math.round(monthsInPeriod / 3)
+            totalExpenses += amount * Math.max(1, quartersInPeriod)
+          }
           break
 
         case 'yearly':

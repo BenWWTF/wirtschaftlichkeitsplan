@@ -107,12 +107,12 @@ export default function SteuerprognosePage() {
         </div>
 
         {/* Info Box */}
-        <Card className="mb-6 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20">
+        <Card className="mb-6 border-accent-200 dark:border-accent-800 bg-accent-50 dark:bg-accent-900/20">
           <CardContent className="pt-6">
             <div className="flex gap-3">
-              <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="h-5 w-5 text-accent-600 dark:text-accent-400 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm text-blue-900 dark:text-blue-100">
+                <p className="text-sm text-accent-900 dark:text-accent-100">
                   <strong>Hinweis:</strong> Diese Berechnung basiert auf vereinfachten
                   österreichischen Steuersätzen und Annahmen. Für eine verbindliche
                   Steuerberechnung konsultieren Sie bitte Ihren Steuerberater.
@@ -124,16 +124,16 @@ export default function SteuerprognosePage() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'calculator' | 'comparison')} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="calculator">Steuerschätzung</TabsTrigger>
-            <TabsTrigger value="comparison" disabled={scenarios.length === 0}>
+          <TabsList className="grid w-full grid-cols-2 min-h-[44px]">
+            <TabsTrigger value="calculator" className="min-h-[44px]">Steuerschätzung</TabsTrigger>
+            <TabsTrigger value="comparison" disabled={scenarios.length === 0} className="min-h-[44px]">
               Vergleich ({scenarios.length})
             </TabsTrigger>
           </TabsList>
 
           {/* Calculator Tab */}
           <TabsContent value="calculator" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
               {/* Input Form */}
               <div className="lg:col-span-1">
                 <TaxInputForm onCalculate={handleCalculate} isLoading={isLoading} />
@@ -169,9 +169,10 @@ export default function SteuerprognosePage() {
                                   handleSaveScenario()
                                 }
                               }}
+                              className="min-h-[44px]"
                             />
                           </div>
-                          <div className="flex gap-3">
+                          <div className="flex flex-col sm:flex-row gap-3">
                             <Button
                               onClick={handleSaveScenario}
                               disabled={!scenarioName.trim()}

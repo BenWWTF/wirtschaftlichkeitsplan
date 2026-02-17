@@ -1,7 +1,7 @@
 import { Dashboard } from '@/components/dashboard'
 
 export const metadata = {
-  title: 'Dashboard - Wirtschaftlichkeitsplan',
+  title: 'Dashboard - Ordi Pro',
   description: 'Ihr Financial Planning Dashboard'
 }
 

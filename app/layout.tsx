@@ -12,7 +12,7 @@ const sourceSans = Source_Sans_3({
 })
 
 export const metadata: Metadata = {
-  title: 'Wirtschaftlichkeitsplan',
+  title: 'Ordi Pro',
   description: 'Financial planning dashboard for Austrian medical practices',
   icons: {
     icon: '/icon.png',

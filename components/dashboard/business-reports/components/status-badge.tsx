@@ -41,9 +41,9 @@ export function StatusBadge({
       defaultLabel: 'Ausgezeichnet'
     },
     good: {
-      bg: 'bg-blue-50 dark:bg-blue-900/20',
-      border: 'border-blue-200 dark:border-blue-800',
-      text: 'text-blue-700 dark:text-blue-200',
+      bg: 'bg-accent-50 dark:bg-accent-900/20',
+      border: 'border-accent-200 dark:border-accent-800',
+      text: 'text-accent-700 dark:text-accent-200',
       icon: '✓',
       defaultLabel: 'Gut'
     },

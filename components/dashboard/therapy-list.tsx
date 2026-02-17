@@ -1,22 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import type { TherapyType } from '@/lib/types'
 import { TherapyTable } from './therapy-table'
 import { TherapyDialog } from './therapy-dialog'
-import { deleteTherapyAction } from '@/lib/actions/therapies'
+import { deleteTherapyAction, getTherapies } from '@/lib/actions/therapies'
 import { toast } from 'sonner'
 
 interface TherapyListProps {
   therapies: TherapyType[]
 }
 
-export function TherapyList({ therapies }: TherapyListProps) {
+export function TherapyList({ therapies: initialTherapies }: TherapyListProps) {
   const [open, setOpen] = useState(false)
   const [selectedTherapy, setSelectedTherapy] = useState<TherapyType | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [therapies, setTherapies] = useState(initialTherapies)
 
   const handleEdit = (therapy: TherapyType) => {
     setSelectedTherapy(therapy)
@@ -28,6 +29,17 @@ export function TherapyList({ therapies }: TherapyListProps) {
     setOpen(true)
   }
 
+  // Listen for FAB action event
+  useEffect(() => {
+    const handler = (e: Event) => {
+      if ((e as CustomEvent).detail === 'add-therapy') {
+        handleCreate()
+      }
+    }
+    window.addEventListener('fab-action', handler)
+    return () => window.removeEventListener('fab-action', handler)
+  }, [])
+
   const handleDelete = async (id: string) => {
     setIsDeleting(true)
     try {
@@ -36,6 +48,9 @@ export function TherapyList({ therapies }: TherapyListProps) {
         toast.error(result.error)
       } else {
         toast.success('Therapieart erfolgreich gelöscht')
+        // Refresh therapies from server
+        const freshTherapies = await getTherapies()
+        setTherapies(freshTherapies)
       }
     } catch (error) {
       console.error('Error deleting therapy:', error)
@@ -70,11 +85,13 @@ export function TherapyList({ therapies }: TherapyListProps) {
         open={open}
         onOpenChange={setOpen}
         therapy={selectedTherapy}
-        onSuccess={() => {
+        onSuccess={async () => {
           setOpen(false)
           setSelectedTherapy(null)
-          // Trigger a page refresh or reload from server
-          window.location.reload()
+          toast.success(selectedTherapy ? 'Therapieart aktualisiert' : 'Therapieart erstellt')
+          // Refresh therapies from server
+          const freshTherapies = await getTherapies()
+          setTherapies(freshTherapies)
         }}
       />
     </div>

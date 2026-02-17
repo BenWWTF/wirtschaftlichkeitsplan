@@ -218,6 +218,97 @@ export async function deleteMonthlyPlanAction(id: string) {
 }
 
 /**
+ * Copy monthly plans from one specific month to another specific month
+ */
+export async function copyMonthPlanAction(input: {
+  sourceMonth: string
+  targetMonth: string
+}) {
+  const supabase = await createClient()
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { error: 'Authentifizierung fehlgeschlagen' }
+  }
+
+  try {
+    // Convert YYYY-MM to YYYY-MM-01 for date column
+    const sourceMonthDate = input.sourceMonth.length === 7
+      ? `${input.sourceMonth}-01`
+      : input.sourceMonth
+    const targetMonthDate = input.targetMonth.length === 7
+      ? `${input.targetMonth}-01`
+      : input.targetMonth
+
+    if (input.sourceMonth === input.targetMonth) {
+      return { error: 'Quell- und Zielmonat duerfen nicht identisch sein' }
+    }
+
+    // Get the source month's plans
+    const { data: sourcePlans, error: sourceError } = await supabase
+      .from('monthly_plans')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('month', sourceMonthDate)
+
+    if (sourceError) {
+      return { error: `Fehler beim Abrufen der Quellplaene: ${sourceError.message}` }
+    }
+
+    if (!sourcePlans || sourcePlans.length === 0) {
+      return { error: 'Keine Plaene im Quellmonat vorhanden' }
+    }
+
+    // Build upsert data - copy planned_sessions but not actual_sessions
+    const newPlans = sourcePlans.map(plan => ({
+      user_id: user.id,
+      therapy_type_id: plan.therapy_type_id,
+      month: targetMonthDate,
+      planned_sessions: plan.planned_sessions,
+      actual_sessions: null,
+      notes: plan.notes
+    }))
+
+    // For each plan, check if it exists and update, or insert new
+    for (const plan of newPlans) {
+      const { data: existing } = await supabase
+        .from('monthly_plans')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('therapy_type_id', plan.therapy_type_id)
+        .eq('month', plan.month)
+        .single()
+
+      if (existing) {
+        const { error: updateError } = await supabase
+          .from('monthly_plans')
+          .update({
+            planned_sessions: plan.planned_sessions,
+            notes: plan.notes
+          })
+          .eq('id', existing.id)
+      } else {
+        const { error: insertError } = await supabase
+          .from('monthly_plans')
+          .insert(plan)
+
+        if (insertError) {
+          return { error: `Fehler beim Kopieren: ${insertError.message}` }
+        }
+      }
+    }
+
+    revalidatePath('/dashboard/planung')
+    return { success: true, copiedCount: newPlans.length }
+  } catch (error) {
+    if (error instanceof Error) {
+      return { error: error.message }
+    }
+    return { error: 'Fehler beim Kopieren des Monatsplans' }
+  }
+}
+
+/**
  * Copy monthly plans from one month to multiple future months
  */
 export async function copyMonthlyPlansAction(input: {

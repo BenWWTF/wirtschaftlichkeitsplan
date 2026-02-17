@@ -28,14 +28,14 @@ export function BusinessDashboard({
     const currentMonth = monthlyData[monthlyData.length - 1]
     const previousMonth = monthlyData[monthlyData.length - 2]
 
-    const revenueChange =
-      ((currentMonth.actual_revenue - previousMonth.actual_revenue) /
-        previousMonth.actual_revenue) *
-      100
-    const profitChange =
-      ((currentMonth.profitability - previousMonth.profitability) /
-        Math.abs(previousMonth.profitability)) *
-      100
+    const revenueChange = previousMonth.actual_revenue !== 0
+      ? ((currentMonth.actual_revenue - previousMonth.actual_revenue) /
+          previousMonth.actual_revenue) * 100
+      : 0
+    const profitChange = previousMonth.profitability !== 0
+      ? ((currentMonth.profitability - previousMonth.profitability) /
+          Math.abs(previousMonth.profitability)) * 100
+      : 0
 
     return {
       revenueChange,
@@ -80,7 +80,7 @@ export function BusinessDashboard({
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
               Gesamtumsatz
             </p>
-            <Euro className="h-5 w-5 text-blue-500" />
+            <Euro className="h-5 w-5 text-accent-500" />
           </div>
           <p className="text-3xl font-bold text-neutral-900 dark:text-white">
             {formatEuro(summary.total_revenue)}

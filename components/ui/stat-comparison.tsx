@@ -136,7 +136,7 @@ export function StatComparison({
           <div className={`${classes.label} text-neutral-500 dark:text-neutral-500 uppercase tracking-wide`}>
             Aktuell
           </div>
-          <div className={`${classes.value} text-blue-600 dark:text-blue-400`}>
+          <div className={`${classes.value} text-accent-600 dark:text-accent-400`}>
             {format(currentValue)}
           </div>
         </div>

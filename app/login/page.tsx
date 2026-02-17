@@ -4,7 +4,7 @@ import type React from 'react'
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -37,8 +37,18 @@ export default function LoginPage() {
         return
       }
 
-      router.push('/dashboard')
-      router.refresh()
+      // Check if user has MFA enrolled and needs to verify
+      const { data: factorsData } = await supabase.auth.mfa.listFactors()
+      const hasMfa = factorsData?.totp && factorsData.totp.some(f => f.status === 'verified')
+
+      if (hasMfa) {
+        // Redirect to MFA verification page
+        router.push('/auth/mfa-verify')
+      } else {
+        // No MFA - proceed to dashboard
+        router.push('/dashboard')
+        router.refresh()
+      }
     } catch (err) {
       setError('Ein unerwarteter Fehler ist aufgetreten')
       console.error(err)
@@ -48,11 +58,13 @@ export default function LoginPage() {
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center p-4 overflow-hidden"
+      className="fixed inset-0 flex items-center justify-center p-4 overflow-hidden bg-cover bg-center bg-no-repeat"
       style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        backgroundImage: "url('/images/login-gradient-bg.jpg')",
       }}
     >
+      {/* Overlay for better text contrast */}
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
 
 
       <Card
@@ -74,7 +86,11 @@ export default function LoginPage() {
         <CardContent className="space-y-6">
           {/* Error Message */}
           {error && (
-            <div className="p-4 rounded-lg bg-red-500/20 border border-red-500/30 text-red-800 text-sm">
+            <div
+              className="p-4 rounded-lg bg-red-500/20 border border-red-500/30 text-red-800 text-sm"
+              role="alert"
+              aria-live="assertive"
+            >
               {error}
             </div>
           )}

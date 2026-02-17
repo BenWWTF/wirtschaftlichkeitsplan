@@ -1,12 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Download, Eye, Trash2, FileText, Image as ImageIcon, File } from 'lucide-react'
+import { Download, Trash2, FileText, Image as ImageIcon, File } from 'lucide-react'
 import type { ExpenseDocument } from '@/lib/types'
-import { deleteExpenseDocument } from '@/lib/actions/documents'
+import { deleteExpenseDocument, getDocumentDownloadUrl } from '@/lib/actions/documents'
 import { toast } from 'sonner'
 
 interface DocumentViewerProps {
@@ -59,17 +58,25 @@ export function DocumentViewer({ documents, onDocumentsChange }: DocumentViewerP
     }
   }
 
-  const handleDownload = (doc: ExpenseDocument) => {
-    // In a real app, you would fetch the signed download URL from the server
-    // For now, we'll construct the public URL
-    const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const url = `${baseUrl}/storage/v1/object/public/expense-documents/${doc.file_path}`
+  const handleDownload = async (doc: ExpenseDocument) => {
+    try {
+      const result = await getDocumentDownloadUrl(doc.id)
+      if (result.error || !result.url) {
+        toast.error(result.error || 'Download-Link konnte nicht generiert werden')
+        return
+      }
 
-    const link = document.createElement('a')
-    link.href = url
-    link.download = doc.file_name
-    link.click()
+      const link = document.createElement('a')
+      link.href = result.url
+      link.download = doc.file_name
+      link.target = '_blank'
+      link.click()
+    } catch (error) {
+      console.error('Error downloading document:', error)
+      toast.error('Fehler beim Herunterladen')
+    }
   }
+
 
   if (documents.length === 0) {
     return null
@@ -102,13 +109,6 @@ export function DocumentViewer({ documents, onDocumentsChange }: DocumentViewerP
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
                 <button
-                  onClick={() => setSelectedDocument(document)}
-                  className="p-2 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
-                  title="Vorschau anzeigen"
-                >
-                  <Eye className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
-                </button>
-                <button
                   onClick={() => handleDownload(document)}
                   className="p-2 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
                   title="Herunterladen"
@@ -139,30 +139,6 @@ export function DocumentViewer({ documents, onDocumentsChange }: DocumentViewerP
                 <span>
                   Hochgeladen: {new Date(selectedDocument.upload_date).toLocaleDateString('de-DE')}
                 </span>
-              </div>
-
-              {/* Document Preview */}
-              <div className="bg-neutral-100 dark:bg-neutral-900 rounded-lg p-4 min-h-[400px] flex items-center justify-center overflow-auto">
-                {selectedDocument.file_type.startsWith('image/') ? (
-                  <Image
-                    src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/expense-documents/${selectedDocument.file_path}`}
-                    alt={selectedDocument.file_name}
-                    width={500}
-                    height={500}
-                    className="max-w-full max-h-[500px] rounded"
-                  />
-                ) : selectedDocument.file_type === 'application/pdf' ? (
-                  <div className="text-center text-neutral-500 dark:text-neutral-400">
-                    <FileText className="w-16 h-16 mx-auto mb-2 opacity-50" />
-                    <p>PDF-Vorschau nicht verfügbar</p>
-                    <p className="text-sm mt-2">Klicken Sie auf &quot;Herunterladen&quot; um die Datei zu öffnen</p>
-                  </div>
-                ) : (
-                  <div className="text-center text-neutral-500 dark:text-neutral-400">
-                    <File className="w-16 h-16 mx-auto mb-2 opacity-50" />
-                    <p>Vorschau für diesen Dateityp nicht verfügbar</p>
-                  </div>
-                )}
               </div>
 
               {/* Extracted Text */}

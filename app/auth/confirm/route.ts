@@ -18,6 +18,9 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get('type') as EmailOtpType | null
   const next = searchParams.get('next') ?? '/dashboard'
 
+  // Validate redirect URL to prevent open redirect attacks
+  const safeNext = isSafeRedirect(next) ? next : '/dashboard'
+
   if (token_hash && type) {
     const supabase = await createClient()
     const { error } = await supabase.auth.verifyOtp({
@@ -27,10 +30,25 @@ export async function GET(request: NextRequest) {
 
     if (!error) {
       // Redirect user to specified redirect URL or dashboard
-      redirect(next)
+      redirect(safeNext)
     }
   }
 
   // Redirect the user to an error page with some instructions
   redirect('/error')
+}
+
+/**
+ * Validates that a redirect URL is safe (prevents open redirect attacks)
+ * Only allows relative URLs starting with / and not containing //
+ */
+function isSafeRedirect(url: string): boolean {
+  if (!url) return false
+  // Must start with /
+  if (!url.startsWith('/')) return false
+  // Must not contain // (protocol or domain)
+  if (url.includes('//')) return false
+  // Must not contain common protocol prefixes
+  if (url.toLowerCase().includes('http:') || url.toLowerCase().includes('https:')) return false
+  return true
 }

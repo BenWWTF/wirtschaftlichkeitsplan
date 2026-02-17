@@ -203,7 +203,7 @@ export function CohortAnalysis({
           <span className="text-neutral-600 dark:text-neutral-400">Ausgezeichnet (&gt;75%)</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-blue-100 dark:bg-blue-900/30" />
+          <div className="w-4 h-4 rounded bg-accent-100 dark:bg-accent-900/30" />
           <span className="text-neutral-600 dark:text-neutral-400">Gut (50-75%)</span>
         </div>
         <div className="flex items-center gap-2">

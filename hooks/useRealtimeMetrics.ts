@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/utils/supabase/client'
 import { getAdvancedAnalytics, type AdvancedAnalytics } from '@/lib/actions/analytics'
 
 interface UseRealtimeMetricsOptions {

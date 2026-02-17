@@ -104,7 +104,7 @@ export async function exportToExcel(
     // Add metadata sheet
     const metadataSheet = XLSX.utils.json_to_sheet([
       { 'Eigenschaft': 'Erstellt am', 'Wert': format(new Date(), 'dd.MM.yyyy HH:mm:ss', { locale: de }) },
-      { 'Eigenschaft': 'Anwendung', 'Wert': 'Wirtschaftlichkeitsplan' },
+      { 'Eigenschaft': 'Anwendung', 'Wert': 'Ordi Pro' },
       { 'Eigenschaft': 'Version', 'Wert': '1.0' }
     ])
     metadataSheet['!cols'] = [{ wch: 20 }, { wch: 30 }]

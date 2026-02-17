@@ -78,27 +78,34 @@ export function BillScanner({ open, onOpenChange, onSuggestion }: BillScannerPro
 
     setIsProcessing(true)
     try {
-      toast.loading('OCR wird ausgeführt... Dies kann eine Weile dauern')
+      const loadingToast = toast.loading('OCR wird ausgeführt... Dies kann eine Weile dauern')
 
-      // Convert file to base64
+      // Convert file to base64 (chunk-safe for large files)
       const arrayBuffer = await selectedFile.arrayBuffer()
       const bytes = new Uint8Array(arrayBuffer)
-      const binary = String.fromCharCode.apply(null, Array.from(bytes))
+      let binary = ''
+      const chunkSize = 8192
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        const chunk = bytes.subarray(i, i + chunkSize)
+        binary += String.fromCharCode(...chunk)
+      }
       const base64 = btoa(binary)
 
       // Extract text using client-side OCR (Tesseract.js)
       let extractedText = ''
       try {
         extractedText = await extractTextFromImage(base64, selectedFile.type)
+        toast.dismiss(loadingToast)
         toast.success('Text erkannt')
       } catch (ocrError) {
         console.error('OCR extraction failed:', ocrError)
+        toast.dismiss(loadingToast)
         toast.warning('OCR-Extraktion fehlgeschlagen, verwende Fallback')
         extractedText = 'Rechnung konnte nicht ganz erfolgreich gescannt werden'
       }
 
-      // Parse the extracted text using server action
-      const result = await parseBillImage(base64, extractedText)
+      // Parse the extracted text using server action (no need to send base64)
+      const result = await parseBillImage(null, extractedText)
 
       if (result.error) {
         toast.error(result.error)
@@ -264,14 +271,14 @@ export function BillScanner({ open, onOpenChange, onSuggestion }: BillScannerPro
               </div>
 
               {/* Info Box */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 space-y-2">
+              <div className="bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800 rounded-lg p-4 space-y-2">
                 <div className="flex gap-2">
-                  <Zap className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                  <Zap className="w-5 h-5 text-accent-600 dark:text-accent-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-blue-900 dark:text-blue-200">
+                    <p className="text-sm font-medium text-accent-900 dark:text-accent-200">
                       OCR-gestützte Rechnungserkennung
                     </p>
-                    <p className="text-xs text-blue-800 dark:text-blue-300 mt-1">
+                    <p className="text-xs text-accent-800 dark:text-accent-300 mt-1">
                       Verwendet Tesseract.js für lokale Textextraktion. Machen Sie ein klares Foto der Rechnung. Die OCR-Verarbeitung erfolgt in Ihrem Browser.
                     </p>
                   </div>

@@ -64,32 +64,44 @@ export async function getAdvancedAnalytics(): Promise<AdvancedAnalytics | null> 
   }
 
   try {
-    // Get last 3 months of data for trends
-    const today = new Date()
-    const threeMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 2, 1)
-    const threeMonthsAgoStr = threeMonthsAgo.toISOString().split('T')[0]
-
     // Fetch therapy types
     const { data: therapies } = await supabase
       .from('therapy_types')
       .select('*')
       .eq('user_id', user.id)
 
-    // Fetch monthly plans for last 3 months
+    // Fetch ALL monthly plans (not just last 3 months)
     const { data: monthlyPlans } = await supabase
       .from('monthly_plans')
       .select('*')
       .eq('user_id', user.id)
-      .gte('month', threeMonthsAgoStr)
 
-    // Fetch expenses
+    // Fetch ALL expenses (not just last 3 months)
     const { data: expenses } = await supabase
       .from('expenses')
       .select('*')
       .eq('user_id', user.id)
-      .gte('month', threeMonthsAgoStr)
 
-    if (!therapies || !monthlyPlans || !expenses) {
+    console.log('[getAdvancedAnalytics] Data loaded:', {
+      therapies: therapies?.length,
+      monthlyPlans: monthlyPlans?.length,
+      expenses: expenses?.length,
+    })
+
+    // Log first plan to see structure
+    if (monthlyPlans && monthlyPlans.length > 0) {
+      console.log('[getAdvancedAnalytics] First plan:', monthlyPlans[0])
+    }
+
+    // Allow empty expenses but need therapies and plans
+    if (!therapies || !monthlyPlans) {
+      console.log('[getAdvancedAnalytics] Missing required data, returning null')
+      return null
+    }
+
+    // If no monthly plans, return null
+    if (monthlyPlans.length === 0) {
+      console.log('[getAdvancedAnalytics] No monthly plans found, returning null')
       return null
     }
 
@@ -108,20 +120,36 @@ export async function getAdvancedAnalytics(): Promise<AdvancedAnalytics | null> 
 
     // Group expenses by month
     const expensesByMonth = new Map<string, typeof expenses>()
-    expenses.forEach(exp => {
-      const month = exp.month.substring(0, 7)
-      if (!expensesByMonth.has(month)) {
-        expensesByMonth.set(month, [])
-      }
-      expensesByMonth.get(month)!.push(exp)
-    })
+    if (expenses) {
+      expenses.forEach((exp: any) => {
+        // Handle both 'month' and 'expense_date' fields
+        const dateStr = exp.month || exp.expense_date
+        if (!dateStr) return
+        const month = dateStr.substring(0, 7)
+        if (!expensesByMonth.has(month)) {
+          expensesByMonth.set(month, [])
+        }
+        expensesByMonth.get(month)!.push(exp)
+      })
+    }
 
     const months = Array.from(plansByMonth.keys()).sort()
+
+    console.log('[getAdvancedAnalytics] Months found:', months)
 
     // Calculate metrics for each month
     const monthlyMetrics = months.map(month => {
       const plans = plansByMonth.get(month) || []
       const exps = expensesByMonth.get(month) || []
+
+      console.log(`[getAdvancedAnalytics] Month ${month}: ${plans.length} plans`)
+      if (plans.length > 0) {
+        console.log(`[getAdvancedAnalytics] First plan in ${month}:`, {
+          actual_sessions: plans[0].actual_sessions,
+          planned_sessions: plans[0].planned_sessions,
+          therapy_type_id: plans[0].therapy_type_id
+        })
+      }
 
       let totalPlannedSessions = 0
       let totalActualSessions = 0

@@ -42,6 +42,7 @@ export type Expense = {
   is_recurring: boolean
   recurrence_interval: 'monthly' | 'quarterly' | 'yearly' | null
   description: string | null
+  spread_monthly: boolean // annual bill distributed as monthly fixed costs (/12)
   created_at: string
   updated_at: string
 }
@@ -55,6 +56,7 @@ export type PracticeSettings = {
   average_variable_cost_per_session: number
   expected_growth_rate: number // as percentage (e.g., 5 for 5%)
   payment_processing_fee_percentage: number // SumUp payment fee percentage (default 1.39)
+  annual_revenue_goal: number | null // optional yearly net revenue target
   created_at: string
   updated_at: string
 }

@@ -6,8 +6,8 @@ import { RelatedPages } from '@/components/dashboard/related-pages'
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Monatliche Ergebnisse - Wirtschaftlichkeitsplan',
-  description: 'Vergleichen Sie geplante und tatsächliche Therapiesitzungen'
+  title: 'Ergebnisse & Analyse - Ordi Pro',
+  description: 'Erfassen Sie Ihre Ergebnisse und sehen Sie detaillierte Analysen'
 }
 
 export default async function ErgebnissePage() {

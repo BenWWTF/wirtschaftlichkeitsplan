@@ -11,6 +11,7 @@ export interface SessionImportRow {
   revenue?: number // Optional: revenue generated (if not provided, calculated from therapy type price)
   patient_type?: 'kasse' | 'privat' // Optional: patient type
   notes?: string // Optional: additional notes
+  invoice_number?: string // Latido: Rechnungsnummer for duplicate detection
 }
 
 export interface RevenueImportRow {

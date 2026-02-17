@@ -172,48 +172,48 @@ export function PlannerGrid({
       </div>
 
       {/* Summary with Fee Breakdown */}
-      <div className="bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 p-6">
-        <h3 className="font-semibold text-neutral-900 dark:text-white mb-4">
-          Zusammenfassung fuer {month}
+      <div className="bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 p-4 sm:p-6">
+        <h3 className="font-semibold text-neutral-900 dark:text-white mb-4 text-sm sm:text-base">
+          Zusammenfassung für {month}
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           <div>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
+            <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mb-1">
               Therapiearten
             </p>
-            <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+            <p className="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-white">
               {therapies.length}
             </p>
           </div>
           <div>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
+            <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mb-1">
               Geplante Sitzungen
             </p>
-            <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+            <p className="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-white">
               {totals.sessions > 0 ? totals.sessions : '---'}
             </p>
           </div>
           <div>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
+            <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mb-1">
               Bruttoumsatz
             </p>
-            <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+            <p className="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-white">
               {totals.grossRevenue > 0 ? formatEuro(totals.grossRevenue) : '---'}
             </p>
           </div>
-          <div>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
-              Zahlungsgebuehren ({totals.feePercentage}%)
+          <div className="col-span-2 sm:col-span-1">
+            <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mb-1">
+              Zahlungsgebühren ({totals.feePercentage}%)
             </p>
-            <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+            <p className="text-xl sm:text-2xl font-bold text-red-600 dark:text-red-400">
               {totals.paymentFees > 0 ? `-${formatEuro(totals.paymentFees)}` : '---'}
             </p>
           </div>
-          <div>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
+          <div className="col-span-2 sm:col-span-1">
+            <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mb-1">
               Nettoumsatz
             </p>
-            <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+            <p className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
               {totals.netRevenue > 0 ? formatEuro(totals.netRevenue) : '---'}
             </p>
           </div>

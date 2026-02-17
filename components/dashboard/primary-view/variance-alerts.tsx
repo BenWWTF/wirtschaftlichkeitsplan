@@ -36,7 +36,7 @@ export function VarianceAlerts({ alerts }: VarianceAlertsProps) {
       case 'warning':
         return 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200'
       case 'info':
-        return 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200'
+        return 'bg-accent-50 dark:bg-accent-950/20 border-accent-200 dark:border-accent-800 text-accent-800 dark:text-accent-200'
     }
   }
 
@@ -47,7 +47,7 @@ export function VarianceAlerts({ alerts }: VarianceAlertsProps) {
       case 'warning':
         return 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200'
       case 'info':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200'
+        return 'bg-accent-100 text-accent-800 dark:bg-accent-900/40 dark:text-accent-200'
     }
   }
 

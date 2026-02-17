@@ -51,7 +51,7 @@ export async function sendExportEmail(request: EmailExportRequest): Promise<{ su
       exportType: request.exportType,
       exportFormat: request.exportFormat,
       fileName: request.fileName,
-      senderName: profile?.full_name || user.email || 'Wirtschaftlichkeitsplan',
+      senderName: profile?.full_name || user.email || 'Ordi Pro',
       customMessage: request.message,
       includeScheduleInfo: request.includeScheduleInfo
     })
@@ -189,9 +189,9 @@ export async function testEmailConfiguration(recipient: string): Promise<{ succe
     const { data, error } = await supabase.functions.invoke('send-test-email', {
       body: {
         recipient: recipient,
-        subject: 'Test Email - Wirtschaftlichkeitsplan',
-        html: '<p>This is a test email from Wirtschaftlichkeitsplan export system.</p>',
-        text: 'This is a test email from Wirtschaftlichkeitsplan export system.'
+        subject: 'Test Email - Ordi Pro',
+        html: '<p>This is a test email from Ordi Pro export system.</p>',
+        text: 'This is a test email from Ordi Pro export system.'
       }
     })
 
@@ -250,7 +250,7 @@ function generateEmailTemplate(options: {
 <body>
   <div class="container">
     <div class="header">
-      <h1>Wirtschaftlichkeitsplan Export</h1>
+      <h1>Ordi Pro Export</h1>
     </div>
     <div class="content">
       <p>Hallo ${senderName},</p>
@@ -279,9 +279,9 @@ function generateEmailTemplate(options: {
       <p>Bei Fragen oder Problemen kontaktieren Sie bitte den Support.</p>
 
       <div class="footer">
-        <p>Diese E-Mail wurde automatisch von Wirtschaftlichkeitsplan generiert.</p>
+        <p>Diese E-Mail wurde automatisch von Ordi Pro generiert.</p>
         <p>Die angehängte Datei wird nach 30 Tagen automatisch gelöscht. Bitte speichern Sie diese lokal.</p>
-        <p>&copy; ${new Date().getFullYear()} Wirtschaftlichkeitsplan. Alle Rechte vorbehalten.</p>
+        <p>&copy; ${new Date().getFullYear()} Ordi Pro. Alle Rechte vorbehalten.</p>
       </div>
     </div>
   </div>
@@ -306,14 +306,14 @@ ${customMessage ? `ZUSÄTZLICHE INFORMATIONEN:\n${customMessage}\n` : ''}
 
 Bei Fragen oder Problemen kontaktieren Sie bitte den Support.
 
-Diese E-Mail wurde automatisch von Wirtschaftlichkeitsplan generiert.
+Diese E-Mail wurde automatisch von Ordi Pro generiert.
 Die angehängte Datei wird nach 30 Tagen automatisch gelöscht. Bitte speichern Sie diese lokal.
 
-Copyright ${new Date().getFullYear()} Wirtschaftlichkeitsplan. Alle Rechte vorbehalten.
+Copyright ${new Date().getFullYear()} Ordi Pro. Alle Rechte vorbehalten.
   `
 
   return {
-    subject: `Wirtschaftlichkeitsplan Export - ${reportTypeLabel}`,
+    subject: `Ordi Pro Export - ${reportTypeLabel}`,
     html,
     text
   }
@@ -407,7 +407,7 @@ Die angehängte Datei wird nach 30 Tagen automatisch gelöscht. Bitte speichern 
   `
 
   return {
-    subject: `Wirtschaftlichkeitsplan - Geplanter Export: ${scheduleName}`,
+    subject: `Ordi Pro - Geplanter Export: ${scheduleName}`,
     html,
     text
   }

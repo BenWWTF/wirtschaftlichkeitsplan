@@ -90,7 +90,7 @@ export function FilterAnalytics() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-sm text-blue-600 dark:text-blue-400">
+                    <p className="font-semibold text-sm text-accent-600 dark:text-accent-400">
                       {filter.usageCount}x
                     </p>
                     <p className="text-xs text-gray-500">verwendet</p>
@@ -133,19 +133,19 @@ export function FilterAnalytics() {
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
           <div className="flex gap-2">
-            <span className="text-blue-500">→</span>
+            <span className="text-accent-500">→</span>
             <p>Speichern Sie häufig verwendete Filter, um Zeit zu sparen</p>
           </div>
           <div className="flex gap-2">
-            <span className="text-blue-500">→</span>
+            <span className="text-accent-500">→</span>
             <p>Verwenden Sie spezifischere Filter für schnellere Ergebnisse</p>
           </div>
           <div className="flex gap-2">
-            <span className="text-blue-500">→</span>
+            <span className="text-accent-500">→</span>
             <p>Die Kombination mehrerer Filter kann die Abfragezeit erhöhen</p>
           </div>
           <div className="flex gap-2">
-            <span className="text-blue-500">→</span>
+            <span className="text-accent-500">→</span>
             <p>Vergessen Sie nicht, Standard-Filter zu setzen für schnellere Workflow</p>
           </div>
         </CardContent>

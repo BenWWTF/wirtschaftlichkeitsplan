@@ -96,8 +96,8 @@ export function ExpenseDialogEnhanced({
             <TabsContent value="scan" className="space-y-4">
               {!expense && (
                 <div className="space-y-4">
-                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                    <p className="text-sm text-blue-900 dark:text-blue-200">
+                  <div className="bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800 rounded-lg p-4">
+                    <p className="text-sm text-accent-900 dark:text-accent-200">
                       📸 Laden Sie ein Foto oder PDF einer Rechnung hoch. Unser intelligentes System wird die Ausgabedaten automatisch extrahieren.
                     </p>
                   </div>

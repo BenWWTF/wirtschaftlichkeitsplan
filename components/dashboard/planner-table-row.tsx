@@ -102,7 +102,7 @@ export function PlannerTableRow({
 
   if (isEditing) {
     return (
-      <tr className="bg-blue-50 dark:bg-blue-950/20 hover:bg-blue-100 dark:hover:bg-blue-950/30">
+      <tr className="bg-accent-50 dark:bg-accent-950/20 hover:bg-accent-100 dark:hover:bg-accent-950/30">
         <td className="px-6 py-4 text-sm font-medium text-neutral-900 dark:text-white">
           {therapy.name}
         </td>
@@ -114,7 +114,7 @@ export function PlannerTableRow({
             type="number"
             min="0"
             {...form.register('planned_sessions', { valueAsNumber: true })}
-            className="w-20 h-9 text-center"
+            className="w-20 min-h-[44px] text-center"
             placeholder="0"
           />
         </td>

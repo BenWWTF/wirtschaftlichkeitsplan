@@ -5,18 +5,20 @@ import type { ResultsRow } from '@/lib/actions/monthly-results'
 import { formatEuro } from '@/lib/utils'
 import { VarianceIndicator } from './variance-indicator'
 import { AchievementBadge } from './achievement-badge'
-import { Pencil, Check, X } from 'lucide-react'
+import { Pencil, Check, X, Trash2 } from 'lucide-react'
 
 interface EditableResultsTableRowProps {
   result: ResultsRow
   onSave: (therapyTypeId: string, actualSessions: number) => Promise<void>
+  onDelete?: (therapyTypeId: string) => Promise<void>
 }
 
-export function EditableResultsTableRow({ result, onSave }: EditableResultsTableRowProps) {
+export function EditableResultsTableRow({ result, onSave, onDelete }: EditableResultsTableRowProps) {
   const { id, therapy_type_id, therapy_name, price_per_session, planned_sessions, actual_sessions, variance, variancePercent, achievement } = result
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(actual_sessions?.toString() || '')
   const [isSaving, setIsSaving] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const handleEdit = () => {
     setEditValue(actual_sessions?.toString() || '')
@@ -45,9 +47,19 @@ export function EditableResultsTableRow({ result, onSave }: EditableResultsTable
     }
   }
 
+  const handleDelete = async () => {
+    if (!onDelete) return
+    setIsDeleting(true)
+    try {
+      await onDelete(therapy_type_id)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   if (isEditing) {
     return (
-      <tr className="bg-blue-50 dark:bg-blue-900/10 border-b border-neutral-200 dark:border-neutral-700">
+      <tr className="bg-accent-50 dark:bg-accent-900/10 border-b border-neutral-200 dark:border-neutral-700">
         <td className="px-6 py-4">
           <p className="font-medium text-neutral-900 dark:text-white">{therapy_name}</p>
           <p className="text-xs text-neutral-500 dark:text-neutral-400">{formatEuro(price_per_session)}/Sitzung</p>
@@ -61,7 +73,7 @@ export function EditableResultsTableRow({ result, onSave }: EditableResultsTable
             min="0"
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
-            className="w-16 px-2 py-1 text-center rounded border border-blue-300 dark:border-blue-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white font-semibold"
+            className="w-16 px-2 py-1 text-center rounded border border-accent-300 dark:border-accent-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white font-semibold"
             autoFocus
           />
         </td>
@@ -107,15 +119,28 @@ export function EditableResultsTableRow({ result, onSave }: EditableResultsTable
       <td className="px-6 py-4 text-center">
         <VarianceIndicator variance={variance} variancePercent={variancePercent} achievement={achievement} size="md" />
       </td>
-      <td className="px-6 py-4 text-center flex items-center justify-center gap-2">
-        <AchievementBadge achievement={achievement} size="md" />
-        <button
-          onClick={handleEdit}
-          className="ml-2 p-1 text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition-colors"
-          title="Bearbeiten"
-        >
-          <Pencil className="h-4 w-4" />
-        </button>
+      <td className="px-6 py-4 text-center">
+        <div className="flex items-center justify-center gap-2">
+          <AchievementBadge achievement={achievement} size="md" />
+          <button
+            onClick={handleEdit}
+            disabled={isDeleting}
+            className="ml-2 p-1 text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition-colors disabled:opacity-50"
+            title="Bearbeiten"
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
+          {onDelete && actual_sessions !== null && actual_sessions > 0 && (
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="p-1 text-neutral-400 hover:text-red-600 dark:text-neutral-500 dark:hover:text-red-400 transition-colors disabled:opacity-50"
+              title="Ergebnisse zurücksetzen"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </td>
     </tr>
   )

@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 
 export const metadata: Metadata = {
-  title: 'Barrierefreiheitserklärung - Wirtschaftlichkeitsplan',
+  title: 'Barrierefreiheitserklärung - Ordi Pro',
   description: 'Unsere Verpflichtung zur Barrierefreiheit und WCAG 2.1 AA Compliance',
 }
 
@@ -36,7 +36,7 @@ export default function AccessibilityPage() {
               Unsere Verpflichtung
             </h2>
             <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-              Die Wirtschaftlichkeitsplan-Anwendung soll für alle Menschen zugänglich sein,
+              Die Ordi Pro-Anwendung soll für alle Menschen zugänglich sein,
               unabhängig von ihren Fähigkeiten. Wir sind verpflichtet, digitale Barrierefreiheit
               gemäß der Web Content Accessibility Guidelines (WCAG) 2.1 Level AA zu implementieren.
             </p>
@@ -224,7 +224,7 @@ export default function AccessibilityPage() {
                   href="https://www.w3.org/WAI/WCAG21/quickref/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                  className="text-accent-600 dark:text-accent-400 hover:underline"
                 >
                   WCAG 2.1 - Web Content Accessibility Guidelines
                 </a>
@@ -234,7 +234,7 @@ export default function AccessibilityPage() {
                   href="https://www.w3.org/WAI/ARIA/apg/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                  className="text-accent-600 dark:text-accent-400 hover:underline"
                 >
                   ARIA Authoring Practices Guide
                 </a>
@@ -244,7 +244,7 @@ export default function AccessibilityPage() {
                   href="https://www.w3.org/WAI/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                  className="text-accent-600 dark:text-accent-400 hover:underline"
                 >
                   Web Accessibility Initiative (WAI)
                 </a>

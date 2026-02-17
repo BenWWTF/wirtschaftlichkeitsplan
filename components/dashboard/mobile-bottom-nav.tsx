@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Pill, Calendar, Receipt, Menu } from 'lucide-react'
+import { Home, Calendar, BarChart3, Receipt, Menu } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { MoreMenuDrawer } from '@/components/dashboard/more-menu-drawer'
@@ -21,6 +21,18 @@ const NAV_TABS: NavTab[] = [
     label: 'Übersicht',
     icon: <Home className="w-5 h-5" />,
     ariaLabel: 'Dashboard - Übersicht',
+  },
+  {
+    href: '/dashboard/planung',
+    label: 'Planung',
+    icon: <Calendar className="w-5 h-5" />,
+    ariaLabel: 'Monatliche Planung',
+  },
+  {
+    href: '/dashboard/ergebnisse',
+    label: 'Ergebnisse',
+    icon: <BarChart3 className="w-5 h-5" />,
+    ariaLabel: 'Monatliche Ergebnisse',
   },
   {
     href: '/dashboard/ausgaben',
@@ -66,20 +78,19 @@ export function MobileBottomNav({ onMoreClick }: MobileBottomNavProps) {
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
-      <div className="flex h-16 divide-x divide-neutral-100 dark:divide-accent-700/10">
+      <div className="flex h-16 items-center justify-around px-2">
         {/* Primary Nav Tabs */}
         {NAV_TABS.map((tab) => (
           <Link
             key={tab.href}
             href={tab.href}
             className={cn(
-              'flex-1 flex flex-col items-center justify-center gap-0.5 relative transition-all duration-200',
+              'flex items-center justify-center gap-1.5 relative transition-all duration-300',
               'text-xs font-medium min-h-[44px] min-w-[44px]',
-              'border-b-2 border-transparent',
               'active:scale-95',
               isActive(tab.href)
-                ? 'text-accent-700 dark:text-accent-300 border-accent-700 dark:border-accent-400'
-                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-accent-300'
+                ? 'rounded-full bg-accent-500/15 px-4 py-1.5 text-accent-700 dark:text-accent-300'
+                : 'text-neutral-400 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-accent-300'
             )}
             aria-label={tab.ariaLabel}
             aria-current={isActive(tab.href) ? 'page' : undefined}
@@ -88,7 +99,9 @@ export function MobileBottomNav({ onMoreClick }: MobileBottomNavProps) {
             <span className="flex-shrink-0 flex items-center justify-center">
               {tab.icon}
             </span>
-            <span className="truncate text-[10px]">{tab.label}</span>
+            {isActive(tab.href) && (
+              <span className="truncate text-[11px] font-semibold">{tab.label}</span>
+            )}
           </Link>
         ))}
 
@@ -98,8 +111,8 @@ export function MobileBottomNav({ onMoreClick }: MobileBottomNavProps) {
           variant="ghost"
           size="sm"
           className={cn(
-            'flex-1 h-16 flex flex-col items-center justify-center gap-0.5 rounded-none border-none',
-            'text-xs font-medium text-neutral-600 dark:text-neutral-400',
+            'flex items-center justify-center gap-1.5 rounded-none border-none',
+            'text-xs font-medium text-neutral-400 dark:text-neutral-500',
             'hover:text-neutral-900 dark:hover:text-accent-300 hover:bg-transparent',
             'min-h-[44px] min-w-[44px] active:scale-95'
           )}
@@ -109,7 +122,6 @@ export function MobileBottomNav({ onMoreClick }: MobileBottomNavProps) {
           <span className="flex-shrink-0 flex items-center justify-center">
             <Menu className="w-5 h-5" />
           </span>
-          <span className="truncate text-[10px]">Mehr</span>
         </Button>
       </div>
 

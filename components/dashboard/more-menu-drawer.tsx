@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { FileText, Calculator, Settings } from 'lucide-react'
+import { FileText, Calculator, Settings, Pill, CalendarRange } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Drawer } from '@/components/ui/drawer'
 
@@ -27,16 +27,27 @@ interface MoreNavItem {
 
 const MORE_NAV_ITEMS: MoreNavItem[] = [
   {
-    href: '/dashboard/steuerprognose',
-    label: 'Meine Steuerprognose',
-    icon: <Calculator className="w-5 h-5" />,
-    shortcut: 'Alt+S',
+    href: '/dashboard/therapien',
+    label: 'Therapiearten / Honorarnoten',
+    icon: <Pill className="w-5 h-5" />,
+    shortcut: 'Alt+T',
+  },
+  {
+    href: '/dashboard/planung-jaehrlich',
+    label: 'Jährliche Planung',
+    icon: <CalendarRange className="w-5 h-5" />,
   },
   {
     href: '/dashboard/berichte',
     label: 'Geschäftsberichte',
     icon: <FileText className="w-5 h-5" />,
     shortcut: 'Alt+R',
+  },
+  {
+    href: '/dashboard/steuerprognose',
+    label: 'Meine Steuerprognose',
+    icon: <Calculator className="w-5 h-5" />,
+    shortcut: 'Alt+S',
   },
   {
     href: '/dashboard/einstellungen',
@@ -53,7 +64,7 @@ const MORE_NAV_ITEMS: MoreNavItem[] = [
  * mobile bottom navigation.
  *
  * Features:
- * - Shows secondary nav items: Tax prediction, Reports, Settings
+ * - Shows secondary nav items not in bottom tabs
  * - Active page highlighting
  * - Keyboard shortcut hints
  * - Drag to close support

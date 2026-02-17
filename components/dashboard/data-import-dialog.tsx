@@ -402,11 +402,11 @@ export function DataImportDialog({
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                    <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                  <div className="bg-accent-50 dark:bg-accent-900/20 p-4 rounded-lg">
+                    <p className="text-sm font-medium text-accent-900 dark:text-accent-100">
                       Gültige Zeilen
                     </p>
-                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    <p className="text-2xl font-bold text-accent-600 dark:text-accent-400">
                       {preview.valid_rows}
                     </p>
                   </div>
@@ -481,7 +481,7 @@ export function DataImportDialog({
         {/* Processing Step */}
         {step === 'processing' && (
           <div className="py-12 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-600 mx-auto mb-4"></div>
             <p className="text-lg font-medium">Importiere Daten...</p>
           </div>
         )}

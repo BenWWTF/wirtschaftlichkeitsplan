@@ -42,6 +42,7 @@ export async function upsertPracticeSettingsAction(input: PracticeSettingsInput)
           average_variable_cost_per_session: validated.average_variable_cost_per_session,
           expected_growth_rate: validated.expected_growth_rate,
           payment_processing_fee_percentage: validated.payment_processing_fee_percentage,
+          annual_revenue_goal: validated.annual_revenue_goal ?? null,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id)
@@ -59,7 +60,8 @@ export async function upsertPracticeSettingsAction(input: PracticeSettingsInput)
           monthly_fixed_costs: validated.monthly_fixed_costs,
           average_variable_cost_per_session: validated.average_variable_cost_per_session,
           expected_growth_rate: validated.expected_growth_rate,
-          payment_processing_fee_percentage: validated.payment_processing_fee_percentage
+          payment_processing_fee_percentage: validated.payment_processing_fee_percentage,
+          annual_revenue_goal: validated.annual_revenue_goal ?? null
         })
         .select()
 

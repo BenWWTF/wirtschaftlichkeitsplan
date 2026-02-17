@@ -57,6 +57,7 @@ export function ExpenseFormEnhanced({ expense, onSuccess }: ExpenseFormEnhancedP
           is_recurring: expense.is_recurring,
           recurrence_interval: expense.recurrence_interval || undefined,
           description: expense.description || undefined,
+          spread_monthly: expense.spread_monthly || false,
         }
       : {
           category: '',
@@ -66,6 +67,7 @@ export function ExpenseFormEnhanced({ expense, onSuccess }: ExpenseFormEnhancedP
           is_recurring: false,
           recurrence_interval: undefined,
           description: undefined,
+          spread_monthly: false,
         },
   })
 
@@ -93,6 +95,7 @@ export function ExpenseFormEnhanced({ expense, onSuccess }: ExpenseFormEnhancedP
         is_recurring: expense.is_recurring,
         recurrence_interval: expense.recurrence_interval || undefined,
         description: expense.description || undefined,
+        spread_monthly: expense.spread_monthly || false,
       })
       setSelectedCategory(expense.category)
     } else {
@@ -104,6 +107,7 @@ export function ExpenseFormEnhanced({ expense, onSuccess }: ExpenseFormEnhancedP
         is_recurring: false,
         recurrence_interval: undefined,
         description: undefined,
+        spread_monthly: false,
       })
       setSelectedCategory('')
     }
@@ -112,6 +116,9 @@ export function ExpenseFormEnhanced({ expense, onSuccess }: ExpenseFormEnhancedP
   // Watch category changes
   const watchCategory = form.watch('category')
   const watchIsRecurring = form.watch('is_recurring')
+  const watchRecurrenceInterval = form.watch('recurrence_interval')
+  const watchAmount = form.watch('amount')
+  const watchSpreadMonthly = form.watch('spread_monthly')
 
   useEffect(() => {
     if (watchCategory !== selectedCategory) {
@@ -148,10 +155,11 @@ export function ExpenseFormEnhanced({ expense, onSuccess }: ExpenseFormEnhancedP
       try {
         const arrayBuffer = await file.arrayBuffer()
         const buffer = Buffer.from(arrayBuffer)
+        const base64Content = buffer.toString('base64')
 
         const result = await uploadExpenseDocument(expense.id, {
           name: file.name,
-          content: buffer,
+          content: base64Content,
           type: file.type
         })
 
@@ -177,6 +185,33 @@ export function ExpenseFormEnhanced({ expense, onSuccess }: ExpenseFormEnhancedP
     setIsLoading(false)
   }
 
+  const uploadFilesForExpense = async (expenseId: string) => {
+    if (uploadingFiles.length === 0) return
+
+    let successCount = 0
+    for (const file of uploadingFiles) {
+      try {
+        const arrayBuffer = await file.arrayBuffer()
+        const buffer = Buffer.from(arrayBuffer)
+        const base64Content = buffer.toString('base64')
+        const result = await uploadExpenseDocument(expenseId, {
+          name: file.name,
+          content: base64Content,
+          type: file.type
+        })
+        if (!result.error) successCount++
+        else toast.error(`${file.name}: ${result.error}`)
+      } catch (error) {
+        console.error('Upload error:', error)
+        toast.error(`Fehler beim Upload: ${file.name}`)
+      }
+    }
+    if (successCount > 0) {
+      toast.success(`${successCount} Datei(en) erfolgreich hochgeladen`)
+    }
+    setUploadingFiles([])
+  }
+
   const onSubmit = async (values: ExpenseInput) => {
     setIsLoading(true)
     try {
@@ -184,8 +219,16 @@ export function ExpenseFormEnhanced({ expense, onSuccess }: ExpenseFormEnhancedP
 
       if (expense) {
         result = await updateExpenseAction(expense.id, values)
+        if (!result.error && uploadingFiles.length > 0) {
+          await uploadFilesForExpense(expense.id)
+          await loadDocuments()
+        }
       } else {
         result = await createExpenseAction(values)
+        // Upload queued files after expense creation
+        if (!result.error && result.data?.id && uploadingFiles.length > 0) {
+          await uploadFilesForExpense(result.data.id)
+        }
       }
 
       if (result.error) {
@@ -409,87 +452,108 @@ export function ExpenseFormEnhanced({ expense, onSuccess }: ExpenseFormEnhancedP
               )}
             />
           )}
+
+          {watchIsRecurring && (watchRecurrenceInterval === 'yearly' || watchRecurrenceInterval === 'quarterly') && (
+            <FormField
+              control={form.control}
+              name="spread_monthly"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-accent-200 dark:border-accent-800 bg-accent-50/50 dark:bg-accent-950/20 p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={isLoading}
+                      aria-label="Auf 12 Monate aufteilen"
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>
+                      Auf 12 Monate aufteilen
+                    </FormLabel>
+                    <FormDescription>
+                      {watchRecurrenceInterval === 'yearly'
+                        ? 'Jahresrechnung wird als monatliche Fixkosten berechnet'
+                        : 'Quartalsrechnung wird als monatliche Fixkosten berechnet'}
+                      {watchSpreadMonthly && watchAmount > 0 && (
+                        <span className="block mt-1 font-semibold text-accent-700 dark:text-accent-300">
+                          = {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(
+                            watchRecurrenceInterval === 'yearly' ? watchAmount / 12 : watchAmount / 3
+                          )} pro Monat
+                        </span>
+                      )}
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
+          )}
         </fieldset>
 
         {/* Document Management */}
-        {expense && (
-          <div className="space-y-4 border-t pt-6">
-            <h3 className="font-semibold text-neutral-900 dark:text-white">
-              Dokumente & Belege
-            </h3>
+        <div className="space-y-4 border-t pt-6">
+          <h3 className="font-semibold text-neutral-900 dark:text-white">
+            Dokumente & Belege
+          </h3>
 
-            {/* Existing Documents */}
-            {documents.length > 0 && (
-              <DocumentViewer
-                documents={documents}
-                onDocumentsChange={loadDocuments}
-              />
-            )}
+          {/* Existing Documents (only when editing) */}
+          {expense && documents.length > 0 && (
+            <DocumentViewer
+              documents={documents}
+              onDocumentsChange={loadDocuments}
+            />
+          )}
 
-            {/* File Upload */}
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                Dateien hochladen
-              </label>
+          {/* File Upload */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+              {expense ? 'Dateien hochladen' : 'Belege anhängen (werden nach Erstellen hochgeladen)'}
+            </label>
 
-              <div className="space-y-2">
-                {uploadingFiles.length > 0 && (
-                  <div className="space-y-2">
-                    {uploadingFiles.map((file, index) => (
-                      <div
-                        key={`${file.name}-${index}`}
-                        className="flex items-center justify-between p-2 bg-neutral-50 dark:bg-neutral-800 rounded border border-neutral-200 dark:border-neutral-700"
-                      >
-                        <span className="text-sm text-neutral-600 dark:text-neutral-400 truncate">
-                          {file.name}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => removeSelectedFile(index)}
-                          className="p-1 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded"
-                        >
-                          <X className="w-4 h-4 text-neutral-500" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex gap-2">
-                  <label className="flex-1">
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*,.pdf"
-                      onChange={handleFileSelect}
-                      disabled={isLoading}
-                      className="hidden"
-                    />
-                    <span className="flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-neutral-300 dark:border-neutral-600 rounded-lg cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">
-                      <Upload className="w-4 h-4" />
-                      <span className="text-sm font-medium">Dateien auswählen</span>
-                    </span>
-                  </label>
-
-                  {uploadingFiles.length > 0 && (
-                    <Button
-                      type="button"
-                      onClick={uploadSelectedFiles}
-                      disabled={isLoading}
-                      variant="outline"
+            <div className="space-y-2">
+              {uploadingFiles.length > 0 && (
+                <div className="space-y-2">
+                  {uploadingFiles.map((file, index) => (
+                    <div
+                      key={`${file.name}-${index}`}
+                      className="flex items-center justify-between p-2 bg-neutral-50 dark:bg-neutral-800 rounded border border-neutral-200 dark:border-neutral-700"
                     >
-                      {isLoading ? 'Upload...' : 'Hochladen'}
-                    </Button>
-                  )}
+                      <span className="text-sm text-neutral-600 dark:text-neutral-400 truncate">
+                        {file.name}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeSelectedFile(index)}
+                        className="p-1 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded"
+                      >
+                        <X className="w-4 h-4 text-neutral-500" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              </div>
+              )}
 
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                Unterstützte Formate: JPG, PNG, PDF (Max. 10MB pro Datei)
-              </p>
+              <label className="block">
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,.pdf"
+                  onChange={handleFileSelect}
+                  disabled={isLoading}
+                  className="hidden"
+                />
+                <span className="flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-neutral-300 dark:border-neutral-600 rounded-lg cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">
+                  <Upload className="w-4 h-4" />
+                  <span className="text-sm font-medium">Dateien auswählen</span>
+                </span>
+              </label>
             </div>
+
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              Unterstützte Formate: JPG, PNG, PDF (Max. 10MB pro Datei)
+            </p>
           </div>
-        )}
+        </div>
 
         {/* Form Actions */}
         <div className="flex gap-2 justify-end pt-4 border-t">

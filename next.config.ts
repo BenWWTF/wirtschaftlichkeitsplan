@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
     tsconfigPath: './tsconfig.json'
   },
 
+  // Allow larger server action payloads (for OCR base64 images/PDFs)
+  serverActions: {
+    bodySizeLimit: '10mb',
+  },
+
   // Development optimization with cache-busting headers
   onDemandEntries: {
     // Period (in ms) where the server will keep pages in the buffer
@@ -14,24 +19,27 @@ const nextConfig: NextConfig = {
     pagesBufferLength: 5,
   },
 
-  // Headers for development to prevent caching issues
+  // Headers with environment-aware caching
   async headers() {
+    const isDev = process.env.NODE_ENV === 'development'
     return [
       {
         source: '/:path*',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=0, must-revalidate',
+            value: isDev ? 'public, max-age=0, must-revalidate' : 'public, max-age=3600, must-revalidate',
           },
-          {
-            key: 'Pragma',
-            value: 'no-cache',
-          },
-          {
-            key: 'Expires',
-            value: '0',
-          },
+          ...(isDev ? [
+            {
+              key: 'Pragma',
+              value: 'no-cache',
+            },
+            {
+              key: 'Expires',
+              value: '0',
+            },
+          ] : []),
           {
             key: 'X-Frame-Options',
             value: 'DENY',
@@ -47,6 +55,14 @@ const nextConfig: NextConfig = {
           {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains; preload',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://maps.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://tessdata.projectnaptha.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
           },
         ],
       },

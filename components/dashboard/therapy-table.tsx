@@ -76,7 +76,8 @@ export function TherapyTable({ therapies, onEdit, onDelete }: TherapyTableProps)
             variant="ghost"
             size="sm"
             onClick={() => onEdit(therapy)}
-            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/20"
+            className="text-accent-600 hover:text-accent-700 hover:bg-accent-50 dark:hover:bg-accent-950/20"
+            aria-label={`Therapieart ${therapy.name} bearbeiten`}
             title="Bearbeiten"
           >
             <Edit2 className="h-4 w-4" />
@@ -87,6 +88,7 @@ export function TherapyTable({ therapies, onEdit, onDelete }: TherapyTableProps)
             onClick={() => handleDeleteClick(therapy.id)}
             className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
             disabled={isDeleting}
+            aria-label={`Therapieart ${therapy.name} löschen`}
             title="Löschen"
           >
             <Trash2 className="h-4 w-4" />
@@ -126,7 +128,7 @@ export function TherapyTable({ therapies, onEdit, onDelete }: TherapyTableProps)
                     variant="ghost"
                     size="sm"
                     onClick={() => onEdit(therapy)}
-                    className="flex-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/20"
+                    className="flex-1 text-accent-600 hover:text-accent-700 hover:bg-accent-50 dark:hover:bg-accent-950/20"
                   >
                     <Edit2 className="h-4 w-4 mr-2" />
                     Bearbeiten
