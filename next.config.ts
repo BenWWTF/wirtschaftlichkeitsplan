@@ -6,11 +6,6 @@ const nextConfig: NextConfig = {
     tsconfigPath: './tsconfig.json'
   },
 
-  // Allow larger server action payloads (for OCR base64 images/PDFs)
-  serverActions: {
-    bodySizeLimit: '10mb',
-  },
-
   // Development optimization with cache-busting headers
   onDemandEntries: {
     // Period (in ms) where the server will keep pages in the buffer
