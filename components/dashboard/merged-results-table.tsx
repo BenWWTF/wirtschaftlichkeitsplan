@@ -25,6 +25,10 @@ export function MergedResultsTable({
 }: MergedResultsTableProps) {
   const [results, setResults] = useState<ResultsRow[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [batchEditMode, setBatchEditMode] = useState(false)
+  const [batchEditValue, setBatchEditValue] = useState('')
+  const [batchEditType, setBatchEditType] = useState<'set' | 'add' | 'subtract'>('set')
 
   // Load monthly plans and convert to results format
   useEffect(() => {
@@ -196,6 +200,87 @@ export function MergedResultsTable({
     }
   }
 
+  // Handle batch editing
+  const handleBatchApply = async () => {
+    if (selectedIds.size === 0 || !batchEditValue) {
+      toast.error('Bitte wählen Sie Therapien und geben Sie einen Wert ein')
+      return
+    }
+
+    const numValue = parseInt(batchEditValue) || 0
+    let updated = 0
+
+    for (const resultId of selectedIds) {
+      const result = results.find(r => r.id === resultId)
+      if (!result) continue
+
+      let newValue = numValue
+      if (batchEditType === 'add') {
+        newValue = (result.actual_sessions || 0) + numValue
+      } else if (batchEditType === 'subtract') {
+        newValue = Math.max(0, (result.actual_sessions || 0) - numValue)
+      }
+
+      try {
+        await updateActualSessions(result.therapy_type_id, month, newValue)
+        updated++
+      } catch (error) {
+        console.error('Error updating:', error)
+      }
+    }
+
+    if (updated > 0) {
+      toast.success(`${updated} Therapien aktualisiert`)
+      setSelectedIds(new Set())
+      setBatchEditMode(false)
+      setBatchEditValue('')
+      // Reload data
+      const plans = await getMonthlyPlansWithTherapies(month)
+      const filtered = plans.filter(p => p.planned_sessions > 0)
+      const enriched: ResultsRow[] = filtered.map(plan => {
+        const actual = plan.actual_sessions || 0
+        const planned = plan.planned_sessions
+        const variance = actual - planned
+        const variancePercent = planned > 0 ? Math.round((variance / planned) * 100) : 0
+        const achievement = planned > 0 ? Math.round((actual / planned) * 100) : (actual > 0 ? 100 : 0)
+        const pricePerSession = plan.therapy_types?.price_per_session || 0
+        return {
+          id: plan.id,
+          therapy_type_id: plan.therapy_type_id,
+          therapy_name: plan.therapy_types?.name || 'Gelöschte Therapieart',
+          price_per_session: pricePerSession,
+          planned_sessions: planned,
+          actual_sessions: actual,
+          variance,
+          variancePercent,
+          achievement,
+          planned_revenue: planned * pricePerSession,
+          actual_revenue: actual * pricePerSession
+        }
+      })
+      setResults(enriched)
+      onDataChange?.()
+    }
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === results.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(results.map(r => r.id)))
+    }
+  }
+
+  const toggleSelect = (id: string) => {
+    const newSelected = new Set(selectedIds)
+    if (newSelected.has(id)) {
+      newSelected.delete(id)
+    } else {
+      newSelected.add(id)
+    }
+    setSelectedIds(newSelected)
+  }
+
   if (therapies.length === 0) {
     return (
       <EmptyState
@@ -223,12 +308,79 @@ export function MergedResultsTable({
 
   return (
     <div className="space-y-6">
+      {/* Batch Edit Toolbar */}
+      {selectedIds.size > 0 && (
+        <div className="bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-900 rounded-lg p-4">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="font-medium text-neutral-900 dark:text-white">
+                {selectedIds.size} Therapie{selectedIds.size > 1 ? 'n' : ''} ausgewählt
+              </p>
+              <button
+                onClick={() => {
+                  setSelectedIds(new Set())
+                  setBatchEditMode(false)
+                }}
+                className="text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+              >
+                Abbrechen
+              </button>
+            </div>
+
+            {!batchEditMode ? (
+              <button
+                onClick={() => setBatchEditMode(true)}
+                className="w-full px-4 py-2 bg-accent-600 hover:bg-accent-700 text-white rounded font-medium text-sm transition-colors"
+              >
+                Bearbeiten
+              </button>
+            ) : (
+              <div className="space-y-2">
+                <div className="grid grid-cols-3 gap-2">
+                  <select
+                    value={batchEditType}
+                    onChange={(e) => setBatchEditType(e.target.value as any)}
+                    className="px-3 py-2 rounded border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white text-sm"
+                  >
+                    <option value="set">Setzen auf</option>
+                    <option value="add">Hinzufügen</option>
+                    <option value="subtract">Subtrahieren</option>
+                  </select>
+                  <input
+                    type="number"
+                    min="0"
+                    value={batchEditValue}
+                    onChange={(e) => setBatchEditValue(e.target.value)}
+                    placeholder="Wert"
+                    className="px-3 py-2 rounded border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white text-sm"
+                  />
+                  <button
+                    onClick={handleBatchApply}
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-medium text-sm transition-colors"
+                  >
+                    Anwenden
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Desktop Table View (hidden on mobile) */}
       <div className="hidden md:block bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
         <table className="w-full">
           {/* Header */}
           <thead className="bg-neutral-50 dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-700">
             <tr>
+              <th className="px-4 py-4 text-left">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.size === results.length && results.length > 0}
+                  onChange={toggleSelectAll}
+                  className="rounded border-neutral-300 text-accent-600 cursor-pointer"
+                />
+              </th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-neutral-900 dark:text-white">
                 Therapieart
               </th>
@@ -253,13 +405,21 @@ export function MergedResultsTable({
           {/* Body */}
           <tbody className="divide-y divide-neutral-200 dark:divide-neutral-700">
             {results.map((result) => (
-              <EditableResultsTableRow key={result.id} result={result} onSave={handleSaveActualSessions} onDelete={handleDeleteActualSessions} />
+              <EditableResultsTableRow
+                key={result.id}
+                result={result}
+                onSave={handleSaveActualSessions}
+                onDelete={handleDeleteActualSessions}
+                isSelected={selectedIds.has(result.id)}
+                onSelect={() => toggleSelect(result.id)}
+              />
             ))}
           </tbody>
 
           {/* Footer with totals */}
           <tfoot className="bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-700">
             <tr>
+              <td className="px-4 py-4" />
               <td className="px-6 py-4 text-sm font-semibold text-neutral-900 dark:text-white">
                 GESAMT
               </td>

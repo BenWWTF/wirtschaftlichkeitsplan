@@ -11,9 +11,11 @@ interface EditableResultsTableRowProps {
   result: ResultsRow
   onSave: (therapyTypeId: string, actualSessions: number) => Promise<void>
   onDelete?: (therapyTypeId: string) => Promise<void>
+  isSelected?: boolean
+  onSelect?: () => void
 }
 
-export function EditableResultsTableRow({ result, onSave, onDelete }: EditableResultsTableRowProps) {
+export function EditableResultsTableRow({ result, onSave, onDelete, isSelected = false, onSelect }: EditableResultsTableRowProps) {
   const { id, therapy_type_id, therapy_name, price_per_session, planned_sessions, actual_sessions, variance, variancePercent, achievement } = result
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(actual_sessions?.toString() || '')
@@ -60,6 +62,16 @@ export function EditableResultsTableRow({ result, onSave, onDelete }: EditableRe
   if (isEditing) {
     return (
       <tr className="bg-accent-50 dark:bg-accent-900/10 border-b border-neutral-200 dark:border-neutral-700 align-top">
+        <td className="px-4 py-4 align-top">
+          {onSelect && (
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={onSelect}
+              className="rounded border-neutral-300 text-accent-600 cursor-pointer"
+            />
+          )}
+        </td>
         <td className="px-6 py-4 align-top">
           <p className="font-medium text-neutral-900 dark:text-white">{therapy_name}</p>
         </td>
@@ -107,7 +119,17 @@ export function EditableResultsTableRow({ result, onSave, onDelete }: EditableRe
   }
 
   return (
-    <tr className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-700 transition-colors align-top">
+    <tr className={`hover:bg-neutral-50 dark:hover:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-700 transition-colors align-top ${isSelected ? 'bg-accent-50 dark:bg-accent-900/10' : ''}`}>
+      <td className="px-4 py-4 align-top">
+        {onSelect && (
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={onSelect}
+            className="rounded border-neutral-300 text-accent-600 cursor-pointer"
+          />
+        )}
+      </td>
       <td className="px-6 py-4 align-top">
         <p className="font-medium text-neutral-900 dark:text-white">{therapy_name}</p>
       </td>

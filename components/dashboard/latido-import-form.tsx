@@ -2,20 +2,23 @@
 
 import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Upload, CheckCircle2, AlertCircle, FileSpreadsheet } from 'lucide-react'
+import { Upload, CheckCircle2, AlertCircle, FileSpreadsheet, History } from 'lucide-react'
 import { toast } from 'sonner'
 import { parseLatidoExcel, processLatidoSessions } from '@/lib/actions/latido-import'
+import { LatidoImportHistory } from './latido-import-history'
 
 interface LatidoImportFormProps {
   onImportComplete?: (importedMonths?: string[]) => void
 }
 
 type ImportStep = 'upload' | 'preview' | 'processing' | 'complete'
+type ViewMode = 'upload' | 'history'
 
 export function LatidoImportForm({ onImportComplete }: LatidoImportFormProps) {
   const [isDragActive, setIsDragActive] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState<ImportStep>('upload')
+  const [viewMode, setViewMode] = useState<ViewMode>('upload')
   const [fileName, setFileName] = useState<string>('')
   const [preview, setPreview] = useState<{
     sessionCount: number
@@ -199,7 +202,44 @@ export function LatidoImportForm({ onImportComplete }: LatidoImportFormProps) {
 
   return (
     <div className="space-y-6">
-      {step === 'upload' && (
+      {/* Tab Toggle */}
+      <div className="flex gap-2 border-b border-neutral-200 dark:border-neutral-700">
+        <button
+          onClick={() => setViewMode('upload')}
+          className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+            viewMode === 'upload'
+              ? 'border-accent-600 text-accent-600 dark:text-accent-400'
+              : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-300'
+          }`}
+        >
+          <Upload className="h-4 w-4 inline mr-2" />
+          Datei hochladen
+        </button>
+        <button
+          onClick={() => setViewMode('history')}
+          className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+            viewMode === 'history'
+              ? 'border-accent-600 text-accent-600 dark:text-accent-400'
+              : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-300'
+          }`}
+        >
+          <History className="h-4 w-4 inline mr-2" />
+          Importhistorie
+        </button>
+      </div>
+
+      {/* History View */}
+      {viewMode === 'history' && (
+        <LatidoImportHistory onImportRemoved={() => {
+          toast.success('Import entfernt und Sitzungen aktualisiert')
+          onImportComplete?.()
+        }} />
+      )}
+
+      {/* Upload View */}
+      {viewMode === 'upload' && (
+        <>
+          {step === 'upload' && (
         <>
           {/* Upload Area */}
           <div
@@ -358,6 +398,8 @@ export function LatidoImportForm({ onImportComplete }: LatidoImportFormProps) {
             </div>
           )}
         </div>
+      )}
+        </>
       )}
     </div>
   )
