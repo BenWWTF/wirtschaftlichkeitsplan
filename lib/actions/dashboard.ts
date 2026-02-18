@@ -148,8 +148,18 @@ export async function getMonthlyMetrics(month: string): Promise<MonthlyMetrics |
     totalActualMargin += actualMargin
   }
 
-  // Calculate total expenses for this month
-  const monthlyExpenses = expenses?.reduce((sum, e) => sum + e.amount, 0) || 0
+  // Calculate total expenses for this month, applying spread_monthly logic
+  const monthlyExpenses = expenses?.reduce((sum, e) => {
+    // If expense is marked to spread monthly, apply the divisor
+    if (e.spread_monthly) {
+      if (e.recurrence_interval === 'yearly') {
+        return sum + (e.amount / 12)
+      } else if (e.recurrence_interval === 'quarterly') {
+        return sum + (e.amount / 3)
+      }
+    }
+    return sum + e.amount
+  }, 0) || 0
 
   // Apply payment fee to calculate net values
   const totalPlannedRevenueAfterFees = calculateNetRevenue(totalPlannedRevenue, paymentFeePercentage)
@@ -327,6 +337,7 @@ export async function getMonthlyMetricsRange(
   }
 
   // Add expenses - normalize to YYYY-MM-DD to match monthlyData keys
+  // Apply spread_monthly logic for annual/quarterly expenses
   if (expenses) {
     for (const expense of expenses) {
       const expenseMonth = String(expense.expense_date).slice(0, 7)
@@ -335,7 +346,16 @@ export async function getMonthlyMetricsRange(
         key => key.slice(0, 7) === expenseMonth
       )
       if (matchingKey) {
-        monthlyData[matchingKey].total_expenses += expense.amount
+        // Calculate actual monthly amount considering spread_monthly flag
+        let monthlyAmount = expense.amount
+        if (expense.spread_monthly) {
+          if (expense.recurrence_interval === 'yearly') {
+            monthlyAmount = expense.amount / 12
+          } else if (expense.recurrence_interval === 'quarterly') {
+            monthlyAmount = expense.amount / 3
+          }
+        }
+        monthlyData[matchingKey].total_expenses += monthlyAmount
       }
     }
   }
@@ -475,7 +495,18 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
 
   const totalRevenue = therapyMetrics.reduce((sum, t) => sum + t.total_revenue, 0)
   const totalRevenueAfterFees = calculateNetRevenue(totalRevenue, paymentFeePercentage)
-  const totalExpenses = expenses?.reduce((sum, e) => sum + e.amount, 0) || 0
+  // Calculate total expenses, applying spread_monthly logic for annual/quarterly expenses
+  const totalExpenses = expenses?.reduce((sum, e) => {
+    // If expense is marked to spread monthly, apply the divisor
+    if (e.spread_monthly) {
+      if (e.recurrence_interval === 'yearly') {
+        return sum + (e.amount / 12)
+      } else if (e.recurrence_interval === 'quarterly') {
+        return sum + (e.amount / 3)
+      }
+    }
+    return sum + e.amount
+  }, 0) || 0
   const totalSessions = therapyMetrics.reduce(
     (sum, t) => sum + t.total_actual_sessions,
     0

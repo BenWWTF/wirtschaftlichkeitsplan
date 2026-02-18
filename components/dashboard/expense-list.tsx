@@ -139,11 +139,22 @@ export function ExpenseList({ expenses: initialExpenses }: ExpenseListProps) {
     return Array.from(cats).sort()
   }, [expenses])
 
-  // Calculate fixed costs (recurring expenses)
+  // Calculate fixed costs (recurring expenses) with monthly spread applied
   const fixedCosts = useMemo(() => {
     return expenses
       .filter((exp) => exp.is_recurring)
-      .reduce((sum, exp) => sum + parseFloat(exp.amount.toString()), 0)
+      .reduce((sum, exp) => {
+        const amount = parseFloat(exp.amount.toString())
+        // Apply spread monthly logic if enabled
+        if (exp.spread_monthly) {
+          if (exp.recurrence_interval === 'yearly') {
+            return sum + (amount / 12)
+          } else if (exp.recurrence_interval === 'quarterly') {
+            return sum + (amount / 3)
+          }
+        }
+        return sum + amount
+      }, 0)
   }, [expenses])
 
   // Calculate investment costs (one-time, larger amounts)
