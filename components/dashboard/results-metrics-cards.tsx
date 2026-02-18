@@ -65,7 +65,7 @@ export function ResultsMetricsCards({
     : <TrendingDown className="h-6 w-6 text-red-600 dark:text-red-400" />
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
       {/* Total Revenue Card */}
       <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-6">
         <div className="flex items-start justify-between mb-3">

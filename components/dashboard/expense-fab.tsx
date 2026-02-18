@@ -68,7 +68,7 @@ export function ExpenseFab() {
         onClick={handleClick}
         className={`
           fixed z-40
-          bottom-24 right-4 md:bottom-6 md:right-6
+          bottom-20 right-4 md:bottom-6 md:right-6
           w-14 h-14 rounded-full
           bg-accent-600/90 backdrop-blur-lg
           shadow-lg shadow-accent-500/25
@@ -82,7 +82,8 @@ export function ExpenseFab() {
         style={{
           transitionTimingFunction: mounted
             ? 'cubic-bezier(0.34, 1.56, 0.64, 1)'
-            : 'ease-out'
+            : 'ease-out',
+          paddingBottom: 'env(safe-area-inset-bottom)',
         }}
         aria-label={fabAction.label}
         title={fabAction.label}

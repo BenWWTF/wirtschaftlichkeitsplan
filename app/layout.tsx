@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Toaster } from 'sonner'
 import { Source_Sans_3 } from 'next/font/google'
 import './globals.css'
@@ -10,6 +10,14 @@ const sourceSans = Source_Sans_3({
   variable: '--font-source-sans',
   subsets: ['latin']
 })
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+}
 
 export const metadata: Metadata = {
   title: 'Ordi Pro',
