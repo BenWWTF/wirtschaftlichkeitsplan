@@ -122,7 +122,11 @@ export async function exportExpensesAction() {
 
     // Convert workbook to buffer
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' })
-    zip.file('Ausgaben.xlsx', Buffer.from(excelBuffer))
+    // Ensure we have a proper buffer for JSZip
+    const excelData = excelBuffer instanceof Uint8Array
+      ? Buffer.from(excelBuffer)
+      : Buffer.from(new Uint8Array(excelBuffer as any))
+    zip.file('Ausgaben.xlsx', excelData)
 
     // Add documents to ZIP
     if (documents && documents.length > 0) {
@@ -159,10 +163,24 @@ export async function exportExpensesAction() {
     }
 
     // Generate ZIP file
-    const zipBuffer = await zip.generateAsync({ type: 'arraybuffer' })
+    let zipBuffer: ArrayBuffer
+    try {
+      zipBuffer = await zip.generateAsync({ type: 'arraybuffer' })
+    } catch (zipError) {
+      console.error('ZIP generation failed:', zipError)
+      return { error: 'Fehler beim Erstellen der ZIP-Datei' }
+    }
 
-    // Return ZIP file as base64 string
-    const base64 = Buffer.from(zipBuffer).toString('base64')
+    // Convert to base64
+    let base64: string
+    try {
+      const zipArrayBuffer = new Uint8Array(zipBuffer)
+      base64 = Buffer.from(zipArrayBuffer).toString('base64')
+    } catch (encodeError) {
+      console.error('Base64 encoding failed:', encodeError)
+      return { error: 'Fehler beim Kodieren der ZIP-Datei' }
+    }
+
     const timestamp = format(new Date(), 'yyyy-MM-dd_HH-mm-ss')
     const filename = `Ausgaben_Export_${timestamp}.zip`
 
