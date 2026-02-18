@@ -22,7 +22,6 @@ build
 *.swo
 *~
 .DS_Store
-.env.example
 
 # Testing
 coverage
