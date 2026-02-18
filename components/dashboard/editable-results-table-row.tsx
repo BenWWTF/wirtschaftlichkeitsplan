@@ -59,15 +59,17 @@ export function EditableResultsTableRow({ result, onSave, onDelete }: EditableRe
 
   if (isEditing) {
     return (
-      <tr className="bg-accent-50 dark:bg-accent-900/10 border-b border-neutral-200 dark:border-neutral-700">
-        <td className="px-6 py-4">
+      <tr className="bg-accent-50 dark:bg-accent-900/10 border-b border-neutral-200 dark:border-neutral-700 align-top">
+        <td className="px-6 py-4 align-top">
           <p className="font-medium text-neutral-900 dark:text-white">{therapy_name}</p>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">{formatEuro(price_per_session)}/Sitzung</p>
         </td>
-        <td className="px-6 py-4 text-center font-semibold text-neutral-900 dark:text-white">
+        <td className="px-6 py-4 text-center font-semibold text-neutral-900 dark:text-white align-top">
+          {formatEuro(price_per_session)}
+        </td>
+        <td className="px-6 py-4 text-center font-semibold text-neutral-900 dark:text-white align-top">
           {planned_sessions}
         </td>
-        <td className="px-6 py-4 text-center">
+        <td className="px-6 py-4 text-center align-top">
           <input
             type="number"
             min="0"
@@ -77,11 +79,11 @@ export function EditableResultsTableRow({ result, onSave, onDelete }: EditableRe
             autoFocus
           />
         </td>
-        <td className="px-6 py-4 text-center text-neutral-600 dark:text-neutral-400">
+        <td className="px-6 py-4 text-center text-neutral-600 dark:text-neutral-400 align-top">
           -
         </td>
-        <td className="px-6 py-4 text-center">
-          <div className="flex items-center justify-center gap-2">
+        <td className="px-6 py-4 text-center align-top">
+          <div className="flex items-start justify-center gap-2">
             <button
               onClick={handleSave}
               disabled={isSaving}
@@ -105,22 +107,24 @@ export function EditableResultsTableRow({ result, onSave, onDelete }: EditableRe
   }
 
   return (
-    <tr className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-700 transition-colors">
-      <td className="px-6 py-4">
+    <tr className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-700 transition-colors align-top">
+      <td className="px-6 py-4 align-top">
         <p className="font-medium text-neutral-900 dark:text-white">{therapy_name}</p>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400">{formatEuro(price_per_session)}/Sitzung</p>
       </td>
-      <td className="px-6 py-4 text-center font-semibold text-neutral-900 dark:text-white">
+      <td className="px-6 py-4 text-center font-semibold text-neutral-900 dark:text-white align-top">
+        {formatEuro(price_per_session)}
+      </td>
+      <td className="px-6 py-4 text-center font-semibold text-neutral-900 dark:text-white align-top">
         {planned_sessions}
       </td>
-      <td className="px-6 py-4 text-center font-semibold text-neutral-900 dark:text-white">
+      <td className="px-6 py-4 text-center font-semibold text-neutral-900 dark:text-white align-top">
         {actual_sessions}
       </td>
-      <td className="px-6 py-4 text-center">
+      <td className="px-6 py-4 text-center align-top">
         <VarianceIndicator variance={variance} variancePercent={variancePercent} achievement={achievement} size="md" />
       </td>
-      <td className="px-6 py-4 text-center">
-        <div className="flex items-center justify-center gap-2">
+      <td className="px-6 py-4 text-center align-top">
+        <div className="flex items-start justify-center gap-2">
           <AchievementBadge achievement={achievement} size="md" />
           <button
             onClick={handleEdit}
