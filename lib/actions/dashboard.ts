@@ -107,7 +107,7 @@ export async function getMonthlyMetrics(month: string): Promise<MonthlyMetrics |
 
   const { data: expenses, error: expensesError } = await supabase
     .from('expenses')
-    .select('amount')
+    .select('amount, spread_monthly, recurrence_interval')
     .eq('user_id', user.id)
     .gte('expense_date', monthDate)
     .lt('expense_date', nextMonthStr)
@@ -283,7 +283,7 @@ export async function getMonthlyMetricsRange(
   // Get all expenses
   const { data: expenses } = await supabase
     .from('expenses')
-    .select('amount, expense_date')
+    .select('amount, expense_date, spread_monthly, recurrence_interval')
     .eq('user_id', user.id)
 
   // Group by month
@@ -490,7 +490,7 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
   // Get all expenses
   const { data: expenses } = await supabase
     .from('expenses')
-    .select('amount')
+    .select('amount, spread_monthly, recurrence_interval')
     .eq('user_id', user.id)
 
   const totalRevenue = therapyMetrics.reduce((sum, t) => sum + t.total_revenue, 0)
